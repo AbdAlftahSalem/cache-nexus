@@ -126,5 +126,173 @@ void main() {
         throwsException,
       );
     });
+
+    group('Phase 2: Cache Policies', () {
+      test('cacheFirst: returns cache if available and not expired', () async {
+        await cache.set(key: 'key', data: 'cached_value');
+        var fetchCount = 0;
+        final result = await cache.get(
+          key: 'key',
+          fetcher: () async {
+            fetchCount++;
+            return 'fetched_value';
+          },
+          policy: CachePolicy.cacheFirst,
+        );
+        expect(result, 'cached_value');
+        expect(fetchCount, 0);
+      });
+
+      test('cacheFirst: fetches if cache is missing', () async {
+        var fetchCount = 0;
+        final result = await cache.get(
+          key: 'key',
+          fetcher: () async {
+            fetchCount++;
+            return 'fetched_value';
+          },
+          policy: CachePolicy.cacheFirst,
+        );
+        expect(result, 'fetched_value');
+        expect(fetchCount, 1);
+      });
+
+      test('networkFirst: returns fetched data on success', () async {
+        await cache.set(key: 'key', data: 'cached_value');
+        var fetchCount = 0;
+        final result = await cache.get(
+          key: 'key',
+          fetcher: () async {
+            fetchCount++;
+            return 'fetched_value';
+          },
+          policy: CachePolicy.networkFirst,
+        );
+        expect(result, 'fetched_value');
+        expect(fetchCount, 1);
+
+        // Verify cache updated
+        final entry = await storage.read('key');
+        expect(entry?.data, 'fetched_value');
+      });
+
+      test('networkFirst: falls back to cache on fetch error', () async {
+        await cache.set(key: 'key', data: 'cached_value');
+        final result = await cache.get<String>(
+          key: 'key',
+          fetcher: () async => throw Exception('Fetch failed'),
+          policy: CachePolicy.networkFirst,
+        );
+        expect(result, 'cached_value');
+      });
+
+      test('cacheOnly: returns cache if exists', () async {
+        await cache.set(key: 'key', data: 'cached_value');
+        final result = await cache.get(
+          key: 'key',
+          fetcher: () async => 'fetched',
+          policy: CachePolicy.cacheOnly,
+        );
+        expect(result, 'cached_value');
+      });
+
+      test('cacheOnly: throws exception if cache missing', () async {
+        expect(
+          () => cache.get(
+            key: 'missing',
+            fetcher: () async => 'fetched',
+            policy: CachePolicy.cacheOnly,
+          ),
+          throwsException,
+        );
+      });
+
+      test('networkOnly: always fetches', () async {
+        await cache.set(key: 'key', data: 'cached_value');
+        var fetchCount = 0;
+        final result = await cache.get(
+          key: 'key',
+          fetcher: () async {
+            fetchCount++;
+            return 'fetched_value';
+          },
+          policy: CachePolicy.networkOnly,
+        );
+        expect(result, 'fetched_value');
+        expect(fetchCount, 1);
+      });
+    });
+
+    group('Phase 2: Request Deduplication', () {
+      test('multiple concurrent calls return the same future', () async {
+        var fetchCount = 0;
+        final f1 = cache.get(
+          key: 'key',
+          fetcher: () async {
+            await Future.delayed(Duration(milliseconds: 50));
+            fetchCount++;
+            return 'fetched_value';
+          },
+        );
+        final f2 = cache.get(
+          key: 'key',
+          fetcher: () async {
+            fetchCount++;
+            return 'fetched_value_2';
+          },
+        );
+
+        final results = await Future.wait([f1, f2]);
+        expect(results[0], 'fetched_value');
+        expect(results[1], 'fetched_value');
+        expect(fetchCount, 1);
+      });
+    });
+
+    group('Phase 2: Stale-While-Revalidate (SWR)', () {
+      test('returns cached data immediately and refreshes in background', () async {
+        await cache.set(key: 'key', data: 'stale_value');
+
+        var fetchCount = 0;
+        final result = await cache.get(
+          key: 'key',
+          fetcher: () async {
+            await Future.delayed(Duration(milliseconds: 20));
+            fetchCount++;
+            return 'fresh_value';
+          },
+          policy: CachePolicy.staleWhileRevalidate,
+        );
+
+        expect(result, 'stale_value');
+        expect(fetchCount, 0);
+
+        // Wait for background refresh
+        await Future.delayed(Duration(milliseconds: 50));
+        expect(fetchCount, 1);
+
+        // Next call should get fresh data
+        final nextResult = await cache.get(
+          key: 'key',
+          fetcher: () async => 'even_fresher',
+          policy: CachePolicy.cacheFirst,
+        );
+        expect(nextResult, 'fresh_value');
+      });
+
+      test('behaves like cacheFirst if cache is missing', () async {
+        var fetchCount = 0;
+        final result = await cache.get(
+          key: 'key',
+          fetcher: () async {
+            fetchCount++;
+            return 'fetched_value';
+          },
+          policy: CachePolicy.staleWhileRevalidate,
+        );
+        expect(result, 'fetched_value');
+        expect(fetchCount, 1);
+      });
+    });
   });
 }

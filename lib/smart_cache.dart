@@ -1,8 +1,4 @@
-/// Support for doing something awesome.
-///
-/// More dartdocs go here.
-library;
-
-export 'src/smart_cache_base.dart';
-
-// TODO: Export any libraries intended for clients of this package.
+export 'src/cache_manager.dart';
+export 'src/cache_entry.dart';
+export 'src/cache_storage.dart';
+export 'src/memory_cache_storage.dart';

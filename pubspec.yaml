@@ -1,7 +1,7 @@
 name: smart_cache
-description: A starting point for Dart libraries or applications.
+description: Offline-first, debuggable data orchestration layer for Flutter. Features TTL caching, 5 cache policies, encryption, auth-aware isolation, reactive streams, offline sync, and built-in dev tools.
 version: 1.0.0
-# repository: https://github.com/my_org/my_repo
+repository: https://github.com/AbdAlftahSalem/smart-cache
 
 environment:
   sdk: ^3.11.5

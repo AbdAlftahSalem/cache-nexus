@@ -1,7 +1,7 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 
 class NetworkStatus {
-  static Connectivity _connectivity = Connectivity();
+  static final Connectivity _connectivity = Connectivity();
   static bool? _mockOnline;
 
   static void setMockStatus(bool? isOnline) {

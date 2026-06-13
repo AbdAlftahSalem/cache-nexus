@@ -20,6 +20,11 @@ class MemoryCacheStorage implements CacheStorage {
   }
 
   @override
+  Future<void> deleteByPrefix(String prefix) async {
+    _cache.removeWhere((key, _) => key.startsWith(prefix));
+  }
+
+  @override
   Future<void> clear() async {
     _cache.clear();
   }

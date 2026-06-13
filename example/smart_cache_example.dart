@@ -2,19 +2,51 @@ import 'package:smart_cache/smart_cache.dart';
 
 void main() async {
   // 1. Initialize storage
-  final storage = MemoryCacheStorage();
+  final memoryStorage = MemoryCacheStorage();
+  
+  // 2. Phase 5: Security & Compression Layer
+  // Wrap your persistent storage (like Hive) with SecureCacheStorage
+  final securePersistentStorage = SecureCacheStorage(
+    MemoryCacheStorage(), // In real app, use HiveCacheStorage()
+    encryptor: SimpleEncryptor('enterprise_secret_key'),
+    compressor: SimpleCompressor(),
+  );
 
-  // 2. Initialize manager
-  final cache = SmartCacheManager(memoryStorage: storage);
+  // 3. Initialize manager with security and context
+  final cache = SmartCacheManager(
+    memoryStorage: memoryStorage,
+    persistentStorage: securePersistentStorage,
+  );
 
-  // 3. Phase 4: Persistent Storage (Hive) - Demonstration of setup
-  // Note: In a real app, you would call:
-  // final persistentStorage = HiveCacheStorage();
-  // await persistentStorage.init();
-  // final cacheWithPersistence = SmartCacheManager(persistentStorage: persistentStorage);
+  // 4. Phase 5: Auth-Aware Caching
+  print('--- User A Session ---');
+  cache.setContext(const CacheContext(userId: 'user_123', role: 'admin'));
+  
+  await cache.get<String>(
+    key: 'secret_data',
+    fetcher: () async => 'Top Secret Admin Info',
+  );
+  print('Stored secret_data for User A');
 
-  // 4. Use the cache
-  print('--- Fetching users (first time, should call fetcher) ---');
+  // 5. Switch User
+  print('\n--- User B Session (Isolation) ---');
+  cache.setContext(const CacheContext(userId: 'user_456', role: 'guest'));
+  
+  final guestData = await cache.get<String>(
+    key: 'secret_data',
+    fetcher: () async {
+      print('User B cannot see User A data. Fetching new data...');
+      return 'Public Guest Info';
+    },
+  );
+  print('Data for User B: $guestData');
+
+  // 6. Verification of Secure Storage
+  print('\n--- Smart Invalidation ---');
+  print('Invalidating User A cache only...');
+  await cache.invalidateByContext(const CacheContext(userId: 'user_123'));
+
+  print('\n--- Use the cache (Phase 1-4 features still work) ---');
   final users = await cache.get<List<String>>(
     key: 'users',
     fetcher: () async {
@@ -25,27 +57,6 @@ void main() async {
   );
   print('Users: $users');
 
-  print('\n--- Fetching users again (should return cached data) ---');
-  final cachedUsers = await cache.get<List<String>>(
-    key: 'users',
-    fetcher: () async {
-      print('Calling API (this should NOT be printed)...');
-      return [];
-    },
-  );
-  print('Cached Users: $cachedUsers');
-
-  print('\n--- Deleting users and fetching again ---');
-  await cache.delete('users');
-  final usersAfterDelete = await cache.get<List<String>>(
-    key: 'users',
-    fetcher: () async {
-      print('Calling API (should be printed again)...');
-      return ['Dave', 'Eve'];
-    },
-  );
-  print('Users after delete: $usersAfterDelete');
-
-  print('\n--- Clearing cache ---');
   await cache.clear();
+  print('Cache cleared.');
 }

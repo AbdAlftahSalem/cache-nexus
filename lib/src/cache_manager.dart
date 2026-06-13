@@ -8,6 +8,7 @@ import 'cache_stats.dart';
 import 'sync_task.dart';
 import 'sync_engine.dart';
 import 'network_status.dart';
+import 'cache_context.dart';
 
 enum SmartCacheMode { dev, production }
 
@@ -16,6 +17,7 @@ class SmartCacheManager {
   final CacheStorage? persistentStorage;
   final SyncEngine? syncEngine;
   final SmartCacheMode mode;
+  CacheContext? _context;
   final Map<String, Future<dynamic>> _inFlightRequests = {};
   
   final StreamController<CacheEvent> _eventController = StreamController<CacheEvent>.broadcast();
@@ -26,10 +28,28 @@ class SmartCacheManager {
     this.persistentStorage,
     this.syncEngine,
     this.mode = SmartCacheMode.production,
-  }) : memoryStorage = memoryStorage ?? MemoryCacheStorage();
+    CacheContext? context,
+  }) : memoryStorage = memoryStorage ?? MemoryCacheStorage(),
+       _context = context;
 
   Stream<CacheEvent> get events => _eventController.stream;
   CacheStats get stats => _stats;
+  CacheContext? get context => _context;
+
+  void setContext(CacheContext context) {
+    _context = context;
+  }
+
+  void clearContext() {
+    _context = null;
+  }
+
+  String _resolveKey(String key) {
+    if (_context != null) {
+      return '${_context!.cacheKeyPrefix}$key';
+    }
+    return key;
+  }
 
   void _emit(CacheEventType type, String key, {dynamic data, Duration? duration, Object? error}) {
     if (mode != SmartCacheMode.dev) return;
@@ -69,35 +89,36 @@ class SmartCacheManager {
     Duration? ttl,
     CachePolicy policy = CachePolicy.cacheFirst,
   }) async {
+    final resolvedKey = _resolveKey(key);
     switch (policy) {
       case CachePolicy.cacheFirst:
         // 1. Check Memory
-        var entry = await memoryStorage.read(key);
+        var entry = await memoryStorage.read(resolvedKey);
         if (entry != null) {
           if (!entry.isExpired) {
-            _emit(CacheEventType.hit, key, data: entry.data);
+            _emit(CacheEventType.hit, resolvedKey, data: entry.data);
             return entry.data as T;
           } else {
-            _emit(CacheEventType.expired, key);
+            _emit(CacheEventType.expired, resolvedKey);
           }
         }
 
         // 2. Check Persistent
         if (persistentStorage != null) {
-          entry = await persistentStorage!.read(key);
+          entry = await persistentStorage!.read(resolvedKey);
           if (entry != null) {
             if (!entry.isExpired) {
-              _emit(CacheEventType.hit, key, data: entry.data);
+              _emit(CacheEventType.hit, resolvedKey, data: entry.data);
               // Restore to memory
-              await memoryStorage.write(key, entry);
+              await memoryStorage.write(resolvedKey, entry);
               return entry.data as T;
             } else {
-              _emit(CacheEventType.expired, key);
+              _emit(CacheEventType.expired, resolvedKey);
             }
           }
         }
 
-        _emit(CacheEventType.miss, key);
+        _emit(CacheEventType.miss, resolvedKey);
         return _performFetch(key, fetcher, ttl);
 
       case CachePolicy.networkFirst:
@@ -105,22 +126,22 @@ class SmartCacheManager {
           try {
             return await _performFetch(key, fetcher, ttl);
           } catch (e) {
-            return await _readFromCache(key);
+            return await _readFromCache(resolvedKey);
           }
         } else {
-          return await _readFromCache(key);
+          return await _readFromCache(resolvedKey);
         }
 
       case CachePolicy.cacheOnly:
-        return await _readFromCache(key);
+        return await _readFromCache(resolvedKey);
 
       case CachePolicy.networkOnly:
         return _performFetch(key, fetcher, ttl);
 
       case CachePolicy.staleWhileRevalidate:
-        final entry = await memoryStorage.read(key) ?? (persistentStorage != null ? await persistentStorage!.read(key) : null);
+        final entry = await memoryStorage.read(resolvedKey) ?? (persistentStorage != null ? await persistentStorage!.read(resolvedKey) : null);
         if (entry != null) {
-          _emit(CacheEventType.hit, key, data: entry.data);
+          _emit(CacheEventType.hit, resolvedKey, data: entry.data);
           // Trigger background refresh silently if online
           NetworkStatus.isOnline.then((online) {
             if (online) {
@@ -129,37 +150,37 @@ class SmartCacheManager {
           });
           return entry.data as T;
         }
-        _emit(CacheEventType.miss, key);
+        _emit(CacheEventType.miss, resolvedKey);
         return _performFetch(key, fetcher, ttl);
     }
   }
 
-  Future<T> _readFromCache<T>(String key) async {
-    var entry = await memoryStorage.read(key);
+  Future<T> _readFromCache<T>(String resolvedKey) async {
+    var entry = await memoryStorage.read(resolvedKey);
     if (entry != null) {
       if (!entry.isExpired) {
-        _emit(CacheEventType.hit, key, data: entry.data);
+        _emit(CacheEventType.hit, resolvedKey, data: entry.data);
         return entry.data as T;
       } else {
-        _emit(CacheEventType.expired, key);
-        await memoryStorage.delete(key);
+        _emit(CacheEventType.expired, resolvedKey);
+        await memoryStorage.delete(resolvedKey);
       }
     }
     if (persistentStorage != null) {
-      entry = await persistentStorage!.read(key);
+      entry = await persistentStorage!.read(resolvedKey);
       if (entry != null) {
         if (!entry.isExpired) {
-          _emit(CacheEventType.hit, key, data: entry.data);
-          await memoryStorage.write(key, entry);
+          _emit(CacheEventType.hit, resolvedKey, data: entry.data);
+          await memoryStorage.write(resolvedKey, entry);
           return entry.data as T;
         } else {
-          _emit(CacheEventType.expired, key);
-          await persistentStorage!.delete(key);
+          _emit(CacheEventType.expired, resolvedKey);
+          await persistentStorage!.delete(resolvedKey);
         }
       }
     }
-    _emit(CacheEventType.miss, key);
-    throw Exception('Cache missing or expired for key: $key');
+    _emit(CacheEventType.miss, resolvedKey);
+    throw Exception('Cache missing or expired for key: $resolvedKey');
   }
 
   Future<T> _performFetch<T>(
@@ -167,30 +188,31 @@ class SmartCacheManager {
     Future<T> Function() fetcher,
     Duration? ttl,
   ) async {
-    if (_inFlightRequests.containsKey(key)) {
-      return (await _inFlightRequests[key]) as T;
+    final resolvedKey = _resolveKey(key);
+    if (_inFlightRequests.containsKey(resolvedKey)) {
+      return (await _inFlightRequests[resolvedKey]) as T;
     }
 
     final stopwatch = Stopwatch()..start();
     final future = fetcher();
-    _inFlightRequests[key] = future;
+    _inFlightRequests[resolvedKey] = future;
 
     try {
       final result = await future;
 
       if (result == null) {
-        throw Exception('Fetcher returned null result for key: $key');
+        throw Exception('Fetcher returned null result for key: $resolvedKey');
       }
 
-      _emit(CacheEventType.fetch, key, data: result, duration: stopwatch.elapsed);
+      _emit(CacheEventType.fetch, resolvedKey, data: result, duration: stopwatch.elapsed);
       await set(key: key, data: result, ttl: ttl);
       return result;
     } catch (e) {
-      _emit(CacheEventType.error, key, error: e, duration: stopwatch.elapsed);
+      _emit(CacheEventType.error, resolvedKey, error: e, duration: stopwatch.elapsed);
       rethrow;
     } finally {
       stopwatch.stop();
-      _inFlightRequests.remove(key);
+      _inFlightRequests.remove(resolvedKey);
     }
   }
 
@@ -199,16 +221,17 @@ class SmartCacheManager {
     required T data,
     Duration? ttl,
   }) async {
+    final resolvedKey = _resolveKey(key);
     final entry = CacheEntry<T>(
       data: data,
       createdAt: DateTime.now(),
       ttl: ttl,
     );
-    await memoryStorage.write(key, entry);
+    await memoryStorage.write(resolvedKey, entry);
     if (persistentStorage != null) {
-      await persistentStorage!.write(key, entry);
+      await persistentStorage!.write(resolvedKey, entry);
     }
-    _emit(CacheEventType.store, key, data: data);
+    _emit(CacheEventType.store, resolvedKey, data: data);
   }
 
   Future<void> enqueueSyncTask(SyncTask task) async {
@@ -220,11 +243,12 @@ class SmartCacheManager {
   }
 
   Future<void> delete(String key) async {
-    await memoryStorage.delete(key);
+    final resolvedKey = _resolveKey(key);
+    await memoryStorage.delete(resolvedKey);
     if (persistentStorage != null) {
-      await persistentStorage!.delete(key);
+      await persistentStorage!.delete(resolvedKey);
     }
-    _emit(CacheEventType.evict, key);
+    _emit(CacheEventType.evict, resolvedKey);
   }
 
   Future<void> clear() async {
@@ -233,6 +257,15 @@ class SmartCacheManager {
       await persistentStorage!.clear();
     }
     _emit(CacheEventType.evict, 'all');
+  }
+
+  Future<void> invalidateByContext(CacheContext context) async {
+    final prefix = context.cacheKeyPrefix;
+    await memoryStorage.deleteByPrefix(prefix);
+    if (persistentStorage != null) {
+      await persistentStorage!.deleteByPrefix(prefix);
+    }
+    _emit(CacheEventType.evict, 'prefix:$prefix');
   }
 
   void dispose() {

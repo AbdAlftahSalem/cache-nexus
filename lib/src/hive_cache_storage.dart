@@ -46,6 +46,12 @@ class HiveCacheStorage implements CacheStorage {
   }
 
   @override
+  Future<void> deleteByPrefix(String prefix) async {
+    final keysToDelete = box.keys.where((key) => key.toString().startsWith(prefix)).toList();
+    await box.deleteAll(keysToDelete);
+  }
+
+  @override
   Future<void> clear() async {
     await box.clear();
   }

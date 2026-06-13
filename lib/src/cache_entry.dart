@@ -14,4 +14,20 @@ class CacheEntry<T> {
     final expirationDate = createdAt.add(ttl!);
     return DateTime.now().isAfter(expirationDate);
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'data': data,
+      'createdAt': createdAt.toIso8601String(),
+      'ttl': ttl?.inMilliseconds,
+    };
+  }
+
+  factory CacheEntry.fromJson(Map<String, dynamic> json) {
+    return CacheEntry(
+      data: json['data'] as T,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      ttl: json['ttl'] != null ? Duration(milliseconds: json['ttl'] as int) : null,
+    );
+  }
 }

@@ -36,8 +36,9 @@ void main() {
     late MemoryCacheStorage storage;
 
     setUp(() {
+      NetworkStatus.setMockStatus(true);
       storage = MemoryCacheStorage();
-      cache = SmartCacheManager(storage: storage);
+      cache = SmartCacheManager(memoryStorage: storage);
     });
 
     test('set and get should work correctly', () async {

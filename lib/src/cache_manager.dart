@@ -1,14 +1,20 @@
 import 'dart:async';
 import 'cache_entry.dart';
 import 'cache_storage.dart';
+import 'memory_cache_storage.dart';
 import 'cache_policy.dart';
 import 'cache_event.dart';
 import 'cache_stats.dart';
+import 'sync_task.dart';
+import 'sync_engine.dart';
+import 'network_status.dart';
 
 enum SmartCacheMode { dev, production }
 
 class SmartCacheManager {
-  final CacheStorage storage;
+  final CacheStorage memoryStorage;
+  final CacheStorage? persistentStorage;
+  final SyncEngine? syncEngine;
   final SmartCacheMode mode;
   final Map<String, Future<dynamic>> _inFlightRequests = {};
   
@@ -16,9 +22,11 @@ class SmartCacheManager {
   CacheStats _stats = CacheStats();
 
   SmartCacheManager({
-    required this.storage,
+    CacheStorage? memoryStorage,
+    this.persistentStorage,
+    this.syncEngine,
     this.mode = SmartCacheMode.production,
-  });
+  }) : memoryStorage = memoryStorage ?? MemoryCacheStorage();
 
   Stream<CacheEvent> get events => _eventController.stream;
   CacheStats get stats => _stats;
@@ -63,7 +71,8 @@ class SmartCacheManager {
   }) async {
     switch (policy) {
       case CachePolicy.cacheFirst:
-        final entry = await storage.read(key);
+        // 1. Check Memory
+        var entry = await memoryStorage.read(key);
         if (entry != null) {
           if (!entry.isExpired) {
             _emit(CacheEventType.hit, key, data: entry.data);
@@ -71,49 +80,86 @@ class SmartCacheManager {
           } else {
             _emit(CacheEventType.expired, key);
           }
-        } else {
-          _emit(CacheEventType.miss, key);
         }
+
+        // 2. Check Persistent
+        if (persistentStorage != null) {
+          entry = await persistentStorage!.read(key);
+          if (entry != null) {
+            if (!entry.isExpired) {
+              _emit(CacheEventType.hit, key, data: entry.data);
+              // Restore to memory
+              await memoryStorage.write(key, entry);
+              return entry.data as T;
+            } else {
+              _emit(CacheEventType.expired, key);
+            }
+          }
+        }
+
+        _emit(CacheEventType.miss, key);
         return _performFetch(key, fetcher, ttl);
 
       case CachePolicy.networkFirst:
-        try {
-          return await _performFetch(key, fetcher, ttl);
-        } catch (e) {
-          final entry = await storage.read(key);
-          if (entry != null) {
-            _emit(CacheEventType.hit, key, data: entry.data);
-            return entry.data as T;
+        if (await NetworkStatus.isOnline) {
+          try {
+            return await _performFetch(key, fetcher, ttl);
+          } catch (e) {
+            return await _readFromCache(key);
           }
-          rethrow;
+        } else {
+          return await _readFromCache(key);
         }
 
       case CachePolicy.cacheOnly:
-        final entry = await storage.read(key);
-        if (entry != null) {
-          _emit(CacheEventType.hit, key, data: entry.data);
-          return entry.data as T;
-        }
-        _emit(CacheEventType.miss, key);
-        throw Exception('Cache missing for key: $key');
+        return await _readFromCache(key);
 
       case CachePolicy.networkOnly:
         return _performFetch(key, fetcher, ttl);
 
       case CachePolicy.staleWhileRevalidate:
-        final entry = await storage.read(key);
+        final entry = await memoryStorage.read(key) ?? (persistentStorage != null ? await persistentStorage!.read(key) : null);
         if (entry != null) {
           _emit(CacheEventType.hit, key, data: entry.data);
-          // Trigger background refresh silently
-          _performFetch(key, fetcher, ttl).catchError((_) {
-            // Silently ignore background errors as per requirement
-            return null;
+          // Trigger background refresh silently if online
+          NetworkStatus.isOnline.then((online) {
+            if (online) {
+              _performFetch(key, fetcher, ttl).catchError((_) => null);
+            }
           });
           return entry.data as T;
         }
         _emit(CacheEventType.miss, key);
         return _performFetch(key, fetcher, ttl);
     }
+  }
+
+  Future<T> _readFromCache<T>(String key) async {
+    var entry = await memoryStorage.read(key);
+    if (entry != null) {
+      if (!entry.isExpired) {
+        _emit(CacheEventType.hit, key, data: entry.data);
+        return entry.data as T;
+      } else {
+        _emit(CacheEventType.expired, key);
+        await memoryStorage.delete(key);
+      }
+    }
+    if (persistentStorage != null) {
+      entry = await persistentStorage!.read(key);
+      if (entry != null) {
+        if (!entry.isExpired) {
+          _emit(CacheEventType.hit, key, data: entry.data);
+          await memoryStorage.write(key, entry);
+          return entry.data as T;
+        } else {
+          _emit(CacheEventType.expired, key);
+          await persistentStorage!.delete(key);
+        }
+      }
+    }
+    _emit(CacheEventType.miss, key);
+    throw Exception('Cache missing or expired for key: $key');
   }
 
   Future<T> _performFetch<T>(
@@ -132,7 +178,6 @@ class SmartCacheManager {
     try {
       final result = await future;
 
-      // ignore: unnecessary_null_comparison
       if (result == null) {
         throw Exception('Fetcher returned null result for key: $key');
       }
@@ -159,17 +204,34 @@ class SmartCacheManager {
       createdAt: DateTime.now(),
       ttl: ttl,
     );
-    await storage.write(key, entry);
+    await memoryStorage.write(key, entry);
+    if (persistentStorage != null) {
+      await persistentStorage!.write(key, entry);
+    }
     _emit(CacheEventType.store, key, data: data);
   }
 
+  Future<void> enqueueSyncTask(SyncTask task) async {
+    if (syncEngine != null) {
+      await syncEngine!.enqueue(task);
+    } else {
+      throw Exception('SyncEngine not initialized');
+    }
+  }
+
   Future<void> delete(String key) async {
-    await storage.delete(key);
+    await memoryStorage.delete(key);
+    if (persistentStorage != null) {
+      await persistentStorage!.delete(key);
+    }
     _emit(CacheEventType.evict, key);
   }
 
   Future<void> clear() async {
-    await storage.clear();
+    await memoryStorage.clear();
+    if (persistentStorage != null) {
+      await persistentStorage!.clear();
+    }
     _emit(CacheEventType.evict, 'all');
   }
 

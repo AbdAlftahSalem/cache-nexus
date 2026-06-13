@@ -5,9 +5,15 @@ void main() async {
   final storage = MemoryCacheStorage();
 
   // 2. Initialize manager
-  final cache = SmartCacheManager(storage: storage);
+  final cache = SmartCacheManager(memoryStorage: storage);
 
-  // 3. Use the cache
+  // 3. Phase 4: Persistent Storage (Hive) - Demonstration of setup
+  // Note: In a real app, you would call:
+  // final persistentStorage = HiveCacheStorage();
+  // await persistentStorage.init();
+  // final cacheWithPersistence = SmartCacheManager(persistentStorage: persistentStorage);
+
+  // 4. Use the cache
   print('--- Fetching users (first time, should call fetcher) ---');
   final users = await cache.get<List<String>>(
     key: 'users',

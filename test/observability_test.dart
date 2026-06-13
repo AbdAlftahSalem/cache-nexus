@@ -8,8 +8,8 @@ void main() {
 
   setUp(() {
     storage = MemoryCacheStorage();
-    devCache = SmartCacheManager(storage: storage, mode: SmartCacheMode.dev);
-    prodCache = SmartCacheManager(storage: storage, mode: SmartCacheMode.production);
+    devCache = SmartCacheManager(memoryStorage: storage, mode: SmartCacheMode.dev);
+    prodCache = SmartCacheManager(memoryStorage: storage, mode: SmartCacheMode.production);
   });
 
   group('SmartCacheManager Phase 3 - Observability', () {

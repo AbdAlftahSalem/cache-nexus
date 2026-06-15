@@ -1,3 +1,18 @@
+## 1.1.0
+
+- **Refactor:** Decomposed `SmartCacheManager` god object into 3 focused classes
+  - `ObservabilityManager` — events, stats, network recording
+  - `PolicyResolver` — 5 cache strategies with deduplication
+  - `ReactiveEngine` — unified watch() API with auto-cleanup
+- **Fix:** Memory leak — `StreamController`s now auto-close when last listener drops
+- **Fix:** Type safety — `TypeAdapter<T>` system replaces silent `_tryCast`
+- **Fix:** Deprecated `Color.withOpacity` → `Color.withValues` across examples
+- **Fix:** Broken imports and API mismatches in `docs/examples/`
+- **Fix:** Debug `print()` statements removed from `ObservabilityManager`
+- **Tests:** 64 tests across 5 files (up from 39)
+- **DevOps:** Added GitHub Actions CI (analyze + test), MIT license
+- **Zero breaking changes** — public API surface is identical
+
 ## 1.0.0
 
 - Initial release of Smart Cache

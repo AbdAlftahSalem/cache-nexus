@@ -15,9 +15,15 @@ class SyncEngine {
   SyncEngine({
     required this.executor,
     this.queueBoxName = 'sync_queue',
+    this.initHive = true,
   });
 
+  final bool initHive;
+
   Future<void> init() async {
+    if (initHive) {
+      await Hive.initFlutter();
+    }
     _queueBox = await Hive.openBox(queueBoxName);
     _connectivitySubscription = NetworkStatus.onConnectivityChanged.listen((isOnline) {
       if (isOnline) {

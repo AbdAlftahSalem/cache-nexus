@@ -9,7 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  cupertino_icons:
+  cupertino_icons: ^1.0.8
   smart_cache:
     path: ../
   dio: ^5.4.0
@@ -22,3 +22,6 @@ dev_dependencies:
     sdk: flutter
   mocktail: ^1.0.4
   lints: ^6.0.0
+
+flutter:
+  uses-material-design: true

@@ -32,6 +32,7 @@ void main() {
         return true;
       },
       queueBoxName: 'test_sync_queue',
+      initHive: false,
     );
     await syncEngine.init();
 

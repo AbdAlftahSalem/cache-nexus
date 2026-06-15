@@ -31,6 +31,10 @@ class SmartCacheManager {
   final StreamController<CacheEvent> _eventController = StreamController<CacheEvent>.broadcast();
   final SubscriptionManager _subscriptionManager = SubscriptionManager();
   CacheStats _stats = CacheStats();
+  
+  // Buffer of recent events for new subscribers (e.g., dev panel opening after requests)
+  final List<CacheEvent> _recentEvents = [];
+  static const int _maxRecentEvents = 100;
 
   /// Exposed for testing memory leak detection
   @visibleForTesting
@@ -48,6 +52,9 @@ class SmartCacheManager {
   Stream<CacheEvent> get events => _eventController.stream;
   CacheStats get stats => _stats;
   CacheContext? get context => _context;
+  
+  /// Returns recent events for new subscribers (e.g., dev panel opened after requests)
+  List<CacheEvent> get recentEvents => List.unmodifiable(_recentEvents);
 
   void setContext(CacheContext context) {
     _context = context;
@@ -185,6 +192,15 @@ class SmartCacheManager {
     }
 
     _eventController.add(event);
+    _addToRecentEvents(event);
+  }
+
+  void _addToRecentEvents(CacheEvent event) {
+    if (mode != SmartCacheMode.dev) return;
+    _recentEvents.insert(0, event);
+    if (_recentEvents.length > _maxRecentEvents) {
+      _recentEvents.removeLast();
+    }
   }
 
   Future<T> get<T>({
@@ -363,6 +379,8 @@ class SmartCacheManager {
       requestId: requestId,
     );
     _eventController.add(event);
+    _addToRecentEvents(event);
+    print('🔵 [CacheManager] recordNetworkRequest: $method $url (id: $requestId)');
     return requestId;
   }
 
@@ -397,6 +415,8 @@ class SmartCacheManager {
       requestId: requestId,
     );
     _eventController.add(event);
+    _addToRecentEvents(event);
+    print('🔵 [CacheManager] recordNetworkResponse: $method $url status=$statusCode duration=${duration?.inMilliseconds}ms (id: $requestId)');
   }
 
   /// Records a failed network request.
@@ -427,6 +447,8 @@ class SmartCacheManager {
       requestId: requestId,
     );
     _eventController.add(event);
+    _addToRecentEvents(event);
+    print('🔵 [CacheManager] recordNetworkError: $method $url error=$error duration=${duration?.inMilliseconds}ms (id: $requestId)');
   }
 
   /// Convenience method to record a complete request/response cycle.

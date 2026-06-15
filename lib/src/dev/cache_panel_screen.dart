@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../cache_manager.dart';
 import '../cache_event.dart';
@@ -15,25 +17,37 @@ class CachePanelScreen extends StatefulWidget {
 
 class _CachePanelScreenState extends State<CachePanelScreen> {
   final List<CacheEvent> _events = [];
+  StreamSubscription<CacheEvent>? _subscription;
 
   @override
   void initState() {
     super.initState();
-    widget.manager.events.listen((event) {
-      if (mounted) {
-        setState(() {
-          _events.insert(0, event);
-          if (_events.length > 100) _events.removeLast();
-        });
-      }
+    // Load recent events that happened before panel opened
+    _events.addAll(widget.manager.recentEvents);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _subscription = widget.manager.events.listen((event) {
+        print('🔵 [CachePanel] Received event: ${event.type} key=${event.key} isNetwork=${event.isNetworkEvent}');
+        if (mounted) {
+          setState(() {
+            _events.insert(0, event);
+            if (_events.length > 100) _events.removeLast();
+          });
+        }
+      });
     });
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final networkEvents = _events.where((e) => e.isNetworkEvent).toList();
     final cacheEvents = _events.where((e) => !e.isNetworkEvent).toList();
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Smart Cache Dev Panel'),

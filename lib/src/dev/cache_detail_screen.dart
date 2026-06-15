@@ -24,8 +24,8 @@ class CacheDetailScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildSection('KEY', event.key),
-            _buildSection('TYPE', event.type.name.toUpperCase()),
+            // _buildSection('KEY', event.key),
+            // _buildSection('TYPE', event.type.name.toUpperCase()),
             _buildSection('TIMESTAMP', event.timestamp.toString()),
             if (event.duration != null)
               _buildSection('DURATION', '${event.duration!.inMilliseconds}ms'),
@@ -40,17 +40,15 @@ class CacheDetailScreen extends StatelessWidget {
               if (event.requestHeaders != null && event.requestHeaders!.isNotEmpty)
                 _buildSection('REQUEST HEADERS', _formatData(event.requestHeaders)),
               if (event.requestBody != null)
-                _buildSection('REQUEST BODY', _formatData(event.requestBody)),
+                _buildSection('REQUEST BODY', _formatJson(event.requestBody)),
               const SizedBox(height: 20),
               const Text('RESPONSE', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
               const SizedBox(height: 10),
               if (event.responseStatusCode != null)
                 _buildSection('STATUS CODE', event.responseStatusCode.toString(),
                     color: _getStatusColor(event.responseStatusCode!)),
-              if (event.responseHeaders != null && event.responseHeaders!.isNotEmpty)
-                _buildSection('RESPONSE HEADERS', _formatData(event.responseHeaders)),
               if (event.responseBody != null)
-                _buildSection('RESPONSE BODY', _formatData(event.responseBody)),
+                _buildSection('RESPONSE BODY', _formatJson(event.responseBody)),
             ],
             const SizedBox(height: 20),
             const Text('TIMELINE', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
@@ -97,6 +95,33 @@ class CacheDetailScreen extends StatelessWidget {
       String str;
       if (data is Map || data is List) {
         str = const JsonEncoder.withIndent('  ').convert(data);
+      } else {
+        str = data.toString();
+      }
+      const maxLength = 10000;
+      if (str.length > maxLength) {
+        return '${str.substring(0, maxLength)}\n\n... [TRUNCATED: ${str.length} chars total]';
+      }
+      return str;
+    } catch (_) {
+      return data.toString();
+    }
+  }
+
+  String _formatJson(dynamic data) {
+    if (data == null) return 'null';
+    try {
+      String str;
+      if (data is Map || data is List) {
+        str = const JsonEncoder.withIndent('  ').convert(data);
+      } else if (data is String) {
+        // Try to parse string as JSON
+        try {
+          final decoded = jsonDecode(data);
+          str = const JsonEncoder.withIndent('  ').convert(decoded);
+        } catch (_) {
+          str = data.toString();
+        }
       } else {
         str = data.toString();
       }

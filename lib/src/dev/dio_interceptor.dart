@@ -9,12 +9,15 @@ class SmartCacheDioInterceptor extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     if (cache.mode == SmartCacheMode.dev) {
-      options.extra['smartCacheRequestId'] = cache.recordNetworkRequest(
+      final stopwatch = Stopwatch()..start();
+      final requestId = cache.recordNetworkRequest(
         url: options.uri.toString(),
         method: options.method,
         headers: _flattenHeaders(options.headers),
         body: options.data,
       );
+      options.extra['smartCacheRequestId'] = requestId;
+      options.extra['smartCacheStopwatch'] = stopwatch;
     }
     handler.next(options);
   }
@@ -23,7 +26,9 @@ class SmartCacheDioInterceptor extends Interceptor {
   void onResponse(Response response, ResponseInterceptorHandler handler) {
     if (cache.mode == SmartCacheMode.dev) {
       final requestId = response.requestOptions.extra['smartCacheRequestId'] as String?;
+      final stopwatch = response.requestOptions.extra['smartCacheStopwatch'] as Stopwatch?;
       if (requestId != null && requestId.isNotEmpty) {
+        stopwatch?.stop();
         cache.recordNetworkResponse(
           requestId: requestId,
           url: response.requestOptions.uri.toString(),
@@ -31,6 +36,7 @@ class SmartCacheDioInterceptor extends Interceptor {
           statusCode: response.statusCode ?? 0,
           headers: _flattenHeaders(response.headers.map),
           body: response.data,
+          duration: stopwatch?.elapsed,
         );
       }
     }
@@ -41,13 +47,16 @@ class SmartCacheDioInterceptor extends Interceptor {
   void onError(DioException err, ErrorInterceptorHandler handler) {
     if (cache.mode == SmartCacheMode.dev) {
       final requestId = err.requestOptions.extra['smartCacheRequestId'] as String?;
+      final stopwatch = err.requestOptions.extra['smartCacheStopwatch'] as Stopwatch?;
       if (requestId != null && requestId.isNotEmpty) {
+        stopwatch?.stop();
         cache.recordNetworkError(
           requestId: requestId,
           url: err.requestOptions.uri.toString(),
           method: err.requestOptions.method,
           error: err,
           headers: _flattenHeaders(err.requestOptions.headers),
+          duration: stopwatch?.elapsed,
         );
       }
     }

@@ -1,0 +1,25 @@
+name: smart_cache_auth_flow
+description: Auth flow example demonstrating smart_cache with user isolation
+publish_to: 'none'
+
+environment:
+  sdk: ^3.11.5
+  flutter: ">=3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  smart_cache:
+    path: ../../../
+  dio: ^5.4.0
+  hive_flutter: ^1.1.0
+  connectivity_plus: ^7.1.1
+  path_provider: ^2.1.5
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  lints: ^6.0.0
+
+flutter:
+  uses-material-design: true

@@ -21,3 +21,4 @@ export 'src/smart_cache_builder.dart';
 export 'src/observability_manager.dart';
 export 'src/policy_resolver.dart';
 export 'src/reactive_engine.dart';
+export 'src/type_adapter.dart';

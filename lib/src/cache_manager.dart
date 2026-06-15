@@ -15,6 +15,7 @@ import 'observability_manager.dart';
 import 'policy_resolver.dart';
 import 'reactive_engine.dart';
 import 'smart_cache_mode.dart';
+import 'type_adapter.dart';
 
 class SmartCacheManager {
   final CacheStorage memoryStorage;
@@ -42,6 +43,7 @@ class SmartCacheManager {
       observability: _observability,
       memoryStorage: this.memoryStorage,
       persistentStorage: persistentStorage,
+      adapters: _adapters,
     );
     _reactiveEngine = ReactiveEngine();
   }
@@ -69,7 +71,12 @@ class SmartCacheManager {
     return key;
   }
 
-  static T? _tryCast<T>(dynamic data) {
+  T? tryCast<T>(dynamic data) {
+    final adapter = _adapters[T];
+    if (adapter != null) {
+      return (adapter as TypeAdapter<T>).fromData(data);
+    }
+    if (data is T) return data;
     try {
       return data as T;
     } catch (_) {
@@ -95,7 +102,7 @@ class SmartCacheManager {
     if (persistentStorage != null) {
       entry = await persistentStorage!.read(resolvedKey);
       if (entry != null && !entry.isExpired) {
-        return _tryCast<T>(entry.data);
+        return tryCast<T>(entry.data);
       }
     }
 
@@ -235,12 +242,8 @@ class SmartCacheManager {
         request: request,
       );
 
-  void registerAdapter<T>(dynamic adapter) {
+  void registerAdapter<T>(TypeAdapter<T> adapter) {
     _adapters[T] = adapter;
-  }
-
-  T? tryCast<T>(dynamic data) {
-    return _tryCast<T>(data);
   }
 
   void dispose() {

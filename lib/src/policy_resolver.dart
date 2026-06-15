@@ -5,22 +5,31 @@ import 'cache_policy.dart';
 import 'cache_event.dart';
 import 'network_status.dart';
 import 'observability_manager.dart';
+import 'type_adapter.dart';
 
 class PolicyResolver {
   final ObservabilityManager _observability;
   final CacheStorage _memoryStorage;
   final CacheStorage? _persistentStorage;
   final Map<String, Future<dynamic>> _inFlightRequests = {};
+  final Map<Type, dynamic> _adapters;
 
   PolicyResolver({
     required ObservabilityManager observability,
     required CacheStorage memoryStorage,
     CacheStorage? persistentStorage,
+    Map<Type, dynamic> adapters = const {},
   })  : _observability = observability,
         _memoryStorage = memoryStorage,
-        _persistentStorage = persistentStorage;
+        _persistentStorage = persistentStorage,
+        _adapters = adapters;
 
-  static T? _tryCast<T>(dynamic data) {
+  T? tryCast<T>(dynamic data) {
+    final adapter = _adapters[T];
+    if (adapter != null) {
+      return (adapter as TypeAdapter<T>).fromData(data);
+    }
+    if (data is T) return data;
     try {
       return data as T;
     } catch (_) {
@@ -60,8 +69,11 @@ class PolicyResolver {
     var entry = await _memoryStorage.read(resolvedKey);
     if (entry != null) {
       if (!entry.isExpired) {
-        _observability.emit(CacheEventType.hit, resolvedKey, data: entry.data);
-        return entry.data as T;
+        final casted = tryCast<T>(entry.data);
+        if (casted != null) {
+          _observability.emit(CacheEventType.hit, resolvedKey, data: entry.data);
+          return casted;
+        }
       } else {
         _observability.emit(CacheEventType.expired, resolvedKey);
       }
@@ -71,7 +83,7 @@ class PolicyResolver {
       entry = await _persistentStorage.read(resolvedKey);
       if (entry != null) {
         if (!entry.isExpired) {
-          final casted = _tryCast<T>(entry.data);
+          final casted = tryCast<T>(entry.data);
           if (casted != null) {
             _observability.emit(CacheEventType.hit, resolvedKey, data: entry.data);
             await _memoryStorage.write(resolvedKey, entry);
@@ -112,8 +124,11 @@ class PolicyResolver {
     var entry = await _memoryStorage.read(resolvedKey);
     if (entry != null) {
       if (!entry.isExpired) {
-        _observability.emit(CacheEventType.hit, resolvedKey, data: entry.data);
-        return entry.data as T;
+        final casted = tryCast<T>(entry.data);
+        if (casted != null) {
+          _observability.emit(CacheEventType.hit, resolvedKey, data: entry.data);
+          return casted;
+        }
       } else {
         _observability.emit(CacheEventType.expired, resolvedKey);
         await _memoryStorage.delete(resolvedKey);
@@ -123,7 +138,7 @@ class PolicyResolver {
       entry = await _persistentStorage.read(resolvedKey);
       if (entry != null) {
         if (!entry.isExpired) {
-          final casted = _tryCast<T>(entry.data);
+          final casted = tryCast<T>(entry.data);
           if (casted != null) {
             _observability.emit(CacheEventType.hit, resolvedKey, data: entry.data);
             await _memoryStorage.write(resolvedKey, entry);
@@ -184,12 +199,12 @@ class PolicyResolver {
     var entry = await _memoryStorage.read(resolvedKey);
     T? casted;
     if (entry != null && !entry.isExpired) {
-      casted = _tryCast<T>(entry.data);
+      casted = tryCast<T>(entry.data);
     }
     if (casted == null && _persistentStorage != null) {
       entry = await _persistentStorage.read(resolvedKey);
       if (entry != null && !entry.isExpired) {
-        casted = _tryCast<T>(entry.data);
+        casted = tryCast<T>(entry.data);
       }
     }
     if (casted != null) {

@@ -15,6 +15,7 @@ export 'src/sync_task.dart';
 export 'src/sync_engine.dart';
 export 'src/network_status.dart';
 export 'src/dev/smart_cache_overlay.dart';
+export 'src/dev/dio_interceptor.dart';
 export 'src/subscription_manager.dart';
 export 'src/smart_cache_builder.dart';
 export 'src/observable_cache_entry.dart';

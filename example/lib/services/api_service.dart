@@ -1,16 +1,24 @@
 import 'package:dio/dio.dart';
+import 'package:smart_cache/smart_cache.dart';
 import '../models/post.dart';
 
 class ApiService {
   final Dio _dio;
+  final SmartCacheManager? _cache;
 
-  ApiService({Dio? dio})
+  ApiService({Dio? dio, SmartCacheManager? cache})
       : _dio = dio ??
             Dio(BaseOptions(
               baseUrl: 'https://jsonplaceholder.typicode.com',
               connectTimeout: const Duration(seconds: 10),
               receiveTimeout: const Duration(seconds: 10),
-            ));
+            )),
+        _cache = cache {
+    if (_cache != null) {
+      print('🔵 [ApiService] Adding SmartCacheDioInterceptor to Dio');
+      _dio.interceptors.add(SmartCacheDioInterceptor(_cache));
+    }
+  }
 
   Future<List<Post>> getPosts() async {
     final response = await _dio.get('/posts');

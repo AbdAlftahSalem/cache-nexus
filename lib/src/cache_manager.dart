@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 
@@ -22,7 +23,7 @@ enum SmartCacheMode { dev, production }
 class SmartCacheManager {
   final CacheStorage memoryStorage;
   final CacheStorage? persistentStorage;
-  final SyncEngine? syncEngine;
+  SyncEngine? syncEngine;
   final SmartCacheMode mode;
   CacheContext? _context;
   final Map<String, Future<dynamic>> _inFlightRequests = {};
@@ -337,6 +338,139 @@ class SmartCacheManager {
       stopwatch.stop();
       _inFlightRequests.remove(resolvedKey);
     }
+  }
+
+  /// Records a network request for observability in dev mode.
+  /// Call this before making the HTTP request.
+  /// Returns a request ID that should be passed to [recordNetworkResponse] or [recordNetworkError].
+  String recordNetworkRequest({
+    required String url,
+    required String method,
+    Map<String, dynamic>? headers,
+    dynamic body,
+  }) {
+    if (mode != SmartCacheMode.dev) return '';
+
+    final requestId = _generateRequestId();
+    final event = CacheEvent(
+      key: 'network:$requestId',
+      type: CacheEventType.networkRequest,
+      timestamp: DateTime.now(),
+      url: url,
+      method: method,
+      requestHeaders: headers,
+      requestBody: body,
+      requestId: requestId,
+    );
+    _eventController.add(event);
+    return requestId;
+  }
+
+  /// Records a successful network response.
+  void recordNetworkResponse({
+    required String requestId,
+    required String url,
+    required String method,
+    required int statusCode,
+    Map<String, dynamic>? headers,
+    dynamic body,
+    Duration? duration,
+  }) {
+    if (mode != SmartCacheMode.dev) return;
+
+    _stats = _stats.copyWith(
+      totalRequests: _stats.totalRequests + 1,
+      successfulRequests: _stats.successfulRequests + 1,
+      totalResponseTimeMs: _stats.totalResponseTimeMs + (duration?.inMilliseconds ?? 0),
+    );
+
+    final event = CacheEvent(
+      key: 'network:$requestId',
+      type: CacheEventType.networkResponse,
+      timestamp: DateTime.now(),
+      duration: duration,
+      url: url,
+      method: method,
+      responseStatusCode: statusCode,
+      responseHeaders: headers,
+      responseBody: body,
+      requestId: requestId,
+    );
+    _eventController.add(event);
+  }
+
+  /// Records a failed network request.
+  void recordNetworkError({
+    required String requestId,
+    required String url,
+    required String method,
+    required Object error,
+    Map<String, dynamic>? headers,
+    Duration? duration,
+  }) {
+    if (mode != SmartCacheMode.dev) return;
+
+    _stats = _stats.copyWith(
+      totalRequests: _stats.totalRequests + 1,
+      failedRequests: _stats.failedRequests + 1,
+    );
+
+    final event = CacheEvent(
+      key: 'network:$requestId',
+      type: CacheEventType.networkError,
+      timestamp: DateTime.now(),
+      duration: duration,
+      error: error,
+      url: url,
+      method: method,
+      requestHeaders: headers,
+      requestId: requestId,
+    );
+    _eventController.add(event);
+  }
+
+  /// Convenience method to record a complete request/response cycle.
+  Future<T> trackNetworkRequest<T>({
+    required String url,
+    required String method,
+    Map<String, dynamic>? headers,
+    dynamic body,
+    required Future<T> Function() request,
+  }) async {
+    final requestId = recordNetworkRequest(
+      url: url,
+      method: method,
+      headers: headers,
+      body: body,
+    );
+
+    final stopwatch = Stopwatch()..start();
+    try {
+      final result = await request();
+      stopwatch.stop();
+      recordNetworkResponse(
+        requestId: requestId,
+        url: url,
+        method: method,
+        statusCode: 200,
+        duration: stopwatch.elapsed,
+      );
+      return result;
+    } catch (e) {
+      stopwatch.stop();
+      recordNetworkError(
+        requestId: requestId,
+        url: url,
+        method: method,
+        error: e,
+        duration: stopwatch.elapsed,
+      );
+      rethrow;
+    }
+  }
+
+  String _generateRequestId() {
+    return 'req_${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(10000)}';
   }
 
   Future<void> set<T>({

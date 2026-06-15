@@ -121,6 +121,9 @@ class _StatsScreenState extends State<StatsScreen> {
       CacheEventType.error => (Icons.error, Colors.red),
       CacheEventType.expired => (Icons.timer, Colors.grey),
       CacheEventType.evict => (Icons.delete, Colors.black45),
+      CacheEventType.networkRequest => (Icons.arrow_upward, Colors.blue),
+      CacheEventType.networkResponse => (Icons.arrow_downward, Colors.green),
+      CacheEventType.networkError => (Icons.error_outline, Colors.red),
     };
     return Icon(icon, color: color, size: 20);
   }

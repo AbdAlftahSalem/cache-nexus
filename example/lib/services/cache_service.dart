@@ -19,8 +19,7 @@ class CacheService {
   SyncEngine get syncEngine => _syncEngine;
 
   static Future<CacheService> create() async {
-    final api = ApiService();
-
+    print('🔵 [CacheService] Creating cache with mode: SmartCacheMode.dev');
     final memoryStorage = MemoryCacheStorage();
 
     final persistentStorage = SecureCacheStorage(
@@ -28,6 +27,16 @@ class CacheService {
       encryptor: SimpleEncryptor('example_secret_key'),
       compressor: SimpleCompressor(),
     );
+
+    final cache = SmartCacheManager(
+      memoryStorage: memoryStorage,
+      persistentStorage: persistentStorage,
+      syncEngine: null,
+      mode: SmartCacheMode.dev,
+    );
+
+    print('🔵 [CacheService] Creating ApiService with cache');
+    final api = ApiService(cache: cache);
 
     final syncEngine = SyncEngine(
       executor: (task) async {
@@ -48,13 +57,9 @@ class CacheService {
     );
     await syncEngine.init();
 
-    final cache = SmartCacheManager(
-      memoryStorage: memoryStorage,
-      persistentStorage: persistentStorage,
-      syncEngine: syncEngine,
-      mode: SmartCacheMode.dev,
-    );
+    cache.syncEngine = syncEngine;
 
+    print('🔵 [CacheService] CacheService created successfully');
     return CacheService(
       api: api,
       cache: cache,

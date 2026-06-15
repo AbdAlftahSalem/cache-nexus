@@ -31,6 +31,9 @@ class _CachePanelScreenState extends State<CachePanelScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final networkEvents = _events.where((e) => e.isNetworkEvent).toList();
+    final cacheEvents = _events.where((e) => !e.isNetworkEvent).toList();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Smart Cache Dev Panel'),
@@ -45,41 +48,67 @@ class _CachePanelScreenState extends State<CachePanelScreen> {
         children: [
           CacheStatsWidget(stats: widget.manager.stats),
           const Divider(),
-          const Padding(
-            padding: EdgeInsets.all(8.0),
-            child: Text('LIVE REQUESTS', style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
           Expanded(
-            child: ListView.builder(
-              itemCount: _events.length,
-              itemBuilder: (context, index) {
-                final event = _events[index];
-                return ListTile(
-                  leading: _getIconForType(event.type),
-                  title: Text(event.key, style: const TextStyle(fontSize: 14)),
-                  subtitle: Text(
-                    '${event.type.name.toUpperCase()} • ${event.timestamp.toIso8601String().split('T').last.substring(0, 8)}',
-                    style: const TextStyle(fontSize: 12),
+            child: DefaultTabController(
+              length: 2,
+              child: Column(
+                children: [
+                  const TabBar(
+                    tabs: [
+                      Tab(text: 'NETWORK'),
+                      Tab(text: 'CACHE'),
+                    ],
                   ),
-                  trailing: event.duration != null
-                      ? Text('${event.duration!.inMilliseconds}ms')
-                      : null,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => CacheDetailScreen(
-                          event: event,
-                          allEvents: _events.where((e) => e.key == event.key).toList(),
-                        ),
-                      ),
-                    );
-                  },
-                );
-              },
+                  Expanded(
+                    child: TabBarView(
+                      children: [
+                        _buildEventList(networkEvents, true),
+                        _buildEventList(cacheEvents, false),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildEventList(List<CacheEvent> events, bool isNetwork) {
+    return ListView.builder(
+      itemCount: events.length,
+      itemBuilder: (context, index) {
+        final event = events[index];
+        return ListTile(
+          leading: _getIconForType(event.type),
+          title: Text(
+            isNetwork ? '${event.method ?? ''} ${event.url ?? event.key}' : event.key,
+            style: const TextStyle(fontSize: 14),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          subtitle: Text(
+            '${event.type.name.toUpperCase()} • ${event.timestamp.toIso8601String().split('T').last.substring(0, 8)}'
+            + (event.responseStatusCode != null ? ' • ${event.responseStatusCode}' : ''),
+            style: const TextStyle(fontSize: 12),
+          ),
+          trailing: event.duration != null
+              ? Text('${event.duration!.inMilliseconds}ms')
+              : null,
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => CacheDetailScreen(
+                  event: event,
+                  allEvents: _events.where((e) => e.key == event.key).toList(),
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -99,6 +128,12 @@ class _CachePanelScreenState extends State<CachePanelScreen> {
         return const Icon(Icons.timer_off, color: Colors.grey);
       case CacheEventType.evict:
         return const Icon(Icons.delete, color: Colors.black54);
+      case CacheEventType.networkRequest:
+        return const Icon(Icons.arrow_upward, color: Colors.blue);
+      case CacheEventType.networkResponse:
+        return const Icon(Icons.arrow_downward, color: Colors.green);
+      case CacheEventType.networkError:
+        return const Icon(Icons.error_outline, color: Colors.red);
     }
   }
 }

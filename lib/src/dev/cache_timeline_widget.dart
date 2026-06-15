@@ -59,6 +59,9 @@ class CacheTimelineWidget extends StatelessWidget {
       case CacheEventType.store: return Colors.blueGrey;
       case CacheEventType.expired: return Colors.grey;
       case CacheEventType.evict: return Colors.black54;
+      case CacheEventType.networkRequest: return Colors.blue;
+      case CacheEventType.networkResponse: return Colors.green;
+      case CacheEventType.networkError: return Colors.red;
     }
   }
 }

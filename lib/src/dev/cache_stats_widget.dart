@@ -12,6 +12,7 @@ class CacheStatsWidget extends StatelessWidget {
       padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
+          // Cache stats row
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -21,7 +22,7 @@ class CacheStatsWidget extends StatelessWidget {
               _buildStat('Errors', stats.errors.toString(), Colors.red),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           LinearProgressIndicator(
             value: stats.hitRate,
             backgroundColor: Colors.grey[200],
@@ -33,6 +34,31 @@ class CacheStatsWidget extends StatelessWidget {
             'Hit Rate: ${(stats.hitRate * 100).toStringAsFixed(1)}%',
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
+          // Network stats row
+          if (stats.totalRequests > 0) ...[
+            const Divider(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildStat('Requests', stats.totalRequests.toString(), Colors.indigo),
+                _buildStat('Success', stats.successfulRequests.toString(), Colors.green),
+                _buildStat('Failed', stats.failedRequests.toString(), Colors.red),
+                _buildStat('Avg Time', '${stats.averageResponseTimeMs.toStringAsFixed(0)}ms', Colors.teal),
+              ],
+            ),
+            const SizedBox(height: 12),
+            LinearProgressIndicator(
+              value: stats.successRate,
+              backgroundColor: Colors.grey[200],
+              color: Colors.indigo,
+              minHeight: 10,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Success Rate: ${(stats.successRate * 100).toStringAsFixed(1)}%',
+              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo),
+            ),
+          ],
         ],
       ),
     );

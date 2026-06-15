@@ -15,8 +15,10 @@ class CacheDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isNetwork = event.isNetworkEvent;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Request Details')),
+      appBar: AppBar(title: Text(isNetwork ? 'Network Request' : 'Cache Event')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -29,6 +31,27 @@ class CacheDetailScreen extends StatelessWidget {
               _buildSection('DURATION', '${event.duration!.inMilliseconds}ms'),
             if (event.error != null)
               _buildSection('ERROR', event.error.toString(), color: Colors.red),
+            if (isNetwork) ...[
+              const SizedBox(height: 20),
+              const Text('REQUEST', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)),
+              const SizedBox(height: 10),
+              if (event.method != null) _buildSection('METHOD', event.method!),
+              if (event.url != null) _buildSection('URL', event.url!),
+              if (event.requestHeaders != null && event.requestHeaders!.isNotEmpty)
+                _buildSection('REQUEST HEADERS', _formatData(event.requestHeaders)),
+              if (event.requestBody != null)
+                _buildSection('REQUEST BODY', _formatData(event.requestBody)),
+              const SizedBox(height: 20),
+              const Text('RESPONSE', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
+              const SizedBox(height: 10),
+              if (event.responseStatusCode != null)
+                _buildSection('STATUS CODE', event.responseStatusCode.toString(),
+                    color: _getStatusColor(event.responseStatusCode!)),
+              if (event.responseHeaders != null && event.responseHeaders!.isNotEmpty)
+                _buildSection('RESPONSE HEADERS', _formatData(event.responseHeaders)),
+              if (event.responseBody != null)
+                _buildSection('RESPONSE BODY', _formatData(event.responseBody)),
+            ],
             const SizedBox(height: 20),
             const Text('TIMELINE', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
             const SizedBox(height: 10),
@@ -62,7 +85,7 @@ class CacheDetailScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-          Text(value, style: TextStyle(fontSize: 16, color: color)),
+          SelectableText(value, style: TextStyle(fontSize: 14, color: color, fontFamily: 'monospace')),
         ],
       ),
     );
@@ -71,12 +94,26 @@ class CacheDetailScreen extends StatelessWidget {
   String _formatData(dynamic data) {
     if (data == null) return 'null';
     try {
+      String str;
       if (data is Map || data is List) {
-        return const JsonEncoder.withIndent('  ').convert(data);
+        str = const JsonEncoder.withIndent('  ').convert(data);
+      } else {
+        str = data.toString();
       }
-      return data.toString();
+      const maxLength = 10000;
+      if (str.length > maxLength) {
+        return '${str.substring(0, maxLength)}\n\n... [TRUNCATED: ${str.length} chars total]';
+      }
+      return str;
     } catch (_) {
       return data.toString();
     }
+  }
+
+  Color _getStatusColor(int statusCode) {
+    if (statusCode >= 200 && statusCode < 300) return Colors.green;
+    if (statusCode >= 300 && statusCode < 400) return Colors.blue;
+    if (statusCode >= 400 && statusCode < 500) return Colors.orange;
+    return Colors.red;
   }
 }

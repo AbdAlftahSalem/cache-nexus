@@ -105,5 +105,5 @@ class ReactiveEngine {
 class _ControllerEntry {
   final StreamController<dynamic> controller;
   int listenerCount;
-  _ControllerEntry(this.controller, {this.listenerCount = 0});
+  _ControllerEntry(this.controller) : listenerCount = 0;
 }

@@ -1,18 +1,15 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:smart_cache/smart_cache.dart';
 import 'package:smart_cache_example/models/post.dart';
-import 'package:smart_cache_example/services/api_service.dart';
 
 void main() {
   late SmartCacheManager cache;
   late MemoryCacheStorage memoryStorage;
-  late ApiService apiService;
 
   setUp(() {
     NetworkStatus.setMockStatus(true);
     memoryStorage = MemoryCacheStorage();
     cache = SmartCacheManager(memoryStorage: memoryStorage, mode: SmartCacheMode.dev);
-    apiService = ApiService();
   });
 
   tearDown(() {

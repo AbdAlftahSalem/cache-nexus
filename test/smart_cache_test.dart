@@ -31,6 +31,38 @@ void main() {
     });
   });
 
+  group('ReactiveEngine', () {
+    late ReactiveEngine engine;
+
+    setUp(() {
+      engine = ReactiveEngine();
+    });
+
+    tearDown(() {
+      engine.dispose();
+    });
+
+    test('auto-closes controller when last listener drops', () async {
+      final stream = engine.watch<String>('test_key');
+      final sub = stream.listen((_) {});
+
+      expect(engine.controllerCount, 1);
+
+      await sub.cancel();
+      await Future.delayed(Duration.zero);
+
+      expect(engine.controllerCount, 0);
+    });
+
+    test('no memory leak after 1000 watch/cancel cycles', () async {
+      for (var i = 0; i < 1000; i++) {
+        final sub = engine.watch<String>('key_$i').listen((_) {});
+        await sub.cancel();
+      }
+      expect(engine.controllerCount, 0);
+    });
+  });
+
   group('SmartCacheManager', () {
     late SmartCacheManager cache;
     late MemoryCacheStorage storage;
@@ -450,6 +482,106 @@ void main() {
       expect((restored.data as Map)['id'], 1);
     });
   });
+
+  group('TypeAdapter round-trip', () {
+    late SmartCacheManager cache;
+    late MemoryCacheStorage storage;
+
+    setUp(() {
+      NetworkStatus.setMockStatus(true);
+      storage = MemoryCacheStorage();
+      cache = SmartCacheManager(memoryStorage: storage);
+      cache.registerAdapter<List<_Post>>(_ListPostAdapter());
+    });
+
+    tearDown(() {
+      cache.dispose();
+    });
+
+    test('Post stored and retrieved as Post, not Map', () async {
+      final posts = [_Post(id: 1, title: 'Hello', body: 'World')];
+      await cache.set(key: 'posts', data: posts);
+
+      final result = await cache.get<List<_Post>>(
+        key: 'posts',
+        fetcher: () async => [],
+        policy: CachePolicy.cacheOnly,
+      );
+
+      expect(result, isA<List<_Post>>());
+      expect(result[0], isA<_Post>());
+      expect(result[0].id, 1);
+      expect(result[0].title, 'Hello');
+      expect(result[0].body, 'World');
+    });
+
+    test('Multiple posts round-trip correctly', () async {
+      final posts = [
+        _Post(id: 1, title: 'First', body: 'Body 1'),
+        _Post(id: 2, title: 'Second', body: 'Body 2'),
+        _Post(id: 3, title: 'Third', body: 'Body 3'),
+      ];
+      await cache.set(key: 'posts', data: posts);
+
+      final result = await cache.get<List<_Post>>(
+        key: 'posts',
+        fetcher: () async => [],
+        policy: CachePolicy.cacheOnly,
+      );
+
+      expect(result.length, 3);
+      expect(result[0], isA<_Post>());
+      expect(result[1], isA<_Post>());
+      expect(result[2], isA<_Post>());
+      expect(result[0].title, 'First');
+      expect(result[2].title, 'Third');
+    });
+
+    test('cacheFirst fetcher returns posts when cache is empty', () async {
+      final result = await cache.get<List<_Post>>(
+        key: 'posts',
+        fetcher: () async => [_Post(id: 1, title: 'Fetched', body: 'Body')],
+        policy: CachePolicy.cacheFirst,
+      );
+
+      expect(result[0], isA<_Post>());
+      expect(result[0].title, 'Fetched');
+
+      final cached = await cache.get<List<_Post>>(
+        key: 'posts',
+        fetcher: () async => [],
+        policy: CachePolicy.cacheOnly,
+      );
+      expect(cached[0], isA<_Post>());
+      expect(cached[0].title, 'Fetched');
+    });
+
+    test('cacheFirst calls fetcher on miss when no adapter and data is Map', () async {
+      final cacheWithoutAdapter = SmartCacheManager(memoryStorage: MemoryCacheStorage());
+
+      final now = DateTime.now();
+      final fakeEntry = CacheEntry<Map<String, dynamic>>(
+        data: {'id': 1, 'title': 'Widget'},
+        createdAt: now,
+        ttl: const Duration(minutes: 5),
+      );
+      await (cacheWithoutAdapter.memoryStorage as MemoryCacheStorage).write('widget', fakeEntry);
+
+      var fetchCount = 0;
+      final result = await cacheWithoutAdapter.get<String>(
+        key: 'widget',
+        fetcher: () async {
+          fetchCount++;
+          return 'fetched_string';
+        },
+        policy: CachePolicy.cacheFirst,
+      );
+
+      expect(result, 'fetched_string');
+      expect(fetchCount, 1);
+      cacheWithoutAdapter.dispose();
+    });
+  });
 }
 
 class _TestModel {
@@ -459,4 +591,49 @@ class _TestModel {
   _TestModel({required this.id, required this.name});
 
   Map<String, dynamic> toJson() => {'id': id, 'name': name};
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is _TestModel && runtimeType == other.runtimeType && id == other.id && name == other.name;
+
+  @override
+  int get hashCode => id.hashCode ^ name.hashCode;
+}
+
+class _Post {
+  final int id;
+  final String title;
+  final String body;
+
+  _Post({required this.id, required this.title, required this.body});
+
+  Map<String, dynamic> toJson() => {'id': id, 'title': title, 'body': body};
+
+  factory _Post.fromJson(Map<String, dynamic> json) =>
+      _Post(id: json['id'] as int, title: json['title'] as String, body: json['body'] as String);
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is _Post && runtimeType == other.runtimeType && id == other.id && title == other.title && body == other.body;
+
+  @override
+  int get hashCode => id.hashCode ^ title.hashCode ^ body.hashCode;
+}
+
+class _ListPostAdapter implements TypeAdapter<List<_Post>> {
+  @override
+  List<_Post> fromData(dynamic data) {
+    if (data is List<_Post>) return data;
+    if (data is List) {
+      return data
+          .map((e) => _Post.fromJson(e as Map<String, dynamic>))
+          .toList();
+    }
+    return [];
+  }
+
+  @override
+  dynamic toData(List<_Post> value) => value.map((p) => p.toJson()).toList();
 }

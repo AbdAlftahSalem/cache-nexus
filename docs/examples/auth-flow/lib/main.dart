@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:smart_cache/smart_cache.dart';
 import 'services/auth_service.dart';
 import 'screens/login_screen.dart';
-import 'screens/profile_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

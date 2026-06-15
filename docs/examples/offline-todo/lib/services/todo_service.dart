@@ -20,7 +20,7 @@ class TodoService extends InheritedWidget {
   Future<List<Todo>> getTodos() async {
     return cache.get<List<Todo>>(
       key: 'todos',
-      fetcher: () => [],
+      fetcher: () async => <Todo>[],
       ttl: const Duration(hours: 24),
     );
   }

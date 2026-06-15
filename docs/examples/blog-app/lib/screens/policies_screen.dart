@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:smart_cache/smart_cache.dart';
-import '../models/post.dart';
 import '../services/cache_service.dart';
 
 class PoliciesScreen extends StatefulWidget {
@@ -129,7 +128,7 @@ class _PolicyCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: color.withOpacity(0.1),
+          backgroundColor: color.withValues(alpha: 0.1),
           child: Icon(Icons.play_arrow, color: color),
         ),
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),

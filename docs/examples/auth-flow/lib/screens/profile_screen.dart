@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:smart_cache/smart_cache.dart';
-import 'auth_service.dart';
+import '../services/auth_service.dart';
 import 'login_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -124,7 +124,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 ElevatedButton(
                   onPressed: () async {
-                    await cache.delete(key: 'profile');
+                    await cache.delete('profile');
                   },
                   child: const Text('Delete Profile'),
                 ),

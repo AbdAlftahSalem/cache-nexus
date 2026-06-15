@@ -80,7 +80,6 @@ class ObservabilityManager {
     );
     _eventController.add(event);
     _addToRecentEvents(event);
-    print('🔵 [ObservabilityManager] recordNetworkRequest: $method $url (id: $requestId)');
     return requestId;
   }
 
@@ -115,7 +114,6 @@ class ObservabilityManager {
     );
     _eventController.add(event);
     _addToRecentEvents(event);
-    print('🔵 [ObservabilityManager] recordNetworkResponse: $method $url status=$statusCode duration=${duration?.inMilliseconds}ms (id: $requestId)');
   }
 
   void recordNetworkError({
@@ -146,7 +144,6 @@ class ObservabilityManager {
     );
     _eventController.add(event);
     _addToRecentEvents(event);
-    print('🔵 [ObservabilityManager] recordNetworkError: $method $url error=$error duration=${duration?.inMilliseconds}ms (id: $requestId)');
   }
 
   Future<T> trackNetworkRequest<T>({

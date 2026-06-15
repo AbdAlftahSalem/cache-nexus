@@ -104,8 +104,7 @@ class _CachePanelScreenState extends State<CachePanelScreen> {
             overflow: TextOverflow.ellipsis,
           ),
           subtitle: Text(
-            '${event.type.name.toUpperCase()} • ${event.timestamp.toIso8601String().split('T').last.substring(0, 8)}'
-            + (event.responseStatusCode != null ? ' • ${event.responseStatusCode}' : ''),
+            '${event.type.name.toUpperCase()} • ${event.timestamp.toIso8601String().split('T').last.substring(0, 8)}${event.responseStatusCode != null ? ' • ${event.responseStatusCode}' : ''}',
             style: const TextStyle(fontSize: 12),
           ),
           trailing: event.duration != null

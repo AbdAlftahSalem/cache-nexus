@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import '../cache_manager.dart';
+import '../smart_cache_mode.dart';
 
 class SmartCacheDioInterceptor extends Interceptor {
   final SmartCacheManager cache;

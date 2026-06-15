@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 
@@ -11,34 +10,24 @@ import 'cache_event.dart';
 import 'cache_stats.dart';
 import 'sync_task.dart';
 import 'sync_engine.dart';
-import 'network_status.dart';
 import 'cache_context.dart';
-import 'subscription_manager.dart';
+import 'observability_manager.dart';
+import 'policy_resolver.dart';
+import 'reactive_engine.dart';
+import 'smart_cache_mode.dart';
 
-enum SmartCacheMode { dev, production }
-
-/// Manages reactive caching with automatic UI updates via streams.
-///
-/// Phase 6: Reactive Data System with watch() API and SmartCacheBuilder support.
 class SmartCacheManager {
   final CacheStorage memoryStorage;
   final CacheStorage? persistentStorage;
   SyncEngine? syncEngine;
   final SmartCacheMode mode;
   CacheContext? _context;
-  final Map<String, Future<dynamic>> _inFlightRequests = {};
 
-  final StreamController<CacheEvent> _eventController = StreamController<CacheEvent>.broadcast();
-  final SubscriptionManager _subscriptionManager = SubscriptionManager();
-  CacheStats _stats = CacheStats();
-  
-  // Buffer of recent events for new subscribers (e.g., dev panel opening after requests)
-  final List<CacheEvent> _recentEvents = [];
-  static const int _maxRecentEvents = 100;
+  late final ObservabilityManager _observability;
+  late final PolicyResolver _policyResolver;
+  late final ReactiveEngine _reactiveEngine;
 
-  /// Exposed for testing memory leak detection
-  @visibleForTesting
-  SubscriptionManager get subscriptionManager => _subscriptionManager;
+  final Map<Type, dynamic> _adapters = {};
 
   SmartCacheManager({
     CacheStorage? memoryStorage,
@@ -46,15 +35,24 @@ class SmartCacheManager {
     this.syncEngine,
     this.mode = SmartCacheMode.production,
     CacheContext? context,
-  }) : memoryStorage = memoryStorage ?? MemoryCacheStorage(),
-       _context = context;
+  })  : memoryStorage = memoryStorage ?? MemoryCacheStorage(),
+        _context = context {
+    _observability = ObservabilityManager(mode: mode);
+    _policyResolver = PolicyResolver(
+      observability: _observability,
+      memoryStorage: this.memoryStorage,
+      persistentStorage: persistentStorage,
+    );
+    _reactiveEngine = ReactiveEngine();
+  }
 
-  Stream<CacheEvent> get events => _eventController.stream;
-  CacheStats get stats => _stats;
+  Stream<CacheEvent> get events => _observability.events;
+  CacheStats get stats => _observability.stats;
   CacheContext? get context => _context;
-  
-  /// Returns recent events for new subscribers (e.g., dev panel opened after requests)
-  List<CacheEvent> get recentEvents => List.unmodifiable(_recentEvents);
+  List<CacheEvent> get recentEvents => _observability.recentEvents;
+
+  @visibleForTesting
+  ReactiveEngine get reactiveEngine => _reactiveEngine;
 
   void setContext(CacheContext context) {
     _context = context;
@@ -64,41 +62,30 @@ class SmartCacheManager {
     _context = null;
   }
 
-  /// Watches a cache key for changes and returns a broadcast stream.
-  ///
-  /// The stream emits the current value (if available) on first subscription,
-  /// then emits new values whenever the key is updated via [set] or [get].
-  /// A `null` value is emitted when the key is deleted or not found.
-  ///
-  /// Use [debounce] to prevent rapid UI rebuilds during fast updates.
-  ///
-  /// Example:
-  /// ```dart
-  /// cache.watch<List<User>>("users").listen((users) {
-  ///   print(users);
-  /// });
-  /// ```
-  Stream<T?> watch<T>(String key, {Duration? debounce}) {
-    final resolvedKey = _resolveKey(key);
-    final controller = _subscriptionManager.acquire(resolvedKey);
-
-    Stream<T?> stream = controller.stream.map((event) => event as T?);
-
-    if (debounce != null) {
-      stream = _debounceStream(stream, debounce);
+  String _resolveKey(String key) {
+    if (_context != null) {
+      return '${_context!.cacheKeyPrefix}$key';
     }
-
-    // Seed the stream with the current value (async)
-    _readCurrent<T>(resolvedKey).then((value) {
-      if (!controller.isClosed) {
-        controller.add(value);
-      }
-    });
-
-    return stream;
+    return key;
   }
 
-  /// Reads the current value for a key from memory, then persistent storage.
+  static T? _tryCast<T>(dynamic data) {
+    try {
+      return data as T;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Stream<T?> watch<T>(String key, {Duration? debounce}) {
+    final resolvedKey = _resolveKey(key);
+    return _reactiveEngine.watch<T>(
+      resolvedKey,
+      readCurrent: (rk) => _readCurrent<T>(rk),
+      debounce: debounce,
+    );
+  }
+
   Future<T?> _readCurrent<T>(String resolvedKey) async {
     var entry = await memoryStorage.read(resolvedKey);
     if (entry != null && !entry.isExpired) {
@@ -115,392 +102,23 @@ class SmartCacheManager {
     return null;
   }
 
-  /// Debounces a stream to prevent rapid emissions.
-  Stream<T?> _debounceStream<T>(Stream<T?> stream, Duration debounce) {
-    final controller = StreamController<T?>.broadcast();
-    Timer? timer;
-
-    stream.listen((event) {
-      timer?.cancel();
-      timer = Timer(debounce, () {
-        if (!controller.isClosed) {
-          controller.add(event);
-        }
-      });
-    }, onError: (Object error, StackTrace stackTrace) {
-      if (!controller.isClosed) {
-        controller.addError(error, stackTrace);
-      }
-    }, onDone: () {
-      timer?.cancel();
-      if (!controller.isClosed) {
-        controller.close();
-      }
-    });
-
-    return controller.stream;
-  }
-
-  /// --------------------------------------------------------------------------
-  //  Phase 1–5 API (unchanged compatibility)
-  // ---------------------------------------------------------------------------
-
-  /// Attempts to cast [data] to [T]. Returns null if the cast fails
-  /// (e.g., deserialized Map from persistent storage vs original custom type).
-  static T? _tryCast<T>(dynamic data) {
-    try {
-      return data as T;
-    } catch (_) {
-      return null;
-    }
-  }
-
-  String _resolveKey(String key) {
-    if (_context != null) {
-      return '${_context!.cacheKeyPrefix}$key';
-    }
-    return key;
-  }
-
-  void _emit(CacheEventType type, String key, {dynamic data, Duration? duration, Object? error}) {
-    if (mode != SmartCacheMode.dev) return;
-
-    final event = CacheEvent(
-      key: key,
-      type: type,
-      timestamp: DateTime.now(),
-      data: data,
-      duration: duration,
-      error: error,
-    );
-
-    switch (type) {
-      case CacheEventType.hit:
-        _stats = _stats.copyWith(hits: _stats.hits + 1);
-        break;
-      case CacheEventType.miss:
-        _stats = _stats.copyWith(misses: _stats.misses + 1);
-        break;
-      case CacheEventType.fetch:
-        _stats = _stats.copyWith(fetches: _stats.fetches + 1);
-        break;
-      case CacheEventType.error:
-        _stats = _stats.copyWith(errors: _stats.errors + 1);
-        break;
-      default:
-        break;
-    }
-
-    _eventController.add(event);
-    _addToRecentEvents(event);
-  }
-
-  void _addToRecentEvents(CacheEvent event) {
-    if (mode != SmartCacheMode.dev) return;
-    _recentEvents.insert(0, event);
-    if (_recentEvents.length > _maxRecentEvents) {
-      _recentEvents.removeLast();
-    }
-  }
-
   Future<T> get<T>({
     required String key,
     required Future<T> Function() fetcher,
     Duration? ttl,
     CachePolicy policy = CachePolicy.cacheFirst,
-  }) async {
-    final resolvedKey = _resolveKey(key);
-    switch (policy) {
-      case CachePolicy.cacheFirst:
-        // 1. Check Memory
-        var entry = await memoryStorage.read(resolvedKey);
-        if (entry != null) {
-          if (!entry.isExpired) {
-            _emit(CacheEventType.hit, resolvedKey, data: entry.data);
-            return entry.data as T;
-          } else {
-            _emit(CacheEventType.expired, resolvedKey);
-          }
-        }
-
-        // 2. Check Persistent
-        if (persistentStorage != null) {
-          entry = await persistentStorage!.read(resolvedKey);
-          if (entry != null) {
-            if (!entry.isExpired) {
-              final casted = _tryCast<T>(entry.data);
-              if (casted != null) {
-                _emit(CacheEventType.hit, resolvedKey, data: entry.data);
-                // Restore to memory
-                await memoryStorage.write(resolvedKey, entry);
-                return casted;
-              }
-              // Type mismatch: treat as cache miss, fall through to fetch
-            } else {
-              _emit(CacheEventType.expired, resolvedKey);
-            }
-          }
-        }
-
-        _emit(CacheEventType.miss, resolvedKey);
-        return _performFetch(key, fetcher, ttl);
-
-      case CachePolicy.networkFirst:
-        if (await NetworkStatus.isOnline) {
-          try {
-            return await _performFetch(key, fetcher, ttl);
-          } catch (e) {
-            return await _readFromCache(resolvedKey);
-          }
-        } else {
-          return await _readFromCache(resolvedKey);
-        }
-
-      case CachePolicy.cacheOnly:
-        return await _readFromCache(resolvedKey);
-
-      case CachePolicy.networkOnly:
-        return _performFetch(key, fetcher, ttl);
-
-      case CachePolicy.staleWhileRevalidate:
-        var entry = await memoryStorage.read(resolvedKey);
-        T? casted;
-        if (entry != null && !entry.isExpired) {
-          casted = _tryCast<T>(entry.data);
-        }
-        if (casted == null && persistentStorage != null) {
-          entry = await persistentStorage!.read(resolvedKey);
-          if (entry != null && !entry.isExpired) {
-            casted = _tryCast<T>(entry.data);
-          }
-        }
-        if (casted != null) {
-          _emit(CacheEventType.hit, resolvedKey, data: casted);
-          // Trigger background refresh silently if online
-          NetworkStatus.isOnline.then((online) async {
-            if (online) {
-              try {
-                await _performFetch(key, fetcher, ttl);
-              } catch (_) {}
-            }
-          });
-          return casted;
-        }
-        _emit(CacheEventType.miss, resolvedKey);
-        return _performFetch(key, fetcher, ttl);
-    }
-  }
-
-  Future<T> _readFromCache<T>(String resolvedKey) async {
-    var entry = await memoryStorage.read(resolvedKey);
-    if (entry != null) {
-      if (!entry.isExpired) {
-        _emit(CacheEventType.hit, resolvedKey, data: entry.data);
-        return entry.data as T;
-      } else {
-        _emit(CacheEventType.expired, resolvedKey);
-        await memoryStorage.delete(resolvedKey);
-      }
-    }
-    if (persistentStorage != null) {
-      entry = await persistentStorage!.read(resolvedKey);
-      if (entry != null) {
-        if (!entry.isExpired) {
-          final casted = _tryCast<T>(entry.data);
-          if (casted != null) {
-            _emit(CacheEventType.hit, resolvedKey, data: entry.data);
-            await memoryStorage.write(resolvedKey, entry);
-            return casted;
-          }
-          // Type mismatch: treat as cache miss
-        } else {
-          _emit(CacheEventType.expired, resolvedKey);
-          await persistentStorage!.delete(resolvedKey);
-        }
-      }
-    }
-    _emit(CacheEventType.miss, resolvedKey);
-    throw Exception('Cache missing or expired for key: $resolvedKey');
-  }
-
-  Future<T> _performFetch<T>(
-    String key,
-    Future<T> Function() fetcher,
-    Duration? ttl,
-  ) async {
-    final resolvedKey = _resolveKey(key);
-    if (_inFlightRequests.containsKey(resolvedKey)) {
-      return (await _inFlightRequests[resolvedKey]) as T;
-    }
-
-    final stopwatch = Stopwatch()..start();
-    final future = fetcher();
-    _inFlightRequests[resolvedKey] = future;
-
-    try {
-      final result = await future;
-
-      if (result == null) {
-        throw Exception('Fetcher returned null result for key: $resolvedKey');
-      }
-
-      _emit(CacheEventType.fetch, resolvedKey, data: result, duration: stopwatch.elapsed);
-      await set(key: key, data: result, ttl: ttl);
-      return result;
-    } catch (e) {
-      _emit(CacheEventType.error, resolvedKey, error: e, duration: stopwatch.elapsed);
-      rethrow;
-    } finally {
-      stopwatch.stop();
-      _inFlightRequests.remove(resolvedKey);
-    }
-  }
-
-  /// Records a network request for observability in dev mode.
-  /// Call this before making the HTTP request.
-  /// Returns a request ID that should be passed to [recordNetworkResponse] or [recordNetworkError].
-  String recordNetworkRequest({
-    required String url,
-    required String method,
-    Map<String, dynamic>? headers,
-    dynamic body,
   }) {
-    if (mode != SmartCacheMode.dev) return '';
-
-    final requestId = _generateRequestId();
-    final event = CacheEvent(
-      key: 'network:$requestId',
-      type: CacheEventType.networkRequest,
-      timestamp: DateTime.now(),
-      url: url,
-      method: method,
-      requestHeaders: headers,
-      requestBody: body,
-      requestId: requestId,
+    return _policyResolver.resolve<T>(
+      resolvedKey: _resolveKey(key),
+      fetcher: fetcher,
+      ttl: ttl,
+      policy: policy,
+      onStore: (resolvedKey, data, t) => _setResolved<T>(resolvedKey, data, ttl: t),
+      onNotify: (resolvedKey, data) async { _reactiveEngine.emit(resolvedKey, data); },
     );
-    _eventController.add(event);
-    _addToRecentEvents(event);
-    print('🔵 [CacheManager] recordNetworkRequest: $method $url (id: $requestId)');
-    return requestId;
   }
 
-  /// Records a successful network response.
-  void recordNetworkResponse({
-    required String requestId,
-    required String url,
-    required String method,
-    required int statusCode,
-    Map<String, dynamic>? headers,
-    dynamic body,
-    Duration? duration,
-  }) {
-    if (mode != SmartCacheMode.dev) return;
-
-    _stats = _stats.copyWith(
-      totalRequests: _stats.totalRequests + 1,
-      successfulRequests: _stats.successfulRequests + 1,
-      totalResponseTimeMs: _stats.totalResponseTimeMs + (duration?.inMilliseconds ?? 0),
-    );
-
-    final event = CacheEvent(
-      key: 'network:$requestId',
-      type: CacheEventType.networkResponse,
-      timestamp: DateTime.now(),
-      duration: duration,
-      url: url,
-      method: method,
-      responseStatusCode: statusCode,
-      responseHeaders: headers,
-      responseBody: body,
-      requestId: requestId,
-    );
-    _eventController.add(event);
-    _addToRecentEvents(event);
-    print('🔵 [CacheManager] recordNetworkResponse: $method $url status=$statusCode duration=${duration?.inMilliseconds}ms (id: $requestId)');
-  }
-
-  /// Records a failed network request.
-  void recordNetworkError({
-    required String requestId,
-    required String url,
-    required String method,
-    required Object error,
-    Map<String, dynamic>? headers,
-    Duration? duration,
-  }) {
-    if (mode != SmartCacheMode.dev) return;
-
-    _stats = _stats.copyWith(
-      totalRequests: _stats.totalRequests + 1,
-      failedRequests: _stats.failedRequests + 1,
-    );
-
-    final event = CacheEvent(
-      key: 'network:$requestId',
-      type: CacheEventType.networkError,
-      timestamp: DateTime.now(),
-      duration: duration,
-      error: error,
-      url: url,
-      method: method,
-      requestHeaders: headers,
-      requestId: requestId,
-    );
-    _eventController.add(event);
-    _addToRecentEvents(event);
-    print('🔵 [CacheManager] recordNetworkError: $method $url error=$error duration=${duration?.inMilliseconds}ms (id: $requestId)');
-  }
-
-  /// Convenience method to record a complete request/response cycle.
-  Future<T> trackNetworkRequest<T>({
-    required String url,
-    required String method,
-    Map<String, dynamic>? headers,
-    dynamic body,
-    required Future<T> Function() request,
-  }) async {
-    final requestId = recordNetworkRequest(
-      url: url,
-      method: method,
-      headers: headers,
-      body: body,
-    );
-
-    final stopwatch = Stopwatch()..start();
-    try {
-      final result = await request();
-      stopwatch.stop();
-      recordNetworkResponse(
-        requestId: requestId,
-        url: url,
-        method: method,
-        statusCode: 200,
-        duration: stopwatch.elapsed,
-      );
-      return result;
-    } catch (e) {
-      stopwatch.stop();
-      recordNetworkError(
-        requestId: requestId,
-        url: url,
-        method: method,
-        error: e,
-        duration: stopwatch.elapsed,
-      );
-      rethrow;
-    }
-  }
-
-  String _generateRequestId() {
-    return 'req_${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(10000)}';
-  }
-
-  Future<void> set<T>({
-    required String key,
-    required T data,
-    Duration? ttl,
-  }) async {
-    final resolvedKey = _resolveKey(key);
+  Future<void> _setResolved<T>(String resolvedKey, T data, {Duration? ttl}) async {
     final entry = CacheEntry<T>(
       data: data,
       createdAt: DateTime.now(),
@@ -510,9 +128,17 @@ class SmartCacheManager {
     if (persistentStorage != null) {
       await persistentStorage!.write(resolvedKey, entry);
     }
-    // Phase 6: Notify reactive watchers
-    _subscriptionManager.emit(resolvedKey, data);
-    _emit(CacheEventType.store, resolvedKey, data: data);
+    _reactiveEngine.emit(resolvedKey, data);
+    _observability.emit(CacheEventType.store, resolvedKey, data: data);
+  }
+
+  Future<void> set<T>({
+    required String key,
+    required T data,
+    Duration? ttl,
+  }) async {
+    final resolvedKey = _resolveKey(key);
+    await _setResolved<T>(resolvedKey, data, ttl: ttl);
   }
 
   Future<void> enqueueSyncTask(SyncTask task) async {
@@ -529,9 +155,8 @@ class SmartCacheManager {
     if (persistentStorage != null) {
       await persistentStorage!.delete(resolvedKey);
     }
-    // Phase 6: Notify reactive watchers of deletion (emit null)
-    _subscriptionManager.emit(resolvedKey, null);
-    _emit(CacheEventType.evict, resolvedKey);
+    _reactiveEngine.emit(resolvedKey, null);
+    _observability.emit(CacheEventType.evict, resolvedKey);
   }
 
   Future<void> clear() async {
@@ -539,7 +164,7 @@ class SmartCacheManager {
     if (persistentStorage != null) {
       await persistentStorage!.clear();
     }
-    _emit(CacheEventType.evict, 'all');
+    _observability.emit(CacheEventType.evict, 'all');
   }
 
   Future<void> invalidateByContext(CacheContext context) async {
@@ -548,11 +173,78 @@ class SmartCacheManager {
     if (persistentStorage != null) {
       await persistentStorage!.deleteByPrefix(prefix);
     }
-    _emit(CacheEventType.evict, 'prefix:$prefix');
+    _observability.emit(CacheEventType.evict, 'prefix:$prefix');
+  }
+
+  String recordNetworkRequest({
+    required String url,
+    required String method,
+    Map<String, dynamic>? headers,
+    dynamic body,
+  }) =>
+      _observability.recordNetworkRequest(url: url, method: method, headers: headers, body: body);
+
+  void recordNetworkResponse({
+    required String requestId,
+    required String url,
+    required String method,
+    required int statusCode,
+    Map<String, dynamic>? headers,
+    dynamic body,
+    Duration? duration,
+  }) =>
+      _observability.recordNetworkResponse(
+        requestId: requestId,
+        url: url,
+        method: method,
+        statusCode: statusCode,
+        headers: headers,
+        body: body,
+        duration: duration,
+      );
+
+  void recordNetworkError({
+    required String requestId,
+    required String url,
+    required String method,
+    required Object error,
+    Map<String, dynamic>? headers,
+    Duration? duration,
+  }) =>
+      _observability.recordNetworkError(
+        requestId: requestId,
+        url: url,
+        method: method,
+        error: error,
+        headers: headers,
+        duration: duration,
+      );
+
+  Future<T> trackNetworkRequest<T>({
+    required String url,
+    required String method,
+    Map<String, dynamic>? headers,
+    dynamic body,
+    required Future<T> Function() request,
+  }) =>
+      _observability.trackNetworkRequest(
+        url: url,
+        method: method,
+        headers: headers,
+        body: body,
+        request: request,
+      );
+
+  void registerAdapter<T>(dynamic adapter) {
+    _adapters[T] = adapter;
+  }
+
+  T? tryCast<T>(dynamic data) {
+    return _tryCast<T>(data);
   }
 
   void dispose() {
-    _subscriptionManager.dispose();
-    _eventController.close();
+    _reactiveEngine.dispose();
+    _observability.dispose();
   }
 }

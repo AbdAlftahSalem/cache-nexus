@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../cache_manager.dart';
+import '../smart_cache_mode.dart';
 import 'cache_panel_screen.dart';
 
 class SmartCacheOverlay extends StatelessWidget {

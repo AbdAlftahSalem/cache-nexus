@@ -1,0 +1,1 @@
+enum SmartCacheMode { dev, production }

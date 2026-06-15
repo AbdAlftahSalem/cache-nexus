@@ -129,20 +129,26 @@ void main() {
     // Memory Leak Prevention Tests
     // ----------------------------------------------------------------------
     group('Memory Management', () {
-      test('stream controller is disposed after all listeners unsubscribe', () async {
+      test('stream controller auto-closes after last listener unsubscribes', () async {
         final sub = cache.watch<String>('test').listen((_) {});
         await Future.delayed(Duration(milliseconds: 10));
 
-        expect(cache.subscriptionManager.hasController('test'), isTrue);
+        expect(cache.reactiveEngine.controllerCount, 1);
 
         await sub.cancel();
-        // Give time for cleanup
+        // Give time for microtask cleanup
         await Future.delayed(Duration(milliseconds: 50));
 
-        // Controller should still exist (no auto-dispose without explicit remove)
-        // This is the trade-off for simplicity - we don't auto-dispose to avoid race conditions
-        // The controller will be reused if a new listener subscribes
-        expect(cache.subscriptionManager.hasController('test'), isTrue);
+        // Controller should be auto-closed and removed
+        expect(cache.reactiveEngine.controllerCount, 0);
+      });
+
+      test('no memory leaks after 1000 watch/cancel cycles', () async {
+        for (var i = 0; i < 1000; i++) {
+          final sub = cache.watch<String>('key_$i').listen((_) {});
+          await sub.cancel();
+        }
+        expect(cache.reactiveEngine.controllerCount, 0);
       });
 
       test('no memory leaks after dispose', () async {
@@ -153,7 +159,7 @@ void main() {
 
         cache.dispose();
         await Future.delayed(Duration(milliseconds: 50));
-        expect(cache.subscriptionManager.activeControllerCount, 0);
+        expect(cache.reactiveEngine.controllerCount, 0);
       });
     });
 

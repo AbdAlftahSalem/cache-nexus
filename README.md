@@ -218,11 +218,10 @@ Already using Hive, shared_preferences, or Riverpod? See [docs/best-practices/mi
 - [x] Phase 7: Offline Sync Queue, Background Retry
 
 ### Planned
-
-- [ ] Phase 8: Full Dev Dashboard, Request Timeline, Analytics, Export Logs (JSON/CSV)
-- [ ] Phase 9: Dio/Retrofit Integration, Tag-Based Invalidation
-- [ ] Phase 10: Cache Warming, Prefetching, Background Refresh Scheduling
-- [ ] pub.dev publication
+- [ ] Phase 8: Dio/Retrofit Integration, Tag-Based Invalidation
+- [ ] Phase 9: Cache Warming, Prefetching, Background Refresh Scheduling
+- [ ] Phase 10: Full Dev Dashboard, Request Timeline, Analytics, Export Logs (JSON/CSV)
+- pub.dev publication
 
 ---
 

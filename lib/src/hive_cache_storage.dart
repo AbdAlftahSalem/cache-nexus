@@ -29,10 +29,19 @@ class HiveCacheStorage implements CacheStorage {
   Future<CacheEntry?> read(String key) async {
     final data = box.get(key);
     if (data == null) return null;
-    
+
     try {
       final json = Map<String, dynamic>.from(data as Map);
-      return CacheEntry.fromJson(json);
+      // Construct CacheEntry directly instead of using fromJson.
+      // fromJson does `json['data'] as T` which fails for complex types
+      // (e.g. List<Product>) because Hive deserializes to raw Maps/lists.
+      return CacheEntry(
+        data: json['data'],
+        createdAt: DateTime.parse(json['createdAt'] as String),
+        ttl: json['ttl'] != null
+            ? Duration(milliseconds: json['ttl'] as int)
+            : null,
+      );
     } catch (e) {
       // If corrupted, delete it
       await delete(key);

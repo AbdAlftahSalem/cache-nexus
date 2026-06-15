@@ -295,5 +295,168 @@ void main() {
         expect(fetchCount, 1);
       });
     });
+
+    group('Phase 7: Persistent Storage Type Mismatch Resilience', () {
+      late SmartCacheManager cacheWithPersistent;
+      late MemoryCacheStorage memStorage;
+      late MemoryCacheStorage persistentStorage;
+
+      setUp(() {
+        NetworkStatus.setMockStatus(true);
+        memStorage = MemoryCacheStorage();
+        persistentStorage = MemoryCacheStorage();
+        cacheWithPersistent = SmartCacheManager(
+          memoryStorage: memStorage,
+          persistentStorage: persistentStorage,
+        );
+      });
+
+      test('cacheFirst: falls through to fetcher when persistent data type mismatches', () async {
+        // Simulate a deserialized Map in persistent storage (as would happen after
+        // CacheEntry.toJson() serializes a custom object to a Map for Hive)
+        final now = DateTime.now();
+        final fakeEntry = CacheEntry<Map<String, dynamic>>(
+          data: {'id': 1, 'title': 'Widget'},
+          createdAt: now,
+          ttl: const Duration(minutes: 5),
+        );
+        await persistentStorage.write('widget', fakeEntry);
+
+        // Request as String — type mismatch, should fall through to fetcher
+        var fetchCount = 0;
+        final result = await cacheWithPersistent.get<String>(
+          key: 'widget',
+          fetcher: () async {
+            fetchCount++;
+            return 'fetched_string';
+          },
+          policy: CachePolicy.cacheFirst,
+        );
+
+        expect(result, 'fetched_string');
+        expect(fetchCount, 1);
+      });
+
+      test('cacheOnly: throws when persistent data type mismatches', () async {
+        final now = DateTime.now();
+        final fakeEntry = CacheEntry<Map<String, dynamic>>(
+          data: {'id': 1, 'title': 'Widget'},
+          createdAt: now,
+          ttl: const Duration(minutes: 5),
+        );
+        await persistentStorage.write('widget', fakeEntry);
+
+        expect(
+          () => cacheWithPersistent.get<String>(
+            key: 'widget',
+            fetcher: () async => 'fetched',
+            policy: CachePolicy.cacheOnly,
+          ),
+          throwsException,
+        );
+      });
+
+      test('staleWhileRevalidate: falls through to fetcher when persistent data type mismatches', () async {
+        final now = DateTime.now();
+        final fakeEntry = CacheEntry<Map<String, dynamic>>(
+          data: {'id': 1, 'title': 'Widget'},
+          createdAt: now,
+          ttl: const Duration(minutes: 5),
+        );
+        await persistentStorage.write('widget', fakeEntry);
+
+        var fetchCount = 0;
+        final result = await cacheWithPersistent.get<String>(
+          key: 'widget',
+          fetcher: () async {
+            fetchCount++;
+            return 'fetched_string';
+          },
+          policy: CachePolicy.staleWhileRevalidate,
+        );
+
+        expect(result, 'fetched_string');
+        expect(fetchCount, 1);
+      });
+    });
   });
+
+  group('CacheEntry serialization', () {
+    test('toJson serializes primitives directly', () {
+      final entry = CacheEntry<String>(
+        data: 'hello',
+        createdAt: DateTime(2024, 1, 1),
+        ttl: const Duration(minutes: 5),
+      );
+      final json = entry.toJson();
+      expect(json['data'], 'hello');
+      expect(json['createdAt'], '2024-01-01T00:00:00.000');
+      expect(json['ttl'], 300000);
+    });
+
+    test('toJson serializes numbers directly', () {
+      final entry = CacheEntry<int>(
+        data: 42,
+        createdAt: DateTime(2024, 1, 1),
+      );
+      final json = entry.toJson();
+      expect(json['data'], 42);
+    });
+
+    test('toJson serializes custom objects via toJson()', () {
+      final entry = CacheEntry<_TestModel>(
+        data: _TestModel(id: 1, name: 'widget'),
+        createdAt: DateTime(2024, 1, 1),
+      );
+      final json = entry.toJson();
+      expect(json['data'], isA<Map>());
+      expect(json['data']['id'], 1);
+      expect(json['data']['name'], 'widget');
+    });
+
+    test('toJson serializes lists containing custom objects', () {
+      final entry = CacheEntry<List<_TestModel>>(
+        data: [_TestModel(id: 1, name: 'a'), _TestModel(id: 2, name: 'b')],
+        createdAt: DateTime(2024, 1, 1),
+      );
+      final json = entry.toJson();
+      expect(json['data'], isA<List>());
+      expect(json['data'][0]['id'], 1);
+      expect(json['data'][1]['name'], 'b');
+    });
+
+    test('fromJson roundtrips with primitive data', () {
+      final original = CacheEntry<String>(
+        data: 'hello',
+        createdAt: DateTime(2024, 1, 1),
+        ttl: const Duration(minutes: 5),
+      );
+      final json = original.toJson();
+      final restored = CacheEntry.fromJson(json);
+      expect(restored.data, 'hello');
+      expect(restored.createdAt, original.createdAt);
+      expect(restored.ttl, original.ttl);
+    });
+
+    test('fromJson roundtrips with serialized custom object as Map', () {
+      final original = CacheEntry<_TestModel>(
+        data: _TestModel(id: 1, name: 'widget'),
+        createdAt: DateTime(2024, 1, 1),
+      );
+      final json = original.toJson();
+      // After toJson, data is a Map (serialized custom object)
+      final restored = CacheEntry.fromJson(json);
+      expect(restored.data, isA<Map>());
+      expect((restored.data as Map)['id'], 1);
+    });
+  });
+}
+
+class _TestModel {
+  final int id;
+  final String name;
+
+  _TestModel({required this.id, required this.name});
+
+  Map<String, dynamic> toJson() => {'id': id, 'name': name};
 }

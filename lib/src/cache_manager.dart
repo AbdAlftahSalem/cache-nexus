@@ -100,7 +100,7 @@ class SmartCacheManager {
     if (persistentStorage != null) {
       entry = await persistentStorage!.read(resolvedKey);
       if (entry != null && !entry.isExpired) {
-        return entry.data as T;
+        return _tryCast<T>(entry.data);
       }
     }
 
@@ -136,6 +136,16 @@ class SmartCacheManager {
   /// --------------------------------------------------------------------------
   //  Phase 1–5 API (unchanged compatibility)
   // ---------------------------------------------------------------------------
+
+  /// Attempts to cast [data] to [T]. Returns null if the cast fails
+  /// (e.g., deserialized Map from persistent storage vs original custom type).
+  static T? _tryCast<T>(dynamic data) {
+    try {
+      return data as T;
+    } catch (_) {
+      return null;
+    }
+  }
 
   String _resolveKey(String key) {
     if (_context != null) {
@@ -201,10 +211,14 @@ class SmartCacheManager {
           entry = await persistentStorage!.read(resolvedKey);
           if (entry != null) {
             if (!entry.isExpired) {
-              _emit(CacheEventType.hit, resolvedKey, data: entry.data);
-              // Restore to memory
-              await memoryStorage.write(resolvedKey, entry);
-              return entry.data as T;
+              final casted = _tryCast<T>(entry.data);
+              if (casted != null) {
+                _emit(CacheEventType.hit, resolvedKey, data: entry.data);
+                // Restore to memory
+                await memoryStorage.write(resolvedKey, entry);
+                return casted;
+              }
+              // Type mismatch: treat as cache miss, fall through to fetch
             } else {
               _emit(CacheEventType.expired, resolvedKey);
             }
@@ -232,16 +246,28 @@ class SmartCacheManager {
         return _performFetch(key, fetcher, ttl);
 
       case CachePolicy.staleWhileRevalidate:
-        final entry = await memoryStorage.read(resolvedKey) ?? (persistentStorage != null ? await persistentStorage!.read(resolvedKey) : null);
-        if (entry != null) {
-          _emit(CacheEventType.hit, resolvedKey, data: entry.data);
+        var entry = await memoryStorage.read(resolvedKey);
+        T? casted;
+        if (entry != null && !entry.isExpired) {
+          casted = _tryCast<T>(entry.data);
+        }
+        if (casted == null && persistentStorage != null) {
+          entry = await persistentStorage!.read(resolvedKey);
+          if (entry != null && !entry.isExpired) {
+            casted = _tryCast<T>(entry.data);
+          }
+        }
+        if (casted != null) {
+          _emit(CacheEventType.hit, resolvedKey, data: casted);
           // Trigger background refresh silently if online
-          NetworkStatus.isOnline.then((online) {
+          NetworkStatus.isOnline.then((online) async {
             if (online) {
-              _performFetch(key, fetcher, ttl).catchError((_) => null);
+              try {
+                await _performFetch(key, fetcher, ttl);
+              } catch (_) {}
             }
           });
-          return entry.data as T;
+          return casted;
         }
         _emit(CacheEventType.miss, resolvedKey);
         return _performFetch(key, fetcher, ttl);
@@ -263,9 +289,13 @@ class SmartCacheManager {
       entry = await persistentStorage!.read(resolvedKey);
       if (entry != null) {
         if (!entry.isExpired) {
-          _emit(CacheEventType.hit, resolvedKey, data: entry.data);
-          await memoryStorage.write(resolvedKey, entry);
-          return entry.data as T;
+          final casted = _tryCast<T>(entry.data);
+          if (casted != null) {
+            _emit(CacheEventType.hit, resolvedKey, data: entry.data);
+            await memoryStorage.write(resolvedKey, entry);
+            return casted;
+          }
+          // Type mismatch: treat as cache miss
         } else {
           _emit(CacheEventType.expired, resolvedKey);
           await persistentStorage!.delete(resolvedKey);

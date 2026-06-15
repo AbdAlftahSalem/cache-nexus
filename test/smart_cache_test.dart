@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:smart_cache/smart_cache.dart';
 import 'package:test/test.dart';
 
@@ -580,6 +582,141 @@ void main() {
       expect(result, 'fetched_string');
       expect(fetchCount, 1);
       cacheWithoutAdapter.dispose();
+    });
+  });
+
+  group('SmartCacheManager coverage', () {
+    late SmartCacheManager cache;
+    late MemoryCacheStorage storage;
+
+    setUp(() {
+      NetworkStatus.setMockStatus(true);
+      storage = MemoryCacheStorage();
+      cache = SmartCacheManager(memoryStorage: storage, mode: SmartCacheMode.dev);
+    });
+
+    tearDown(() {
+      cache.dispose();
+    });
+
+    test('clear() emits evict event with key all', () async {
+      final events = <CacheEvent>[];
+      cache.events.listen(events.add);
+
+      await cache.set(key: 'a', data: 1);
+      await cache.set(key: 'b', data: 2);
+      await Future.delayed(Duration(milliseconds: 10));
+
+      await cache.clear();
+      await Future.delayed(Duration(milliseconds: 10));
+
+      final evicts = events.where((e) => e.type == CacheEventType.evict).toList();
+      expect(evicts.any((e) => e.key == 'all'), isTrue);
+    });
+
+    test('dispose() cleans up reactive engine and observability', () async {
+      final manager = SmartCacheManager(memoryStorage: MemoryCacheStorage(), mode: SmartCacheMode.dev);
+      manager.watch<String>('test').listen((_) {});
+      await Future.delayed(Duration(milliseconds: 10));
+
+      expect(manager.reactiveEngine.controllerCount, 1);
+
+      manager.dispose();
+      await Future.delayed(Duration(milliseconds: 50));
+
+      expect(manager.reactiveEngine.controllerCount, 0);
+
+      final done = Completer<void>();
+      manager.events.listen((_) {}, onDone: () => done.complete());
+      await Future.delayed(Duration(milliseconds: 50));
+      expect(done.isCompleted, isTrue);
+    });
+
+    test('watch with debounce debounces rapid updates', () async {
+      final values = <String?>[];
+      final sub = cache.watch<String>('debounce', debounce: Duration(milliseconds: 100)).listen((v) => values.add(v));
+
+      await Future.delayed(Duration(milliseconds: 10));
+      await cache.set(key: 'debounce', data: 'a');
+      await Future.delayed(Duration(milliseconds: 20));
+      await cache.set(key: 'debounce', data: 'b');
+      await Future.delayed(Duration(milliseconds: 20));
+      await cache.set(key: 'debounce', data: 'c');
+
+      await Future.delayed(Duration(milliseconds: 200));
+
+      expect(values, contains('c'));
+      expect(values.length, lessThanOrEqualTo(3));
+
+      await sub.cancel();
+    });
+
+    test('set and get with context isolation', () async {
+      cache.setContext(CacheContext(userId: 'u1'));
+      await cache.set(key: 'profile', data: 'Alice');
+
+      cache.setContext(CacheContext(userId: 'u2'));
+      await cache.set(key: 'profile', data: 'Bob');
+
+      cache.setContext(CacheContext(userId: 'u1'));
+      final a = await cache.get<String>(key: 'profile', fetcher: () async => 'default', policy: CachePolicy.cacheOnly);
+      expect(a, 'Alice');
+
+      cache.setContext(CacheContext(userId: 'u2'));
+      final b = await cache.get<String>(key: 'profile', fetcher: () async => 'default', policy: CachePolicy.cacheOnly);
+      expect(b, 'Bob');
+    });
+
+    test('invalidateByContext removes only that user cache', () async {
+      cache.setContext(CacheContext(userId: 'keep'));
+      await cache.set(key: 'k', data: 'keep_data');
+
+      cache.setContext(CacheContext(userId: 'drop'));
+      await cache.set(key: 'k', data: 'drop_data');
+
+      await cache.invalidateByContext(CacheContext(userId: 'drop'));
+
+      cache.setContext(CacheContext(userId: 'keep'));
+      final keep = await cache.get<String>(key: 'k', fetcher: () async => '', policy: CachePolicy.cacheOnly);
+      expect(keep, 'keep_data');
+
+      cache.setContext(CacheContext(userId: 'drop'));
+      expect(
+        () => cache.get<String>(key: 'k', fetcher: () async => '', policy: CachePolicy.cacheOnly),
+        throwsException,
+      );
+    });
+
+    test('networkFirst records observability events', () async {
+      final events = <CacheEvent>[];
+      cache.events.listen(events.add);
+
+      await cache.get<String>(
+        key: 'net',
+        fetcher: () async => 'data',
+        policy: CachePolicy.networkFirst,
+      );
+
+      await Future.delayed(Duration(milliseconds: 10));
+
+      expect(events.any((e) => e.type == CacheEventType.fetch), isTrue);
+    });
+
+    test('networkOnly always fetches', () async {
+      await cache.set(key: 'nonly', data: 'old');
+      var fetchCount = 0;
+
+      final result = await cache.get<String>(
+        key: 'nonly',
+        fetcher: () async {
+          fetchCount++;
+          return 'fresh';
+        },
+        policy: CachePolicy.networkOnly,
+      );
+
+      expect(result, 'fresh');
+      expect(fetchCount, 1);
     });
   });
 }

@@ -30,8 +30,9 @@ class CacheEntry<T> {
   }
 
   static dynamic _serializeData(dynamic data) {
-    if (data == null || data is String || data is num || data is bool)
+    if (data == null || data is String || data is num || data is bool) {
       return data;
+    }
     if (data is List) return data.map((e) => _serializeData(e)).toList();
     if (data is Map) return data.map((k, v) => MapEntry(k, _serializeData(v)));
     try {

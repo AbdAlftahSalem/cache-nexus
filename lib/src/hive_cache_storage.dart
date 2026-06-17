@@ -16,8 +16,9 @@ class HiveCacheStorage implements CacheStorage {
   }
 
   Box<dynamic> get box {
-    if (_box == null)
+    if (_box == null) {
       throw Exception('HiveCacheStorage not initialized. Call init() first.');
+    }
     return _box!;
   }
 

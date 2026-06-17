@@ -7,10 +7,10 @@ typedef SyncTaskExecutor = Future<bool> Function(SyncTask task);
 
 class SyncEngine {
   final String queueBoxName;
-  late Box _queueBox;
+  late Box<dynamic> _queueBox;
   final SyncTaskExecutor executor;
   bool _isProcessing = false;
-  StreamSubscription? _connectivitySubscription;
+  StreamSubscription<dynamic>? _connectivitySubscription;
 
   SyncEngine({
     required this.executor,

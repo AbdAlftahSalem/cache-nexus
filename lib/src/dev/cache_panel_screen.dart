@@ -112,7 +112,7 @@ class _CachePanelScreenState extends State<CachePanelScreen> {
               : null,
           onTap: () {
             Navigator.of(context).push(
-              MaterialPageRoute(
+              MaterialPageRoute<void>(
                 builder: (context) => CacheDetailScreen(
                   event: event,
                   allEvents: _events.where((e) => e.key == event.key).toList(),

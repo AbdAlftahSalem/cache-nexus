@@ -1,3 +1,9 @@
+/// Offline-first, debuggable data orchestration layer for Flutter.
+///
+/// Features TTL caching, 5 cache policies, encryption, auth-aware isolation,
+/// reactive streams, offline sync, and built-in dev tools.
+library;
+
 export 'src/cache_manager.dart';
 export 'src/cache_entry.dart';
 export 'src/cache_storage.dart';

@@ -1,17 +1,20 @@
-# smart_cache_example
+# Smart Cache Example
 
-A new Flutter project.
+A Flutter app demonstrating `smart_cache` with Dio integration.
 
-## Getting Started
+## Features Demonstrated
 
-This project is a starting point for a Flutter application.
+- Two-tier caching (memory + Hive persistent)
+- Cache policies (cacheFirst, networkFirst, etc.)
+- Reactive streams with `SmartCacheBuilder`
+- Dev tools overlay (floating debug button)
+- Request deduplication
+- Offline fallback
 
-A few resources to get you started if this is your first Flutter project:
+## Running
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```bash
+cd example
+flutter pub get
+flutter run
+```

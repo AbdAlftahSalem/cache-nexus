@@ -25,7 +25,7 @@ class CacheEntry<T> {
 
   factory CacheEntry.fromJson(Map<String, dynamic> json) {
     return CacheEntry(
-      data: json['data'],
+      data: json['data'] as T,
       createdAt: DateTime.parse(json['createdAt'] as String),
       ttl: json['ttl'] != null ? Duration(milliseconds: json['ttl'] as int) : null,
     );

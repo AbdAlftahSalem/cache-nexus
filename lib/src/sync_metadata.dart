@@ -16,8 +16,8 @@ class SyncMetadata {
       };
 
   factory SyncMetadata.fromJson(Map<String, dynamic> json) => SyncMetadata(
-        version: json['version'],
-        updatedAt: DateTime.parse(json['updatedAt']),
-        deviceId: json['deviceId'],
+        version: json['version'] as String,
+        updatedAt: DateTime.parse(json['updatedAt'] as String),
+        deviceId: json['deviceId'] as String,
       );
 }

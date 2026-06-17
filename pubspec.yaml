@@ -1,7 +1,16 @@
 name: smart_cache
 description: Offline-first, debuggable data orchestration layer for Flutter. Features TTL caching, 5 cache policies, encryption, auth-aware isolation, reactive streams, offline sync, and built-in dev tools.
 version: 1.0.0
+homepage: https://github.com/AbdAlftahSalem/smart-cache
+issue_tracker: https://github.com/AbdAlftahSalem/smart-cache/issues
+documentation: https://github.com/AbdAlftahSalem/smart-cache/tree/main/docs
 repository: https://github.com/AbdAlftahSalem/smart-cache
+topics:
+  - cache
+  - offline
+  - hive
+  - flutter
+  - dio
 
 environment:
   sdk: ^3.11.5

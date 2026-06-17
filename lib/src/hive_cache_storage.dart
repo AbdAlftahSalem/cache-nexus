@@ -4,7 +4,7 @@ import 'cache_storage.dart';
 
 class HiveCacheStorage implements CacheStorage {
   final String boxName;
-  Box? _box;
+  Box<dynamic>? _box;
 
   HiveCacheStorage({this.boxName = 'smart_cache'});
 
@@ -15,18 +15,18 @@ class HiveCacheStorage implements CacheStorage {
     _box = await Hive.openBox(boxName);
   }
 
-  Box get box {
+  Box<dynamic> get box {
     if (_box == null) throw Exception('HiveCacheStorage not initialized. Call init() first.');
     return _box!;
   }
 
   @override
-  Future<void> write(String key, CacheEntry entry) async {
+  Future<void> write(String key, CacheEntry<dynamic> entry) async {
     await box.put(key, entry.toJson());
   }
 
   @override
-  Future<CacheEntry?> read(String key) async {
+  Future<CacheEntry<dynamic>?> read(String key) async {
     final data = box.get(key);
     if (data == null) return null;
 

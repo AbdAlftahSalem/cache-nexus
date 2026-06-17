@@ -1,7 +1,16 @@
-# https://dart.dev/guides/libraries/private-files
-# Created by `dart pub`
+# Dart/Flutter
 .dart_tool/
-
-# Avoid committing pubspec.lock for library packages; see
-# https://dart.dev/guides/libraries/private-files#pubspeclock.
 pubspec.lock
+build/
+coverage/
+.metadata
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# OS
+.DS_Store
+Thumbs.db

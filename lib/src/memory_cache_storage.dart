@@ -2,15 +2,15 @@ import 'cache_entry.dart';
 import 'cache_storage.dart';
 
 class MemoryCacheStorage implements CacheStorage {
-  final Map<String, CacheEntry> _cache = {};
+  final Map<String, CacheEntry<dynamic>> _cache = {};
 
   @override
-  Future<void> write(String key, CacheEntry entry) async {
+  Future<void> write(String key, CacheEntry<dynamic> entry) async {
     _cache[key] = entry;
   }
 
   @override
-  Future<CacheEntry?> read(String key) async {
+  Future<CacheEntry<dynamic>?> read(String key) async {
     return _cache[key];
   }
 

@@ -17,7 +17,7 @@ class SecureCacheStorage implements CacheStorage {
         compressor = compressor ?? NoOpCompressor();
 
   @override
-  Future<void> write(String key, CacheEntry entry) async {
+  Future<void> write(String key, CacheEntry<dynamic> entry) async {
     // 1. Serialize entire entry to JSON
     final jsonString = jsonEncode(entry.toJson());
     
@@ -40,7 +40,7 @@ class SecureCacheStorage implements CacheStorage {
   }
 
   @override
-  Future<CacheEntry?> read(String key) async {
+  Future<CacheEntry<dynamic>?> read(String key) async {
     final secureEntry = await _inner.read(key);
     if (secureEntry == null) return null;
 

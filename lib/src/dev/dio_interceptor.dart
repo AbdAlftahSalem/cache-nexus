@@ -24,7 +24,7 @@ class SmartCacheDioInterceptor extends Interceptor {
   }
 
   @override
-  void onResponse(Response response, ResponseInterceptorHandler handler) {
+  void onResponse(Response<dynamic> response, ResponseInterceptorHandler handler) {
     if (cache.mode == SmartCacheMode.dev) {
       final requestId = response.requestOptions.extra['smartCacheRequestId'] as String?;
       final stopwatch = response.requestOptions.extra['smartCacheStopwatch'] as Stopwatch?;

@@ -32,7 +32,7 @@ class SmartCacheOverlay extends StatelessWidget {
               child: const Icon(Icons.psychology, color: Colors.white),
               onPressed: () {
                 Navigator.of(context).push(
-                  MaterialPageRoute(
+                  MaterialPageRoute<void>(
                     builder: (context) => CachePanelScreen(manager: manager),
                   ),
                 );

@@ -52,7 +52,10 @@ class _SecurityScreenState extends State<SecurityScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Security Layer', style: Theme.of(context).textTheme.headlineMedium),
+            Text(
+              'Security Layer',
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
             const SizedBox(height: 8),
             Text(
               'Encrypt + compress cache data with SecureCacheStorage',
@@ -85,7 +88,10 @@ class _SecurityScreenState extends State<SecurityScreen> {
                       ),
                       child: Text(
                         _rawStored,
-                        style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+                        style: const TextStyle(
+                          fontFamily: 'monospace',
+                          fontSize: 12,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -103,7 +109,10 @@ class _SecurityScreenState extends State<SecurityScreen> {
                       ),
                       child: Text(
                         _recovered,
-                        style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+                        style: const TextStyle(
+                          fontFamily: 'monospace',
+                          fontSize: 12,
+                        ),
                       ),
                     ),
                   ],

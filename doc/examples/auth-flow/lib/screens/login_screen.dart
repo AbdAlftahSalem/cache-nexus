@@ -27,10 +27,7 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _loading = true);
 
     final authService = AuthService.of(context);
-    await authService.login(
-      _emailController.text,
-      _passwordController.text,
-    );
+    await authService.login(_emailController.text, _passwordController.text);
 
     if (mounted) {
       Navigator.pushReplacement(

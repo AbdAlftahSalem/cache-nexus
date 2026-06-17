@@ -16,7 +16,8 @@ class HiveCacheStorage implements CacheStorage {
   }
 
   Box<dynamic> get box {
-    if (_box == null) throw Exception('HiveCacheStorage not initialized. Call init() first.');
+    if (_box == null)
+      throw Exception('HiveCacheStorage not initialized. Call init() first.');
     return _box!;
   }
 
@@ -56,7 +57,9 @@ class HiveCacheStorage implements CacheStorage {
 
   @override
   Future<void> deleteByPrefix(String prefix) async {
-    final keysToDelete = box.keys.where((key) => key.toString().startsWith(prefix)).toList();
+    final keysToDelete = box.keys
+        .where((key) => key.toString().startsWith(prefix))
+        .toList();
     await box.deleteAll(keysToDelete);
   }
 

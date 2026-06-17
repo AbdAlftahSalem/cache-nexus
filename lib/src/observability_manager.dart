@@ -7,7 +7,8 @@ import 'smart_cache_mode.dart';
 
 class ObservabilityManager {
   final SmartCacheMode _mode;
-  final StreamController<CacheEvent> _eventController = StreamController<CacheEvent>.broadcast();
+  final StreamController<CacheEvent> _eventController =
+      StreamController<CacheEvent>.broadcast();
   CacheStats _stats = CacheStats();
   final List<CacheEvent> _recentEvents = [];
   static const int _maxRecentEvents = 100;
@@ -18,7 +19,13 @@ class ObservabilityManager {
   CacheStats get stats => _stats;
   List<CacheEvent> get recentEvents => List.unmodifiable(_recentEvents);
 
-  void emit(CacheEventType type, String key, {dynamic data, Duration? duration, Object? error}) {
+  void emit(
+    CacheEventType type,
+    String key, {
+    dynamic data,
+    Duration? duration,
+    Object? error,
+  }) {
     if (_mode != SmartCacheMode.dev) return;
 
     final event = CacheEvent(
@@ -97,7 +104,8 @@ class ObservabilityManager {
     _stats = _stats.copyWith(
       totalRequests: _stats.totalRequests + 1,
       successfulRequests: _stats.successfulRequests + 1,
-      totalResponseTimeMs: _stats.totalResponseTimeMs + (duration?.inMilliseconds ?? 0),
+      totalResponseTimeMs:
+          _stats.totalResponseTimeMs + (duration?.inMilliseconds ?? 0),
     );
 
     final event = CacheEvent(

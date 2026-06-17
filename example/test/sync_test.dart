@@ -353,20 +353,24 @@ void main() {
     test('returns correct count after enqueue', () async {
       NetworkStatus.setMockStatus(false);
 
-      await syncEngine.enqueue(SyncTask(
-        id: 'ql_1',
-        key: 'k1',
-        endpoint: '/a',
-        method: 'POST',
-        createdAt: DateTime.now(),
-      ));
-      await syncEngine.enqueue(SyncTask(
-        id: 'ql_2',
-        key: 'k2',
-        endpoint: '/b',
-        method: 'POST',
-        createdAt: DateTime.now(),
-      ));
+      await syncEngine.enqueue(
+        SyncTask(
+          id: 'ql_1',
+          key: 'k1',
+          endpoint: '/a',
+          method: 'POST',
+          createdAt: DateTime.now(),
+        ),
+      );
+      await syncEngine.enqueue(
+        SyncTask(
+          id: 'ql_2',
+          key: 'k2',
+          endpoint: '/b',
+          method: 'POST',
+          createdAt: DateTime.now(),
+        ),
+      );
 
       expect(await syncEngine.queueLength, 2);
     });

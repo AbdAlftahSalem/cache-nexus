@@ -19,10 +19,10 @@ class PolicyResolver {
     required CacheStorage memoryStorage,
     CacheStorage? persistentStorage,
     Map<Type, dynamic> adapters = const {},
-  })  : _observability = observability,
-        _memoryStorage = memoryStorage,
-        _persistentStorage = persistentStorage,
-        _adapters = adapters;
+  }) : _observability = observability,
+       _memoryStorage = memoryStorage,
+       _persistentStorage = persistentStorage,
+       _adapters = adapters;
 
   T? tryCast<T>(dynamic data) {
     final adapter = _adapters[T];
@@ -55,7 +55,13 @@ class PolicyResolver {
       case CachePolicy.networkOnly:
         return _performFetch<T>(resolvedKey, fetcher, ttl, onStore, onNotify);
       case CachePolicy.staleWhileRevalidate:
-        return _staleWhileRevalidate<T>(resolvedKey, fetcher, ttl, onStore, onNotify);
+        return _staleWhileRevalidate<T>(
+          resolvedKey,
+          fetcher,
+          ttl,
+          onStore,
+          onNotify,
+        );
     }
   }
 
@@ -71,7 +77,11 @@ class PolicyResolver {
       if (!entry.isExpired) {
         final casted = tryCast<T>(entry.data);
         if (casted != null) {
-          _observability.emit(CacheEventType.hit, resolvedKey, data: entry.data);
+          _observability.emit(
+            CacheEventType.hit,
+            resolvedKey,
+            data: entry.data,
+          );
           return casted;
         }
       } else {
@@ -85,7 +95,11 @@ class PolicyResolver {
         if (!entry.isExpired) {
           final casted = tryCast<T>(entry.data);
           if (casted != null) {
-            _observability.emit(CacheEventType.hit, resolvedKey, data: entry.data);
+            _observability.emit(
+              CacheEventType.hit,
+              resolvedKey,
+              data: entry.data,
+            );
             await _memoryStorage.write(resolvedKey, entry);
             return casted;
           }
@@ -108,7 +122,13 @@ class PolicyResolver {
   ) async {
     if (await NetworkStatus.isOnline) {
       try {
-        return await _performFetch<T>(resolvedKey, fetcher, ttl, onStore, onNotify);
+        return await _performFetch<T>(
+          resolvedKey,
+          fetcher,
+          ttl,
+          onStore,
+          onNotify,
+        );
       } catch (e) {
         return await _readFromCache<T>(resolvedKey, onNotify);
       }
@@ -126,7 +146,11 @@ class PolicyResolver {
       if (!entry.isExpired) {
         final casted = tryCast<T>(entry.data);
         if (casted != null) {
-          _observability.emit(CacheEventType.hit, resolvedKey, data: entry.data);
+          _observability.emit(
+            CacheEventType.hit,
+            resolvedKey,
+            data: entry.data,
+          );
           return casted;
         }
       } else {
@@ -140,7 +164,11 @@ class PolicyResolver {
         if (!entry.isExpired) {
           final casted = tryCast<T>(entry.data);
           if (casted != null) {
-            _observability.emit(CacheEventType.hit, resolvedKey, data: entry.data);
+            _observability.emit(
+              CacheEventType.hit,
+              resolvedKey,
+              data: entry.data,
+            );
             await _memoryStorage.write(resolvedKey, entry);
             return casted;
           }
@@ -176,15 +204,27 @@ class PolicyResolver {
       final result = await future;
 
       if (result == null && null is! T) {
-        throw Exception('Fetcher returned null result for non-nullable type $T for key: $resolvedKey');
+        throw Exception(
+          'Fetcher returned null result for non-nullable type $T for key: $resolvedKey',
+        );
       }
 
-      _observability.emit(CacheEventType.fetch, resolvedKey, data: result, duration: stopwatch.elapsed);
+      _observability.emit(
+        CacheEventType.fetch,
+        resolvedKey,
+        data: result,
+        duration: stopwatch.elapsed,
+      );
       await onStore(resolvedKey, result, ttl);
       await onNotify(resolvedKey, result);
       return result;
     } catch (e) {
-      _observability.emit(CacheEventType.error, resolvedKey, error: e, duration: stopwatch.elapsed);
+      _observability.emit(
+        CacheEventType.error,
+        resolvedKey,
+        error: e,
+        duration: stopwatch.elapsed,
+      );
       rethrow;
     } finally {
       stopwatch.stop();
@@ -215,7 +255,13 @@ class PolicyResolver {
       NetworkStatus.isOnline.then((online) async {
         if (online) {
           try {
-            await _performFetch<T>(resolvedKey, fetcher, ttl, onStore, onNotify);
+            await _performFetch<T>(
+              resolvedKey,
+              fetcher,
+              ttl,
+              onStore,
+              onNotify,
+            );
           } catch (_) {}
         }
       });

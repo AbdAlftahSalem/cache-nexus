@@ -3,11 +3,7 @@ class CacheContext {
   final String? token;
   final String? role;
 
-  const CacheContext({
-    required this.userId,
-    this.token,
-    this.role,
-  });
+  const CacheContext({required this.userId, this.token, this.role});
 
   @override
   String toString() => 'CacheContext(userId: $userId, role: $role)';

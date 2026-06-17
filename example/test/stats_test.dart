@@ -9,8 +9,14 @@ void main() {
   setUp(() {
     NetworkStatus.setMockStatus(true);
     storage = MemoryCacheStorage();
-    devCache = SmartCacheManager(memoryStorage: storage, mode: SmartCacheMode.dev);
-    prodCache = SmartCacheManager(memoryStorage: storage, mode: SmartCacheMode.production);
+    devCache = SmartCacheManager(
+      memoryStorage: storage,
+      mode: SmartCacheMode.dev,
+    );
+    prodCache = SmartCacheManager(
+      memoryStorage: storage,
+      mode: SmartCacheMode.production,
+    );
   });
 
   tearDown(() {
@@ -19,19 +25,13 @@ void main() {
   });
 
   test('dev mode tracks hit/miss/fetch/errors', () async {
-    await devCache.get<String>(
-      key: 'test',
-      fetcher: () async => 'data',
-    );
+    await devCache.get<String>(key: 'test', fetcher: () async => 'data');
 
     expect(devCache.stats.misses, 1);
     expect(devCache.stats.fetches, 1);
 
     await devCache.set(key: 'cached', data: 'value');
-    await devCache.get<String>(
-      key: 'cached',
-      fetcher: () async => 'new_data',
-    );
+    await devCache.get<String>(key: 'cached', fetcher: () async => 'new_data');
 
     expect(devCache.stats.hits, 1);
   });
@@ -57,10 +57,7 @@ void main() {
     final sub = devCache.events.listen((e) => eventTypes.add(e.type));
 
     await devCache.set(key: 'event_test', data: 'data');
-    await devCache.get<String>(
-      key: 'event_test',
-      fetcher: () async => 'data',
-    );
+    await devCache.get<String>(key: 'event_test', fetcher: () async => 'data');
     await devCache.get<String>(
       key: 'fresh_key',
       fetcher: () async => 'fresh_data',
@@ -87,10 +84,7 @@ void main() {
     prodCache.events.listen(events.add);
 
     await prodCache.set(key: 'prod', data: 'data');
-    await prodCache.get<String>(
-      key: 'prod',
-      fetcher: () async => 'new_data',
-    );
+    await prodCache.get<String>(key: 'prod', fetcher: () async => 'new_data');
 
     await Future.delayed(const Duration(milliseconds: 20));
 

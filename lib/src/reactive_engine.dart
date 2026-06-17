@@ -3,7 +3,11 @@ import 'dart:async';
 class ReactiveEngine {
   final Map<String, _ControllerEntry> _controllers = {};
 
-  Stream<T?> watch<T>(String key, {Future<T?> Function(String key)? readCurrent, Duration? debounce}) {
+  Stream<T?> watch<T>(
+    String key, {
+    Future<T?> Function(String key)? readCurrent,
+    Duration? debounce,
+  }) {
     final entry = _acquire(key);
 
     Stream<T?> stream = entry.controller.stream.map((event) => event as T?);
@@ -75,7 +79,7 @@ class ReactiveEngine {
   Stream<T?> _debounceStream<T>(Stream<T?> stream, Duration debounce) {
     StreamSubscription<T?>? subscription;
     Timer? timer;
-    
+
     late final StreamController<T?> controller;
     controller = StreamController<T?>.broadcast(
       onListen: () {

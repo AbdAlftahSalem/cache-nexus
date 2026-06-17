@@ -9,7 +9,10 @@ void main() {
   setUp(() {
     NetworkStatus.setMockStatus(true);
     memoryStorage = MemoryCacheStorage();
-    cache = SmartCacheManager(memoryStorage: memoryStorage, mode: SmartCacheMode.dev);
+    cache = SmartCacheManager(
+      memoryStorage: memoryStorage,
+      mode: SmartCacheMode.dev,
+    );
   });
 
   tearDown(() {
@@ -20,9 +23,7 @@ void main() {
     final posts = await cache.get<List<Post>>(
       key: 'test_posts',
       fetcher: () async {
-        return [
-          Post(id: 1, userId: 1, title: 'Cached Post', body: 'Body'),
-        ];
+        return [Post(id: 1, userId: 1, title: 'Cached Post', body: 'Body')];
       },
       ttl: const Duration(minutes: 5),
     );

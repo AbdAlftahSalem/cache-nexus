@@ -31,14 +31,18 @@ class _ReactiveScreenState extends State<ReactiveScreen> {
   }
 
   void _startWatching() {
-    _subscription = widget.cacheService.cache.watch<List<Post>>('reactive_posts').listen((posts) {
-      if (mounted) {
-        setState(() {
-          _posts = posts;
-          _status = posts != null ? 'Got ${posts.length} posts from stream' : 'No data yet';
+    _subscription = widget.cacheService.cache
+        .watch<List<Post>>('reactive_posts')
+        .listen((posts) {
+          if (mounted) {
+            setState(() {
+              _posts = posts;
+              _status = posts != null
+                  ? 'Got ${posts.length} posts from stream'
+                  : 'No data yet';
+            });
+          }
         });
-      }
-    });
   }
 
   Future<void> _refreshPosts() async {
@@ -67,7 +71,10 @@ class _ReactiveScreenState extends State<ReactiveScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.all(16),
-            child: Text('Reactive Streams', style: Theme.of(context).textTheme.headlineMedium),
+            child: Text(
+              'Reactive Streams',
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -85,14 +92,20 @@ class _ReactiveScreenState extends State<ReactiveScreen> {
           const SizedBox(height: 8),
           Expanded(
             child: _posts == null
-                ? const Center(child: Text('No cached data. Tap Refresh to fetch.'))
+                ? const Center(
+                    child: Text('No cached data. Tap Refresh to fetch.'),
+                  )
                 : ListView.builder(
                     itemCount: _posts!.length,
                     itemBuilder: (context, index) {
                       final post = _posts![index];
                       return ListTile(
                         title: Text(post.title),
-                        subtitle: Text(post.body, maxLines: 2, overflow: TextOverflow.ellipsis),
+                        subtitle: Text(
+                          post.body,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                         leading: CircleAvatar(child: Text('${post.id}')),
                       );
                     },

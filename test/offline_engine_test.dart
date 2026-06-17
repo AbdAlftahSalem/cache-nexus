@@ -68,39 +68,45 @@ void main() {
       expect(recovered['id'], 1);
     });
 
-    test('Expired data in persistent storage is correctly invalidated', () async {
-      const key = 'soon_to_expire';
-      await cacheManager.set(
-        key: key,
-        data: 'old',
-        ttl: const Duration(milliseconds: 50),
-      );
-
-      await Future<void>.delayed(const Duration(milliseconds: 100));
-
-      // Should fail to get from cache only
-      expect(
-        () => cacheManager.get<String>(
+    test(
+      'Expired data in persistent storage is correctly invalidated',
+      () async {
+        const key = 'soon_to_expire';
+        await cacheManager.set(
           key: key,
-          fetcher: () async => throw Exception('Net error'),
-          policy: CachePolicy.cacheOnly,
-        ),
-        throwsA(isA<Exception>()),
-      );
-    });
+          data: 'old',
+          ttl: const Duration(milliseconds: 50),
+        );
 
-    test('Corrupted data in persistent storage is handled gracefully', () async {
-      // Manually put corrupted data into Hive
-      await persistentStorage.box.put('corrupt', 'not-a-json-map');
+        await Future<void>.delayed(const Duration(milliseconds: 100));
 
-      final result = await cacheManager.get<String>(
-        key: 'corrupt',
-        fetcher: () async => 'fresh_data',
-        policy: CachePolicy.cacheFirst,
-      );
+        // Should fail to get from cache only
+        expect(
+          () => cacheManager.get<String>(
+            key: key,
+            fetcher: () async => throw Exception('Net error'),
+            policy: CachePolicy.cacheOnly,
+          ),
+          throwsA(isA<Exception>()),
+        );
+      },
+    );
 
-      expect(result, equals('fresh_data'));
-    });
+    test(
+      'Corrupted data in persistent storage is handled gracefully',
+      () async {
+        // Manually put corrupted data into Hive
+        await persistentStorage.box.put('corrupt', 'not-a-json-map');
+
+        final result = await cacheManager.get<String>(
+          key: 'corrupt',
+          fetcher: () async => 'fresh_data',
+          policy: CachePolicy.cacheFirst,
+        );
+
+        expect(result, equals('fresh_data'));
+      },
+    );
   });
 
   group('Offline Engine - Connectivity & Fallback', () {
@@ -146,7 +152,7 @@ void main() {
       // Initially offline so it stays in queue
       NetworkStatus.setMockStatus(false);
       await cacheManager.enqueueSyncTask(task);
-      
+
       // Should still be in box (we check box directly for "good content")
       final box = await Hive.openBox<dynamic>('test_sync_queue');
       expect(box.containsKey('t1'), isTrue);
@@ -154,7 +160,7 @@ void main() {
       // Go online — queue should auto-process
       NetworkStatus.setMockStatus(true);
       await Future.delayed(const Duration(milliseconds: 100));
-      
+
       expect(box.containsKey('t1'), isFalse);
     });
 
@@ -170,44 +176,45 @@ void main() {
       // Start offline so it just sits in queue with 0 retries
       NetworkStatus.setMockStatus(false);
       await cacheManager.enqueueSyncTask(task);
-      
+
       final box = await Hive.openBox<dynamic>('test_sync_queue');
       expect(box.get('fail_task')['retryCount'], 0);
 
       // Go online and process
       NetworkStatus.setMockStatus(true);
-      
+
       await syncEngine.processQueue(); // Try 1: fails, retryCount -> 1
       expect(box.get('fail_task')['retryCount'], 1);
 
       await syncEngine.processQueue(); // Try 2: fails, retryCount -> 2
       expect(box.get('fail_task')['retryCount'], 2);
 
-      await syncEngine.processQueue(); // Try 3: fails, retryCount -> 3, skipped (stays in queue)
+      await syncEngine
+          .processQueue(); // Try 3: fails, retryCount -> 3, skipped (stays in queue)
       expect(box.get('fail_task')['retryCount'], 3);
       expect(box.containsKey('fail_task'), isTrue);
     });
-   group('Offline Engine - Multi-Layer Storage', () {
-    test('Set updates both layers', () async {
-      await cacheManager.set(key: 'multi', data: 'val');
-      
-      final mem = await cacheManager.memoryStorage.read('multi');
-      final pers = await persistentStorage.read('multi');
-      
-      expect(mem?.data, 'val');
-      expect(pers?.data, 'val');
-    });
+    group('Offline Engine - Multi-Layer Storage', () {
+      test('Set updates both layers', () async {
+        await cacheManager.set(key: 'multi', data: 'val');
 
-    test('Delete removes from both layers', () async {
-      await cacheManager.set(key: 'multi', data: 'val');
-      await cacheManager.delete('multi');
-      
-      final mem = await cacheManager.memoryStorage.read('multi');
-      final pers = await persistentStorage.read('multi');
-      
-      expect(mem, isNull);
-      expect(pers, isNull);
+        final mem = await cacheManager.memoryStorage.read('multi');
+        final pers = await persistentStorage.read('multi');
+
+        expect(mem?.data, 'val');
+        expect(pers?.data, 'val');
+      });
+
+      test('Delete removes from both layers', () async {
+        await cacheManager.set(key: 'multi', data: 'val');
+        await cacheManager.delete('multi');
+
+        final mem = await cacheManager.memoryStorage.read('multi');
+        final pers = await persistentStorage.read('multi');
+
+        expect(mem, isNull);
+        expect(pers, isNull);
+      });
     });
   });
-});
 }

@@ -8,9 +8,7 @@ class CacheTimelineWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: events.map((e) => _buildTimelineItem(e)).toList(),
-    );
+    return Column(children: events.map((e) => _buildTimelineItem(e)).toList());
   }
 
   Widget _buildTimelineItem(CacheEvent event) {
@@ -37,10 +35,17 @@ class CacheTimelineWidget extends StatelessWidget {
             children: [
               Text(
                 event.type.name.toUpperCase(),
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
               ),
               Text(
-                event.timestamp.toIso8601String().split('T').last.substring(0, 8),
+                event.timestamp
+                    .toIso8601String()
+                    .split('T')
+                    .last
+                    .substring(0, 8),
                 style: TextStyle(fontSize: 11, color: Colors.grey[600]),
               ),
             ],
@@ -52,16 +57,26 @@ class CacheTimelineWidget extends StatelessWidget {
 
   Color _getColor(CacheEventType type) {
     switch (type) {
-      case CacheEventType.hit: return Colors.green;
-      case CacheEventType.miss: return Colors.orange;
-      case CacheEventType.fetch: return Colors.blue;
-      case CacheEventType.error: return Colors.red;
-      case CacheEventType.store: return Colors.blueGrey;
-      case CacheEventType.expired: return Colors.grey;
-      case CacheEventType.evict: return Colors.black54;
-      case CacheEventType.networkRequest: return Colors.blue;
-      case CacheEventType.networkResponse: return Colors.green;
-      case CacheEventType.networkError: return Colors.red;
+      case CacheEventType.hit:
+        return Colors.green;
+      case CacheEventType.miss:
+        return Colors.orange;
+      case CacheEventType.fetch:
+        return Colors.blue;
+      case CacheEventType.error:
+        return Colors.red;
+      case CacheEventType.store:
+        return Colors.blueGrey;
+      case CacheEventType.expired:
+        return Colors.grey;
+      case CacheEventType.evict:
+        return Colors.black54;
+      case CacheEventType.networkRequest:
+        return Colors.blue;
+      case CacheEventType.networkResponse:
+        return Colors.green;
+      case CacheEventType.networkError:
+        return Colors.red;
     }
   }
 }

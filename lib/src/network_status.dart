@@ -29,12 +29,12 @@ class NetworkStatus {
 
   static void _ensureRealSubscription() {
     if (_realSubscription != null) return;
-    _realSubscription = _connectivity.onConnectivityChanged.listen(
-      (results) {
-        final online = results.any((element) => element != ConnectivityResult.none);
-        _controller.add(online);
-      },
-    );
+    _realSubscription = _connectivity.onConnectivityChanged.listen((results) {
+      final online = results.any(
+        (element) => element != ConnectivityResult.none,
+      );
+      _controller.add(online);
+    });
   }
 
   static void dispose() {

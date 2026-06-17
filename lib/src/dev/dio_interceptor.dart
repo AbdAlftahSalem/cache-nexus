@@ -24,10 +24,15 @@ class SmartCacheDioInterceptor extends Interceptor {
   }
 
   @override
-  void onResponse(Response<dynamic> response, ResponseInterceptorHandler handler) {
+  void onResponse(
+    Response<dynamic> response,
+    ResponseInterceptorHandler handler,
+  ) {
     if (cache.mode == SmartCacheMode.dev) {
-      final requestId = response.requestOptions.extra['smartCacheRequestId'] as String?;
-      final stopwatch = response.requestOptions.extra['smartCacheStopwatch'] as Stopwatch?;
+      final requestId =
+          response.requestOptions.extra['smartCacheRequestId'] as String?;
+      final stopwatch =
+          response.requestOptions.extra['smartCacheStopwatch'] as Stopwatch?;
       if (requestId != null && requestId.isNotEmpty) {
         stopwatch?.stop();
         cache.recordNetworkResponse(
@@ -47,8 +52,10 @@ class SmartCacheDioInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     if (cache.mode == SmartCacheMode.dev) {
-      final requestId = err.requestOptions.extra['smartCacheRequestId'] as String?;
-      final stopwatch = err.requestOptions.extra['smartCacheStopwatch'] as Stopwatch?;
+      final requestId =
+          err.requestOptions.extra['smartCacheRequestId'] as String?;
+      final stopwatch =
+          err.requestOptions.extra['smartCacheStopwatch'] as Stopwatch?;
       if (requestId != null && requestId.isNotEmpty) {
         stopwatch?.stop();
         cache.recordNetworkError(
@@ -65,6 +72,8 @@ class SmartCacheDioInterceptor extends Interceptor {
   }
 
   Map<String, String> _flattenHeaders(Map<String, dynamic> headers) {
-    return headers.map((k, v) => MapEntry(k, v is List ? v.join(', ') : v.toString()));
+    return headers.map(
+      (k, v) => MapEntry(k, v is List ? v.join(', ') : v.toString()),
+    );
   }
 }

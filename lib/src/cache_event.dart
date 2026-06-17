@@ -46,7 +46,8 @@ class CacheEvent {
     this.requestId,
   });
 
-  bool get isNetworkEvent => type == CacheEventType.networkRequest ||
+  bool get isNetworkEvent =>
+      type == CacheEventType.networkRequest ||
       type == CacheEventType.networkResponse ||
       type == CacheEventType.networkError;
 

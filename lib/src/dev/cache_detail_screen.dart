@@ -18,7 +18,9 @@ class CacheDetailScreen extends StatelessWidget {
     final isNetwork = event.isNetworkEvent;
 
     return Scaffold(
-      appBar: AppBar(title: Text(isNetwork ? 'Network Request' : 'Cache Event')),
+      appBar: AppBar(
+        title: Text(isNetwork ? 'Network Request' : 'Cache Event'),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -33,29 +35,60 @@ class CacheDetailScreen extends StatelessWidget {
               _buildSection('ERROR', event.error.toString(), color: Colors.red),
             if (isNetwork) ...[
               const SizedBox(height: 20),
-              const Text('REQUEST', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)),
+              const Text(
+                'REQUEST',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue,
+                ),
+              ),
               const SizedBox(height: 10),
               if (event.method != null) _buildSection('METHOD', event.method!),
               if (event.url != null) _buildSection('URL', event.url!),
-              if (event.requestHeaders != null && event.requestHeaders!.isNotEmpty)
-                _buildSection('REQUEST HEADERS', _formatData(event.requestHeaders)),
+              if (event.requestHeaders != null &&
+                  event.requestHeaders!.isNotEmpty)
+                _buildSection(
+                  'REQUEST HEADERS',
+                  _formatData(event.requestHeaders),
+                ),
               if (event.requestBody != null)
                 _buildSection('REQUEST BODY', _formatJson(event.requestBody)),
               const SizedBox(height: 20),
-              const Text('RESPONSE', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
+              const Text(
+                'RESPONSE',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.green,
+                ),
+              ),
               const SizedBox(height: 10),
               if (event.responseStatusCode != null)
-                _buildSection('STATUS CODE', event.responseStatusCode.toString(),
-                    color: _getStatusColor(event.responseStatusCode!)),
+                _buildSection(
+                  'STATUS CODE',
+                  event.responseStatusCode.toString(),
+                  color: _getStatusColor(event.responseStatusCode!),
+                ),
               if (event.responseBody != null)
                 _buildSection('RESPONSE BODY', _formatJson(event.responseBody)),
             ],
             const SizedBox(height: 20),
-            const Text('TIMELINE', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+            const Text(
+              'TIMELINE',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.blueGrey,
+              ),
+            ),
             const SizedBox(height: 10),
             CacheTimelineWidget(events: allEvents),
             const SizedBox(height: 20),
-            const Text('DATA SNAPSHOT', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+            const Text(
+              'DATA SNAPSHOT',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.blueGrey,
+              ),
+            ),
             const SizedBox(height: 10),
             Container(
               padding: const EdgeInsets.all(12),
@@ -82,8 +115,22 @@ class CacheDetailScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-          SelectableText(value, style: TextStyle(fontSize: 14, color: color, fontFamily: 'monospace')),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: Colors.blueGrey,
+            ),
+          ),
+          SelectableText(
+            value,
+            style: TextStyle(
+              fontSize: 14,
+              color: color,
+              fontFamily: 'monospace',
+            ),
+          ),
         ],
       ),
     );

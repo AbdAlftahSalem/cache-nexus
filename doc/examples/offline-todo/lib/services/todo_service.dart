@@ -28,20 +28,19 @@ class TodoService extends InheritedWidget {
   Future<void> addTodo(Todo todo) async {
     // 1. Add to cache immediately (instant UI update)
     final todos = await getTodos();
-    await cache.set<List<Todo>>(
-      key: 'todos',
-      data: [...todos, todo],
-    );
+    await cache.set<List<Todo>>(key: 'todos', data: [...todos, todo]);
 
     // 2. Queue for sync when online
-    await cache.enqueueSyncTask(SyncTask(
-      id: 'create_${todo.id}',
-      key: 'todos',
-      endpoint: 'https://api.example.com/todos',
-      method: 'POST',
-      body: todo.toJson(),
-      createdAt: DateTime.now(),
-    ));
+    await cache.enqueueSyncTask(
+      SyncTask(
+        id: 'create_${todo.id}',
+        key: 'todos',
+        endpoint: 'https://api.example.com/todos',
+        method: 'POST',
+        body: todo.toJson(),
+        createdAt: DateTime.now(),
+      ),
+    );
   }
 
   Future<void> deleteTodo(String id) async {
@@ -53,14 +52,16 @@ class TodoService extends InheritedWidget {
     );
 
     // 2. Queue for sync when online
-    await cache.enqueueSyncTask(SyncTask(
-      id: 'delete_$id',
-      key: 'todos',
-      endpoint: 'https://api.example.com/todos/$id',
-      method: 'DELETE',
-      body: id,
-      createdAt: DateTime.now(),
-    ));
+    await cache.enqueueSyncTask(
+      SyncTask(
+        id: 'delete_$id',
+        key: 'todos',
+        endpoint: 'https://api.example.com/todos/$id',
+        method: 'DELETE',
+        body: id,
+        createdAt: DateTime.now(),
+      ),
+    );
   }
 
   Future<void> toggleTodo(String id) async {

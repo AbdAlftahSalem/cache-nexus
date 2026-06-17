@@ -3,17 +3,9 @@ class Todo {
   final String title;
   final bool completed;
 
-  const Todo({
-    required this.id,
-    required this.title,
-    this.completed = false,
-  });
+  const Todo({required this.id, required this.title, this.completed = false});
 
-  Todo copyWith({
-    String? id,
-    String? title,
-    bool? completed,
-  }) {
+  Todo copyWith({String? id, String? title, bool? completed}) {
     return Todo(
       id: id ?? this.id,
       title: title ?? this.title,
@@ -30,10 +22,6 @@ class Todo {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'title': title,
-      'completed': completed,
-    };
+    return {'id': id, 'title': title, 'completed': completed};
   }
 }

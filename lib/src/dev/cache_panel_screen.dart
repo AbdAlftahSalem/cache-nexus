@@ -26,7 +26,9 @@ class _CachePanelScreenState extends State<CachePanelScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _subscription = widget.manager.events.listen((event) {
-        print('🔵 [CachePanel] Received event: ${event.type} key=${event.key} isNetwork=${event.isNetworkEvent}');
+        print(
+          '🔵 [CachePanel] Received event: ${event.type} key=${event.key} isNetwork=${event.isNetworkEvent}',
+        );
         if (mounted) {
           setState(() {
             _events.insert(0, event);
@@ -95,7 +97,9 @@ class _CachePanelScreenState extends State<CachePanelScreen> {
         return ListTile(
           leading: _getIconForType(event.type),
           title: Text(
-            isNetwork ? '${event.method ?? ''} ${event.url ?? event.key}' : event.key,
+            isNetwork
+                ? '${event.method ?? ''} ${event.url ?? event.key}'
+                : event.key,
             style: const TextStyle(fontSize: 14),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,

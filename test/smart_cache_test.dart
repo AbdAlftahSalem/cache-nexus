@@ -154,13 +154,16 @@ void main() {
       expect(entry2, isNull);
     });
 
-    test('get should return null if fetcher returns null and T is nullable', () async {
-      final result = await cache.get<String?>(
-        key: 'key',
-        fetcher: () async => null,
-      );
-      expect(result, isNull);
-    });
+    test(
+      'get should return null if fetcher returns null and T is nullable',
+      () async {
+        final result = await cache.get<String?>(
+          key: 'key',
+          fetcher: () async => null,
+        );
+        expect(result, isNull);
+      },
+    );
 
     group('Phase 2: Cache Policies', () {
       test('cacheFirst: returns cache if available and not expired', () async {
@@ -285,35 +288,38 @@ void main() {
     });
 
     group('Phase 2: Stale-While-Revalidate (SWR)', () {
-      test('returns cached data immediately and refreshes in background', () async {
-        await cache.set(key: 'key', data: 'stale_value');
+      test(
+        'returns cached data immediately and refreshes in background',
+        () async {
+          await cache.set(key: 'key', data: 'stale_value');
 
-        var fetchCount = 0;
-        final result = await cache.get(
-          key: 'key',
-          fetcher: () async {
-            await Future<void>.delayed(Duration(milliseconds: 20));
-            fetchCount++;
-            return 'fresh_value';
-          },
-          policy: CachePolicy.staleWhileRevalidate,
-        );
+          var fetchCount = 0;
+          final result = await cache.get(
+            key: 'key',
+            fetcher: () async {
+              await Future<void>.delayed(Duration(milliseconds: 20));
+              fetchCount++;
+              return 'fresh_value';
+            },
+            policy: CachePolicy.staleWhileRevalidate,
+          );
 
-        expect(result, 'stale_value');
-        expect(fetchCount, 0);
+          expect(result, 'stale_value');
+          expect(fetchCount, 0);
 
-        // Wait for background refresh
-        await Future<void>.delayed(Duration(milliseconds: 50));
-        expect(fetchCount, 1);
+          // Wait for background refresh
+          await Future<void>.delayed(Duration(milliseconds: 50));
+          expect(fetchCount, 1);
 
-        // Next call should get fresh data
-        final nextResult = await cache.get(
-          key: 'key',
-          fetcher: () async => 'even_fresher',
-          policy: CachePolicy.cacheFirst,
-        );
-        expect(nextResult, 'fresh_value');
-      });
+          // Next call should get fresh data
+          final nextResult = await cache.get(
+            key: 'key',
+            fetcher: () async => 'even_fresher',
+            policy: CachePolicy.cacheFirst,
+          );
+          expect(nextResult, 'fresh_value');
+        },
+      );
 
       test('behaves like cacheFirst if cache is missing', () async {
         var fetchCount = 0;
@@ -345,31 +351,34 @@ void main() {
         );
       });
 
-      test('cacheFirst: falls through to fetcher when persistent data type mismatches', () async {
-        // Simulate a deserialized Map in persistent storage (as would happen after
-        // CacheEntry.toJson() serializes a custom object to a Map for Hive)
-        final now = DateTime.now();
-        final fakeEntry = CacheEntry<Map<String, dynamic>>(
-          data: {'id': 1, 'title': 'Widget'},
-          createdAt: now,
-          ttl: const Duration(minutes: 5),
-        );
-        await persistentStorage.write('widget', fakeEntry);
+      test(
+        'cacheFirst: falls through to fetcher when persistent data type mismatches',
+        () async {
+          // Simulate a deserialized Map in persistent storage (as would happen after
+          // CacheEntry.toJson() serializes a custom object to a Map for Hive)
+          final now = DateTime.now();
+          final fakeEntry = CacheEntry<Map<String, dynamic>>(
+            data: {'id': 1, 'title': 'Widget'},
+            createdAt: now,
+            ttl: const Duration(minutes: 5),
+          );
+          await persistentStorage.write('widget', fakeEntry);
 
-        // Request as String — type mismatch, should fall through to fetcher
-        var fetchCount = 0;
-        final result = await cacheWithPersistent.get<String>(
-          key: 'widget',
-          fetcher: () async {
-            fetchCount++;
-            return 'fetched_string';
-          },
-          policy: CachePolicy.cacheFirst,
-        );
+          // Request as String — type mismatch, should fall through to fetcher
+          var fetchCount = 0;
+          final result = await cacheWithPersistent.get<String>(
+            key: 'widget',
+            fetcher: () async {
+              fetchCount++;
+              return 'fetched_string';
+            },
+            policy: CachePolicy.cacheFirst,
+          );
 
-        expect(result, 'fetched_string');
-        expect(fetchCount, 1);
-      });
+          expect(result, 'fetched_string');
+          expect(fetchCount, 1);
+        },
+      );
 
       test('cacheOnly: throws when persistent data type mismatches', () async {
         final now = DateTime.now();
@@ -390,28 +399,31 @@ void main() {
         );
       });
 
-      test('staleWhileRevalidate: falls through to fetcher when persistent data type mismatches', () async {
-        final now = DateTime.now();
-        final fakeEntry = CacheEntry<Map<String, dynamic>>(
-          data: {'id': 1, 'title': 'Widget'},
-          createdAt: now,
-          ttl: const Duration(minutes: 5),
-        );
-        await persistentStorage.write('widget', fakeEntry);
+      test(
+        'staleWhileRevalidate: falls through to fetcher when persistent data type mismatches',
+        () async {
+          final now = DateTime.now();
+          final fakeEntry = CacheEntry<Map<String, dynamic>>(
+            data: {'id': 1, 'title': 'Widget'},
+            createdAt: now,
+            ttl: const Duration(minutes: 5),
+          );
+          await persistentStorage.write('widget', fakeEntry);
 
-        var fetchCount = 0;
-        final result = await cacheWithPersistent.get<String>(
-          key: 'widget',
-          fetcher: () async {
-            fetchCount++;
-            return 'fetched_string';
-          },
-          policy: CachePolicy.staleWhileRevalidate,
-        );
+          var fetchCount = 0;
+          final result = await cacheWithPersistent.get<String>(
+            key: 'widget',
+            fetcher: () async {
+              fetchCount++;
+              return 'fetched_string';
+            },
+            policy: CachePolicy.staleWhileRevalidate,
+          );
 
-        expect(result, 'fetched_string');
-        expect(fetchCount, 1);
-      });
+          expect(result, 'fetched_string');
+          expect(fetchCount, 1);
+        },
+      );
     });
   });
 
@@ -429,10 +441,7 @@ void main() {
     });
 
     test('toJson serializes numbers directly', () {
-      final entry = CacheEntry<int>(
-        data: 42,
-        createdAt: DateTime(2024, 1, 1),
-      );
+      final entry = CacheEntry<int>(data: 42, createdAt: DateTime(2024, 1, 1));
       final json = entry.toJson();
       expect(json['data'], 42);
     });
@@ -450,7 +459,10 @@ void main() {
 
     test('toJson serializes lists containing custom objects', () {
       final entry = CacheEntry<List<_TestModel>>(
-        data: [_TestModel(id: 1, name: 'a'), _TestModel(id: 2, name: 'b')],
+        data: [
+          _TestModel(id: 1, name: 'a'),
+          _TestModel(id: 2, name: 'b'),
+        ],
         createdAt: DateTime(2024, 1, 1),
       );
       final json = entry.toJson();
@@ -558,31 +570,39 @@ void main() {
       expect(cached[0].title, 'Fetched');
     });
 
-    test('cacheFirst calls fetcher on miss when no adapter and data is Map', () async {
-      final cacheWithoutAdapter = SmartCacheManager(memoryStorage: MemoryCacheStorage());
+    test(
+      'cacheFirst calls fetcher on miss when no adapter and data is Map',
+      () async {
+        final cacheWithoutAdapter = SmartCacheManager(
+          memoryStorage: MemoryCacheStorage(),
+        );
 
-      final now = DateTime.now();
-      final fakeEntry = CacheEntry<Map<String, dynamic>>(
-        data: {'id': 1, 'title': 'Widget'},
-        createdAt: now,
-        ttl: const Duration(minutes: 5),
-      );
-      await (cacheWithoutAdapter.memoryStorage as MemoryCacheStorage).write('widget', fakeEntry);
+        final now = DateTime.now();
+        final fakeEntry = CacheEntry<Map<String, dynamic>>(
+          data: {'id': 1, 'title': 'Widget'},
+          createdAt: now,
+          ttl: const Duration(minutes: 5),
+        );
+        await (cacheWithoutAdapter.memoryStorage as MemoryCacheStorage).write(
+          'widget',
+          fakeEntry,
+        );
 
-      var fetchCount = 0;
-      final result = await cacheWithoutAdapter.get<String>(
-        key: 'widget',
-        fetcher: () async {
-          fetchCount++;
-          return 'fetched_string';
-        },
-        policy: CachePolicy.cacheFirst,
-      );
+        var fetchCount = 0;
+        final result = await cacheWithoutAdapter.get<String>(
+          key: 'widget',
+          fetcher: () async {
+            fetchCount++;
+            return 'fetched_string';
+          },
+          policy: CachePolicy.cacheFirst,
+        );
 
-      expect(result, 'fetched_string');
-      expect(fetchCount, 1);
-      cacheWithoutAdapter.dispose();
-    });
+        expect(result, 'fetched_string');
+        expect(fetchCount, 1);
+        cacheWithoutAdapter.dispose();
+      },
+    );
   });
 
   group('SmartCacheManager coverage', () {
@@ -592,7 +612,10 @@ void main() {
     setUp(() {
       NetworkStatus.setMockStatus(true);
       storage = MemoryCacheStorage();
-      cache = SmartCacheManager(memoryStorage: storage, mode: SmartCacheMode.dev);
+      cache = SmartCacheManager(
+        memoryStorage: storage,
+        mode: SmartCacheMode.dev,
+      );
     });
 
     tearDown(() {
@@ -610,12 +633,17 @@ void main() {
       await cache.clear();
       await Future<void>.delayed(Duration(milliseconds: 10));
 
-      final evicts = events.where((e) => e.type == CacheEventType.evict).toList();
+      final evicts = events
+          .where((e) => e.type == CacheEventType.evict)
+          .toList();
       expect(evicts.any((e) => e.key == 'all'), isTrue);
     });
 
     test('dispose() cleans up reactive engine and observability', () async {
-      final manager = SmartCacheManager(memoryStorage: MemoryCacheStorage(), mode: SmartCacheMode.dev);
+      final manager = SmartCacheManager(
+        memoryStorage: MemoryCacheStorage(),
+        mode: SmartCacheMode.dev,
+      );
       manager.watch<String>('test').listen((_) {});
       await Future<void>.delayed(Duration(milliseconds: 10));
 
@@ -634,7 +662,9 @@ void main() {
 
     test('watch with debounce debounces rapid updates', () async {
       final values = <String?>[];
-      final sub = cache.watch<String>('debounce', debounce: Duration(milliseconds: 100)).listen((v) => values.add(v));
+      final sub = cache
+          .watch<String>('debounce', debounce: Duration(milliseconds: 100))
+          .listen((v) => values.add(v));
 
       await Future<void>.delayed(Duration(milliseconds: 10));
       await cache.set(key: 'debounce', data: 'a');
@@ -659,11 +689,19 @@ void main() {
       await cache.set(key: 'profile', data: 'Bob');
 
       cache.setContext(CacheContext(userId: 'u1'));
-      final a = await cache.get<String>(key: 'profile', fetcher: () async => 'default', policy: CachePolicy.cacheOnly);
+      final a = await cache.get<String>(
+        key: 'profile',
+        fetcher: () async => 'default',
+        policy: CachePolicy.cacheOnly,
+      );
       expect(a, 'Alice');
 
       cache.setContext(CacheContext(userId: 'u2'));
-      final b = await cache.get<String>(key: 'profile', fetcher: () async => 'default', policy: CachePolicy.cacheOnly);
+      final b = await cache.get<String>(
+        key: 'profile',
+        fetcher: () async => 'default',
+        policy: CachePolicy.cacheOnly,
+      );
       expect(b, 'Bob');
     });
 
@@ -677,12 +715,20 @@ void main() {
       await cache.invalidateByContext(CacheContext(userId: 'drop'));
 
       cache.setContext(CacheContext(userId: 'keep'));
-      final keep = await cache.get<String>(key: 'k', fetcher: () async => '', policy: CachePolicy.cacheOnly);
+      final keep = await cache.get<String>(
+        key: 'k',
+        fetcher: () async => '',
+        policy: CachePolicy.cacheOnly,
+      );
       expect(keep, 'keep_data');
 
       cache.setContext(CacheContext(userId: 'drop'));
       expect(
-        () => cache.get<String>(key: 'k', fetcher: () async => '', policy: CachePolicy.cacheOnly),
+        () => cache.get<String>(
+          key: 'k',
+          fetcher: () async => '',
+          policy: CachePolicy.cacheOnly,
+        ),
         throwsException,
       );
     });
@@ -732,7 +778,10 @@ class _TestModel {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is _TestModel && runtimeType == other.runtimeType && id == other.id && name == other.name;
+      other is _TestModel &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          name == other.name;
 
   @override
   int get hashCode => id.hashCode ^ name.hashCode;
@@ -747,13 +796,20 @@ class _Post {
 
   Map<String, dynamic> toJson() => {'id': id, 'title': title, 'body': body};
 
-  factory _Post.fromJson(Map<String, dynamic> json) =>
-      _Post(id: json['id'] as int, title: json['title'] as String, body: json['body'] as String);
+  factory _Post.fromJson(Map<String, dynamic> json) => _Post(
+    id: json['id'] as int,
+    title: json['title'] as String,
+    body: json['body'] as String,
+  );
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is _Post && runtimeType == other.runtimeType && id == other.id && title == other.title && body == other.body;
+      other is _Post &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          title == other.title &&
+          body == other.body;
 
   @override
   int get hashCode => id.hashCode ^ title.hashCode ^ body.hashCode;

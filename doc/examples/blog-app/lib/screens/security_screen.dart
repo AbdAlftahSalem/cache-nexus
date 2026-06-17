@@ -36,7 +36,13 @@ class _SecurityScreenState extends State<SecurityScreen> {
     final rawEntry = await inner.read('secret_key');
     final rawText = rawEntry?.data.toString() ?? 'null';
 
-    final recoveredEntry = await secure.read('secret_key') ?? CacheEntry(data: 'null', createdAt: DateTime.now(), ttl: const Duration(minutes: 5));
+    final recoveredEntry =
+        await secure.read('secret_key') ??
+        CacheEntry(
+          data: 'null',
+          createdAt: DateTime.now(),
+          ttl: const Duration(minutes: 5),
+        );
 
     setState(() {
       _rawStored = rawText;
@@ -52,7 +58,10 @@ class _SecurityScreenState extends State<SecurityScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Security Layer', style: Theme.of(context).textTheme.headlineMedium),
+            Text(
+              'Security Layer',
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
             const SizedBox(height: 8),
             Text(
               'Encrypt + compress cache data with SecureCacheStorage',
@@ -85,7 +94,10 @@ class _SecurityScreenState extends State<SecurityScreen> {
                       ),
                       child: Text(
                         _rawStored,
-                        style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+                        style: const TextStyle(
+                          fontFamily: 'monospace',
+                          fontSize: 12,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -103,7 +115,10 @@ class _SecurityScreenState extends State<SecurityScreen> {
                       ),
                       child: Text(
                         _recovered,
-                        style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+                        style: const TextStyle(
+                          fontFamily: 'monospace',
+                          fontSize: 12,
+                        ),
                       ),
                     ),
                   ],

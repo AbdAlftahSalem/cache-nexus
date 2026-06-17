@@ -10,14 +10,14 @@ class SyncMetadata {
   });
 
   Map<String, dynamic> toJson() => {
-        'version': version,
-        'updatedAt': updatedAt.toIso8601String(),
-        'deviceId': deviceId,
-      };
+    'version': version,
+    'updatedAt': updatedAt.toIso8601String(),
+    'deviceId': deviceId,
+  };
 
   factory SyncMetadata.fromJson(Map<String, dynamic> json) => SyncMetadata(
-        version: json['version'] as String,
-        updatedAt: DateTime.parse(json['updatedAt'] as String),
-        deviceId: json['deviceId'] as String,
-      );
+    version: json['version'] as String,
+    updatedAt: DateTime.parse(json['updatedAt'] as String),
+    deviceId: json['deviceId'] as String,
+  );
 }

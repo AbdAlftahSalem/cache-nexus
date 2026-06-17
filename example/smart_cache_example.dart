@@ -3,7 +3,7 @@ import 'package:smart_cache/smart_cache.dart';
 void main() async {
   // 1. Initialize storage
   final memoryStorage = MemoryCacheStorage();
-  
+
   // 2. Phase 5: Security & Compression Layer
   // Wrap your persistent storage (like Hive) with SecureCacheStorage
   final securePersistentStorage = SecureCacheStorage(
@@ -21,7 +21,7 @@ void main() async {
   // 4. Phase 5: Auth-Aware Caching
   print('--- User A Session ---');
   cache.setContext(const CacheContext(userId: 'user_123', role: 'admin'));
-  
+
   await cache.get<String>(
     key: 'secret_data',
     fetcher: () async => 'Top Secret Admin Info',
@@ -31,7 +31,7 @@ void main() async {
   // 5. Switch User
   print('\n--- User B Session (Isolation) ---');
   cache.setContext(const CacheContext(userId: 'user_456', role: 'guest'));
-  
+
   final guestData = await cache.get<String>(
     key: 'secret_data',
     fetcher: () async {

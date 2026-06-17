@@ -21,13 +21,16 @@ void main() {
     });
 
     test('Data is encrypted and compressed in inner storage', () async {
-      final entry = CacheEntry(data: 'sensitive data' * 10, createdAt: DateTime.now());
+      final entry = CacheEntry(
+        data: 'sensitive data' * 10,
+        createdAt: DateTime.now(),
+      );
       await secureStorage.write('test_key', entry);
 
       final storedEntry = await innerStorage.read('test_key');
       expect(storedEntry, isNotNull);
       expect(storedEntry!.data, isA<String>());
-      
+
       // Data in inner storage should be encrypted string, not the original map
       final encryptedData = storedEntry.data as String;
       expect(encryptedData, isNot(contains('sensitive data')));
@@ -50,7 +53,10 @@ void main() {
     });
 
     test('Decryption failure returns null', () async {
-      await innerStorage.write('bad_key', CacheEntry(data: 'not_encrypted', createdAt: DateTime.now()));
+      await innerStorage.write(
+        'bad_key',
+        CacheEntry(data: 'not_encrypted', createdAt: DateTime.now()),
+      );
       final result = await secureStorage.read('bad_key');
       expect(result, isNull);
     });
@@ -81,12 +87,18 @@ void main() {
 
       // Check User A again
       manager.setContext(const CacheContext(userId: 'user_a'));
-      final profileA = await manager.get(key: 'profile', fetcher: () async => 'Fresh A');
+      final profileA = await manager.get(
+        key: 'profile',
+        fetcher: () async => 'Fresh A',
+      );
       expect(profileA, equals('Profile A'));
 
       // Check User B again
       manager.setContext(const CacheContext(userId: 'user_b'));
-      final profileB = await manager.get(key: 'profile', fetcher: () async => 'Fresh B');
+      final profileB = await manager.get(
+        key: 'profile',
+        fetcher: () async => 'Fresh B',
+      );
       expect(profileB, equals('Profile B'));
     });
 
@@ -96,7 +108,7 @@ void main() {
 
       manager.setContext(contextA);
       await manager.set(key: 'data', data: 'Data A');
-      
+
       manager.setContext(contextB);
       await manager.set(key: 'data', data: 'Data B');
 
@@ -105,11 +117,20 @@ void main() {
 
       // User A should be missing
       manager.setContext(contextA);
-      expect(() => manager.get(key: 'data', fetcher: () async => throw Exception('Miss')), throwsException);
+      expect(
+        () => manager.get(
+          key: 'data',
+          fetcher: () async => throw Exception('Miss'),
+        ),
+        throwsException,
+      );
 
       // User B should still be there
       manager.setContext(contextB);
-      final dataB = await manager.get(key: 'data', fetcher: () async => 'Fresh B');
+      final dataB = await manager.get(
+        key: 'data',
+        fetcher: () async => 'Fresh B',
+      );
       expect(dataB, equals('Data B'));
     });
 
@@ -124,10 +145,16 @@ void main() {
       await manager.set(key: 'settings', data: 'User Settings');
 
       manager.setContext(adminContext);
-      expect(await manager.get(key: 'settings', fetcher: () async => ''), equals('Admin Settings'));
+      expect(
+        await manager.get(key: 'settings', fetcher: () async => ''),
+        equals('Admin Settings'),
+      );
 
       manager.setContext(userContext);
-      expect(await manager.get(key: 'settings', fetcher: () async => ''), equals('User Settings'));
+      expect(
+        await manager.get(key: 'settings', fetcher: () async => ''),
+        equals('User Settings'),
+      );
     });
   });
 }

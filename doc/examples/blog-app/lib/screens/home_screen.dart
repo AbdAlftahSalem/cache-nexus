@@ -69,7 +69,10 @@ class _OverviewScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Smart Cache Demo', style: Theme.of(context).textTheme.headlineMedium),
+            Text(
+              'Smart Cache Demo',
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
             const SizedBox(height: 8),
             Text(
               'A full demonstration of every smart_cache feature using Dio.',
@@ -82,7 +85,8 @@ class _OverviewScreen extends StatelessWidget {
                   _FeatureTile(
                     icon: Icons.policy,
                     title: 'Cache Policies',
-                    subtitle: '5 strategies: cacheFirst, networkFirst, cacheOnly, networkOnly, SWR',
+                    subtitle:
+                        '5 strategies: cacheFirst, networkFirst, cacheOnly, networkOnly, SWR',
                     color: Colors.blue,
                   ),
                   _FeatureTile(
@@ -142,7 +146,10 @@ class _FeatureTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: ListTile(
-        leading: CircleAvatar(backgroundColor: color.withValues(alpha: 0.1), child: Icon(icon, color: color)),
+        leading: CircleAvatar(
+          backgroundColor: color.withValues(alpha: 0.1),
+          child: Icon(icon, color: color),
+        ),
         title: Text(title),
         subtitle: Text(subtitle),
       ),

@@ -52,10 +52,7 @@ void main() {
   });
 
   test('encrypt+compress pipeline works', () async {
-    final entry = CacheEntry(
-      data: 'data ' * 50,
-      createdAt: DateTime.now(),
-    );
+    final entry = CacheEntry(data: 'data ' * 50, createdAt: DateTime.now());
     await secureStorage.write('pipeline', entry);
 
     final raw = await innerStorage.read('pipeline');

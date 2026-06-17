@@ -71,7 +71,10 @@ class _AuthScreenState extends State<AuthScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Auth-Aware Isolation', style: Theme.of(context).textTheme.headlineMedium),
+            Text(
+              'Auth-Aware Isolation',
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
             const SizedBox(height: 8),
             if (_currentUser != null)
               Chip(
@@ -120,7 +123,10 @@ class _AuthScreenState extends State<AuthScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Cached Profile:', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const Text(
+                      'Cached Profile:',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                     const SizedBox(height: 4),
                     Text(_cachedData),
                   ],
@@ -129,7 +135,10 @@ class _AuthScreenState extends State<AuthScreen> {
             ),
             const SizedBox(height: 16),
             if (_userProfiles.isNotEmpty) ...[
-              const Text('All Loaded Profiles:', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text(
+                'All Loaded Profiles:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 8),
               ..._userProfiles.entries.map(
                 (e) => Card(

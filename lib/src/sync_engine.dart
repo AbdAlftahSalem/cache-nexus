@@ -27,8 +27,9 @@ class SyncEngine {
       await Hive.initFlutter();
     }
     _queueBox = await Hive.openBox(queueBoxName);
-    _connectivitySubscription =
-        NetworkStatus.onConnectivityChanged.listen((isOnline) {
+    _connectivitySubscription = NetworkStatus.onConnectivityChanged.listen((
+      isOnline,
+    ) {
       if (isOnline) {
         processQueue();
       }

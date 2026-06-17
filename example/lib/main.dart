@@ -1,4 +1,4 @@
- import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:smart_cache/smart_cache.dart';
 import 'services/cache_service.dart';
 import 'screens/home_screen.dart';

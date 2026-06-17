@@ -21,7 +21,12 @@ void main() {
       {'id': 2, 'userId': 2, 'title': 'Another Post', 'body': 'Another Body'},
     ];
 
-    final mockPost = {'id': 1, 'userId': 1, 'title': 'Test Post', 'body': 'Test Body'};
+    final mockPost = {
+      'id': 1,
+      'userId': 1,
+      'title': 'Test Post',
+      'body': 'Test Body',
+    };
 
     test('getPosts returns list of Post', () async {
       when(() => mockDio.get('/posts')).thenAnswer(
@@ -60,8 +65,18 @@ void main() {
     });
 
     test('createPost returns created Post', () async {
-      final input = Post(id: 99, userId: 1, title: 'New Post', body: 'New Body');
-      final response = {'id': 99, 'userId': 1, 'title': 'New Post', 'body': 'New Body'};
+      final input = Post(
+        id: 99,
+        userId: 1,
+        title: 'New Post',
+        body: 'New Body',
+      );
+      final response = {
+        'id': 99,
+        'userId': 1,
+        'title': 'New Post',
+        'body': 'New Body',
+      };
 
       when(() => mockDio.post('/posts', data: input.toJson())).thenAnswer(
         (_) async => Response(

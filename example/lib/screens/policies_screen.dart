@@ -29,7 +29,8 @@ class _PoliciesScreenState extends State<PoliciesScreen> {
       stopwatch.stop();
       setState(() {
         _loading = false;
-        _result = '[$label] Fetched ${posts.length} posts in ${stopwatch.elapsedMilliseconds}ms';
+        _result =
+            '[$label] Fetched ${posts.length} posts in ${stopwatch.elapsedMilliseconds}ms';
       });
     } catch (e) {
       setState(() {
@@ -47,7 +48,10 @@ class _PoliciesScreenState extends State<PoliciesScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Cache Policies', style: Theme.of(context).textTheme.headlineMedium),
+            Text(
+              'Cache Policies',
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
             const SizedBox(height: 8),
             Text(
               '5 strategies with Dio fetching from jsonplaceholder.typicode.com',
@@ -61,29 +65,34 @@ class _PoliciesScreenState extends State<PoliciesScreen> {
                     title: 'cacheFirst',
                     description: 'Check cache first. Fetch on miss/expiry.',
                     color: Colors.blue,
-                    onTap: () => _fetchPosts(CachePolicy.cacheFirst, 'cacheFirst'),
+                    onTap: () =>
+                        _fetchPosts(CachePolicy.cacheFirst, 'cacheFirst'),
                   ),
                   _PolicyCard(
                     title: 'networkFirst',
                     description: 'Network first. Fall back to cache on error.',
                     color: Colors.green,
-                    onTap: () => _fetchPosts(CachePolicy.networkFirst, 'networkFirst'),
+                    onTap: () =>
+                        _fetchPosts(CachePolicy.networkFirst, 'networkFirst'),
                   ),
                   _PolicyCard(
                     title: 'cacheOnly',
                     description: 'Never hit network. Return cache or throw.',
                     color: Colors.orange,
-                    onTap: () => _fetchPosts(CachePolicy.cacheOnly, 'cacheOnly'),
+                    onTap: () =>
+                        _fetchPosts(CachePolicy.cacheOnly, 'cacheOnly'),
                   ),
                   _PolicyCard(
                     title: 'networkOnly',
                     description: 'Always fetch. Cache is ignored.',
                     color: Colors.red,
-                    onTap: () => _fetchPosts(CachePolicy.networkOnly, 'networkOnly'),
+                    onTap: () =>
+                        _fetchPosts(CachePolicy.networkOnly, 'networkOnly'),
                   ),
                   _PolicyCard(
                     title: 'staleWhileRevalidate',
-                    description: 'Return stale instantly, refresh in background.',
+                    description:
+                        'Return stale instantly, refresh in background.',
                     color: Colors.purple,
                     onTap: () => _fetchPosts(
                       CachePolicy.staleWhileRevalidate,
@@ -99,7 +108,10 @@ class _PoliciesScreenState extends State<PoliciesScreen> {
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
-                child: Text(_result, style: Theme.of(context).textTheme.bodyMedium),
+                child: Text(
+                  _result,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
               ),
             ),
           ],

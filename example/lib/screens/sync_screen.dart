@@ -24,8 +24,9 @@ class _SyncScreenState extends State<SyncScreen> {
   void initState() {
     super.initState();
     _tasks.addAll(widget.cacheService.syncEngine.pendingTasks);
-    _queueSubscription =
-        widget.cacheService.syncEngine.onQueueChanged.listen((tasks) {
+    _queueSubscription = widget.cacheService.syncEngine.onQueueChanged.listen((
+      tasks,
+    ) {
       if (mounted) {
         setState(() {
           _tasks
@@ -34,8 +35,9 @@ class _SyncScreenState extends State<SyncScreen> {
         });
       }
     });
-    _connectivitySubscription =
-        NetworkStatus.onConnectivityChanged.listen((online) {
+    _connectivitySubscription = NetworkStatus.onConnectivityChanged.listen((
+      online,
+    ) {
       if (mounted) {
         setState(() => _isOnline = online);
         _addLog(online ? 'Network: ONLINE' : 'Network: OFFLINE');
@@ -53,8 +55,7 @@ class _SyncScreenState extends State<SyncScreen> {
 
   void _addLog(String message) {
     setState(() {
-      _logs.add(
-          '${DateTime.now().toString().substring(11, 19)} $message');
+      _logs.add('${DateTime.now().toString().substring(11, 19)} $message');
       if (_logs.length > 50) {
         _logs.removeRange(0, _logs.length - 50);
       }
@@ -100,10 +101,8 @@ class _SyncScreenState extends State<SyncScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final pending =
-        _tasks.where((t) => t.retryCount < 3).toList();
-    final failed =
-        _tasks.where((t) => t.retryCount >= 3).toList();
+    final pending = _tasks.where((t) => t.retryCount < 3).toList();
+    final failed = _tasks.where((t) => t.retryCount >= 3).toList();
 
     return SafeArea(
       child: Padding(
@@ -111,8 +110,10 @@ class _SyncScreenState extends State<SyncScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Offline Sync',
-                style: Theme.of(context).textTheme.headlineMedium),
+            Text(
+              'Offline Sync',
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
             const SizedBox(height: 4),
             Text(
               'Offline-first sync queue with automatic retry',
@@ -129,8 +130,11 @@ class _SyncScreenState extends State<SyncScreen> {
               child: ListView(
                 children: [
                   if (pending.isNotEmpty) ...[
-                    _sectionHeader('Pending Tasks', pending.length,
-                        Colors.orange),
+                    _sectionHeader(
+                      'Pending Tasks',
+                      pending.length,
+                      Colors.orange,
+                    ),
                     ...pending.map((t) => _buildTaskCard(t, failed: false)),
                     const SizedBox(height: 12),
                   ],
@@ -163,19 +167,21 @@ class _SyncScreenState extends State<SyncScreen> {
             color: _isOnline ? Colors.green : Colors.red,
           ),
           label: Text(_isOnline ? 'Online' : 'Offline'),
-          backgroundColor: (_isOnline ? Colors.green : Colors.red)
-              .withValues(alpha: 0.1),
+          backgroundColor: (_isOnline ? Colors.green : Colors.red).withValues(
+            alpha: 0.1,
+          ),
           side: BorderSide(
-              color: (_isOnline ? Colors.green : Colors.red)
-                  .withValues(alpha: 0.3)),
+            color: (_isOnline ? Colors.green : Colors.red).withValues(
+              alpha: 0.3,
+            ),
+          ),
         ),
         const SizedBox(width: 8),
         Chip(
           avatar: const Icon(Icons.queue, size: 18),
           label: Text('$pendingCount pending'),
           backgroundColor: Colors.orange.withValues(alpha: 0.1),
-          side: BorderSide(
-              color: Colors.orange.withValues(alpha: 0.3)),
+          side: BorderSide(color: Colors.orange.withValues(alpha: 0.3)),
         ),
         if (failedCount > 0) ...[
           const SizedBox(width: 8),
@@ -183,8 +189,7 @@ class _SyncScreenState extends State<SyncScreen> {
             avatar: Icon(Icons.error, size: 18, color: Colors.red.shade700),
             label: Text('$failedCount failed'),
             backgroundColor: Colors.red.withValues(alpha: 0.1),
-            side: BorderSide(
-                color: Colors.red.withValues(alpha: 0.3)),
+            side: BorderSide(color: Colors.red.withValues(alpha: 0.3)),
           ),
         ],
       ],
@@ -230,8 +235,10 @@ class _SyncScreenState extends State<SyncScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Simulate Offline',
-                      style: TextStyle(fontWeight: FontWeight.w500)),
+                  const Text(
+                    'Simulate Offline',
+                    style: TextStyle(fontWeight: FontWeight.w500),
+                  ),
                   Text(
                     'Toggle mock network status for testing',
                     style: Theme.of(context).textTheme.bodySmall,
@@ -257,9 +264,10 @@ class _SyncScreenState extends State<SyncScreen> {
         children: [
           Icon(Icons.circle, size: 10, color: color),
           const SizedBox(width: 8),
-          Text(title,
-              style: const TextStyle(
-                  fontWeight: FontWeight.bold, fontSize: 14)),
+          Text(
+            title,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+          ),
           const SizedBox(width: 6),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -267,11 +275,14 @@ class _SyncScreenState extends State<SyncScreen> {
               color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Text('$count',
-                style: TextStyle(
-                    color: color,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold)),
+            child: Text(
+              '$count',
+              style: TextStyle(
+                color: color,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
@@ -301,9 +312,10 @@ class _SyncScreenState extends State<SyncScreen> {
           child: Text(
             task.method.substring(0, min(task.method.length, 3)),
             style: TextStyle(
-                color: methodColor,
-                fontSize: 11,
-                fontWeight: FontWeight.bold),
+              color: methodColor,
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
         title: Text(
@@ -320,8 +332,11 @@ class _SyncScreenState extends State<SyncScreen> {
           ),
         ),
         trailing: IconButton(
-          icon: Icon(Icons.delete_outline,
-              size: 20, color: failed ? Colors.red : Colors.grey),
+          icon: Icon(
+            Icons.delete_outline,
+            size: 20,
+            color: failed ? Colors.red : Colors.grey,
+          ),
           onPressed: () => _deleteTask(task),
         ),
       ),
@@ -334,11 +349,16 @@ class _SyncScreenState extends State<SyncScreen> {
       child: Center(
         child: Column(
           children: [
-            Icon(Icons.check_circle_outline,
-                size: 48, color: Colors.green.shade300),
+            Icon(
+              Icons.check_circle_outline,
+              size: 48,
+              color: Colors.green.shade300,
+            ),
             const SizedBox(height: 12),
-            const Text('No pending tasks',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+            const Text(
+              'No pending tasks',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            ),
             const SizedBox(height: 4),
             Text(
               'Tap "Enqueue Task" to add items to the sync queue',
@@ -367,8 +387,10 @@ class _SyncScreenState extends State<SyncScreen> {
               ? const Padding(
                   padding: EdgeInsets.all(16),
                   child: Center(
-                    child: Text('No activity yet',
-                        style: TextStyle(color: Colors.grey)),
+                    child: Text(
+                      'No activity yet',
+                      style: TextStyle(color: Colors.grey),
+                    ),
                   ),
                 )
               : ListView.builder(
@@ -382,7 +404,9 @@ class _SyncScreenState extends State<SyncScreen> {
                       child: Text(
                         log,
                         style: const TextStyle(
-                            fontFamily: 'monospace', fontSize: 11),
+                          fontFamily: 'monospace',
+                          fontSize: 11,
+                        ),
                       ),
                     );
                   },

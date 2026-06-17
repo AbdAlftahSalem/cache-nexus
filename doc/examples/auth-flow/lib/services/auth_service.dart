@@ -7,11 +7,7 @@ class AuthService extends InheritedWidget {
   String? _currentUserId;
   String? _currentUserRole;
 
-  AuthService({
-    super.key,
-    required this.cache,
-    required super.child,
-  });
+  AuthService({super.key, required this.cache, required super.child});
 
   static AuthService of(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<AuthService>()!;
@@ -34,10 +30,9 @@ class AuthService extends InheritedWidget {
     }
 
     // Set cache context
-    cache.setContext(CacheContext(
-      userId: _currentUserId!,
-      role: _currentUserRole!,
-    ));
+    cache.setContext(
+      CacheContext(userId: _currentUserId!, role: _currentUserRole!),
+    );
 
     // Cache user profile
     await cache.set<Map<String, dynamic>>(
@@ -55,9 +50,7 @@ class AuthService extends InheritedWidget {
   Future<void> logout() async {
     // Invalidate user-specific cache
     if (_currentUserId != null) {
-      await cache.invalidateByContext(
-        CacheContext(userId: _currentUserId!),
-      );
+      await cache.invalidateByContext(CacheContext(userId: _currentUserId!));
     }
 
     // Clear context
@@ -69,6 +62,6 @@ class AuthService extends InheritedWidget {
   @override
   bool updateShouldNotify(AuthService oldWidget) {
     return _currentUserId != oldWidget._currentUserId ||
-           _currentUserRole != oldWidget._currentUserRole;
+        _currentUserRole != oldWidget._currentUserRole;
   }
 }

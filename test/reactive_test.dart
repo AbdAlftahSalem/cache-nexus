@@ -104,8 +104,8 @@ void main() {
         final subscription = cache
             .watch<String>('test', debounce: Duration(milliseconds: 100))
             .listen((value) {
-          values.add(value);
-        });
+              values.add(value);
+            });
 
         await Future<void>.delayed(Duration(milliseconds: 10));
 
@@ -129,19 +129,22 @@ void main() {
     // Memory Leak Prevention Tests
     // ----------------------------------------------------------------------
     group('Memory Management', () {
-      test('stream controller auto-closes after last listener unsubscribes', () async {
-        final sub = cache.watch<String>('test').listen((_) {});
-        await Future<void>.delayed(Duration(milliseconds: 10));
+      test(
+        'stream controller auto-closes after last listener unsubscribes',
+        () async {
+          final sub = cache.watch<String>('test').listen((_) {});
+          await Future<void>.delayed(Duration(milliseconds: 10));
 
-        expect(cache.reactiveEngine.controllerCount, 1);
+          expect(cache.reactiveEngine.controllerCount, 1);
 
-        await sub.cancel();
-        // Give time for microtask cleanup
-        await Future<void>.delayed(Duration(milliseconds: 50));
+          await sub.cancel();
+          // Give time for microtask cleanup
+          await Future<void>.delayed(Duration(milliseconds: 50));
 
-        // Controller should be auto-closed and removed
-        expect(cache.reactiveEngine.controllerCount, 0);
-      });
+          // Controller should be auto-closed and removed
+          expect(cache.reactiveEngine.controllerCount, 0);
+        },
+      );
 
       test('no memory leaks after 1000 watch/cancel cycles', () async {
         for (var i = 0; i < 1000; i++) {

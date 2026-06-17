@@ -40,10 +40,26 @@ class CacheStatsWidget extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildStat('Requests', stats.totalRequests.toString(), Colors.indigo),
-                _buildStat('Success', stats.successfulRequests.toString(), Colors.green),
-                _buildStat('Failed', stats.failedRequests.toString(), Colors.red),
-                _buildStat('Avg Time', '${stats.averageResponseTimeMs.toStringAsFixed(0)}ms', Colors.teal),
+                _buildStat(
+                  'Requests',
+                  stats.totalRequests.toString(),
+                  Colors.indigo,
+                ),
+                _buildStat(
+                  'Success',
+                  stats.successfulRequests.toString(),
+                  Colors.green,
+                ),
+                _buildStat(
+                  'Failed',
+                  stats.failedRequests.toString(),
+                  Colors.red,
+                ),
+                _buildStat(
+                  'Avg Time',
+                  '${stats.averageResponseTimeMs.toStringAsFixed(0)}ms',
+                  Colors.teal,
+                ),
               ],
             ),
             const SizedBox(height: 12),
@@ -56,7 +72,10 @@ class CacheStatsWidget extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               'Success Rate: ${(stats.successRate * 100).toStringAsFixed(1)}%',
-              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo),
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.indigo,
+              ),
             ),
           ],
         ],
@@ -67,7 +86,14 @@ class CacheStatsWidget extends StatelessWidget {
   Widget _buildStat(String label, String value, Color color) {
     return Column(
       children: [
-        Text(value, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: color)),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
         Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
       ],
     );

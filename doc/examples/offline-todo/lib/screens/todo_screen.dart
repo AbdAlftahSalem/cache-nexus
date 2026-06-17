@@ -57,10 +57,7 @@ class _TodoScreenState extends State<TodoScreen> {
         actions: [
           Row(
             children: [
-              Switch(
-                value: _isOnline,
-                onChanged: (_) => _toggleOnline(),
-              ),
+              Switch(value: _isOnline, onChanged: (_) => _toggleOnline()),
               Text(_isOnline ? 'Online' : 'Offline'),
               const SizedBox(width: 16),
             ],
@@ -119,9 +116,7 @@ class _TodoScreenState extends State<TodoScreen> {
               content: TextField(
                 controller: _controller,
                 autofocus: true,
-                decoration: const InputDecoration(
-                  hintText: 'Enter todo title',
-                ),
+                decoration: const InputDecoration(hintText: 'Enter todo title'),
                 onSubmitted: (_) {
                   _addTodo();
                   Navigator.pop(context);

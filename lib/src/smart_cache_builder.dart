@@ -49,7 +49,8 @@ class _SmartCacheBuilderState<T> extends State<SmartCacheBuilder<T>> {
   @override
   void didUpdateWidget(covariant SmartCacheBuilder<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.cache != widget.cache || oldWidget.cacheKey != widget.cacheKey) {
+    if (oldWidget.cache != widget.cache ||
+        oldWidget.cacheKey != widget.cacheKey) {
       _unsubscribe();
       _subscribe();
     }
@@ -63,17 +64,14 @@ class _SmartCacheBuilderState<T> extends State<SmartCacheBuilder<T>> {
 
   void _subscribe() {
     _subscription = widget.cache
-        .watch<T>(
-          widget.cacheKey,
-          debounce: widget.debounce,
-        )
+        .watch<T>(widget.cacheKey, debounce: widget.debounce)
         .listen((data) {
-      if (mounted) {
-        setState(() {
-          _data = data;
+          if (mounted) {
+            setState(() {
+              _data = data;
+            });
+          }
         });
-      }
-    });
   }
 
   void _unsubscribe() {

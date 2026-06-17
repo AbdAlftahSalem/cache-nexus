@@ -10,18 +10,23 @@ void main() {
 
   setUp(() {
     storage = MemoryCacheStorage();
-    devCache = SmartCacheManager(memoryStorage: storage, mode: SmartCacheMode.dev);
-    prodCache = SmartCacheManager(memoryStorage: storage, mode: SmartCacheMode.production);
+    devCache = SmartCacheManager(
+      memoryStorage: storage,
+      mode: SmartCacheMode.dev,
+    );
+    prodCache = SmartCacheManager(
+      memoryStorage: storage,
+      mode: SmartCacheMode.production,
+    );
   });
 
   group('SmartCacheManager Phase 3 - Observability', () {
     test('dev mode emits events and updates stats', () async {
-      final futureEvent = devCache.events.firstWhere((e) => e.type == CacheEventType.fetch);
-
-      await devCache.get<String>(
-        key: 'test',
-        fetcher: () async => 'data',
+      final futureEvent = devCache.events.firstWhere(
+        (e) => e.type == CacheEventType.fetch,
       );
+
+      await devCache.get<String>(key: 'test', fetcher: () async => 'data');
 
       final event = await futureEvent.timeout(Duration(seconds: 1));
 
@@ -34,10 +39,7 @@ void main() {
       final events = <CacheEvent>[];
       prodCache.events.listen(events.add);
 
-      await prodCache.get<String>(
-        key: 'test',
-        fetcher: () async => 'data',
-      );
+      await prodCache.get<String>(key: 'test', fetcher: () async => 'data');
 
       // Give it a tiny bit of time for any async events
       await Future<void>.delayed(Duration(milliseconds: 10));
@@ -49,7 +51,7 @@ void main() {
 
     test('cache hit updates stats correctly', () async {
       await devCache.set(key: 'hit_test', data: 'cached');
-      
+
       await devCache.get<String>(
         key: 'hit_test',
         fetcher: () async => 'new_data',
@@ -60,7 +62,9 @@ void main() {
     });
 
     test('error emits error event with duration', () async {
-      final futureEvent = devCache.events.firstWhere((e) => e.type == CacheEventType.error);
+      final futureEvent = devCache.events.firstWhere(
+        (e) => e.type == CacheEventType.error,
+      );
 
       try {
         await devCache.get<String>(
@@ -75,7 +79,9 @@ void main() {
     });
 
     test('set() emits store event', () async {
-      final futureEvent = devCache.events.firstWhere((e) => e.type == CacheEventType.store);
+      final futureEvent = devCache.events.firstWhere(
+        (e) => e.type == CacheEventType.store,
+      );
 
       await devCache.set(key: 'stored', data: 'value');
 
@@ -87,7 +93,9 @@ void main() {
     test('delete() emits evict event', () async {
       await devCache.set(key: 'to_delete', data: 'value');
 
-      final futureEvent = devCache.events.firstWhere((e) => e.type == CacheEventType.evict);
+      final futureEvent = devCache.events.firstWhere(
+        (e) => e.type == CacheEventType.evict,
+      );
 
       await devCache.delete('to_delete');
 
@@ -96,15 +104,18 @@ void main() {
     });
 
     test('expired key emits expired event', () async {
-      await devCache.set(key: 'ttl_key', data: 'old', ttl: Duration(milliseconds: 1));
+      await devCache.set(
+        key: 'ttl_key',
+        data: 'old',
+        ttl: Duration(milliseconds: 1),
+      );
       await Future<void>.delayed(Duration(milliseconds: 10));
 
-      final futureEvent = devCache.events.firstWhere((e) => e.type == CacheEventType.expired);
-
-      await devCache.get<String>(
-        key: 'ttl_key',
-        fetcher: () async => 'fresh',
+      final futureEvent = devCache.events.firstWhere(
+        (e) => e.type == CacheEventType.expired,
       );
+
+      await devCache.get<String>(key: 'ttl_key', fetcher: () async => 'fresh');
 
       final event = await futureEvent.timeout(Duration(seconds: 1));
       expect(event.key, 'ttl_key');
@@ -130,7 +141,10 @@ void main() {
     });
 
     test('dispose closes event stream', () async {
-      final manager = SmartCacheManager(memoryStorage: MemoryCacheStorage(), mode: SmartCacheMode.dev);
+      final manager = SmartCacheManager(
+        memoryStorage: MemoryCacheStorage(),
+        mode: SmartCacheMode.dev,
+      );
       final done = Completer<void>();
       manager.events.listen((_) {}, onDone: () => done.complete());
 
@@ -146,7 +160,10 @@ void main() {
 
     setUp(() {
       NetworkStatus.setMockStatus(true);
-      cache = SmartCacheManager(memoryStorage: MemoryCacheStorage(), mode: SmartCacheMode.dev);
+      cache = SmartCacheManager(
+        memoryStorage: MemoryCacheStorage(),
+        mode: SmartCacheMode.dev,
+      );
     });
 
     tearDown(() {
@@ -166,7 +183,10 @@ void main() {
       expect(id, startsWith('req_'));
 
       await Future<void>.delayed(Duration(milliseconds: 10));
-      expect(events.any((e) => e.type == CacheEventType.networkRequest), isTrue);
+      expect(
+        events.any((e) => e.type == CacheEventType.networkRequest),
+        isTrue,
+      );
     });
 
     test('recordNetworkResponse updates stats and emits event', () async {
@@ -190,7 +210,10 @@ void main() {
       expect(cache.stats.totalRequests, 1);
       expect(cache.stats.successfulRequests, 1);
       expect(cache.stats.totalResponseTimeMs, 150);
-      expect(events.any((e) => e.type == CacheEventType.networkResponse), isTrue);
+      expect(
+        events.any((e) => e.type == CacheEventType.networkResponse),
+        isTrue,
+      );
     });
 
     test('recordNetworkError updates stats and emits event', () async {
@@ -231,8 +254,14 @@ void main() {
 
       expect(cache.stats.totalRequests, 1);
       expect(cache.stats.successfulRequests, 1);
-      expect(events.any((e) => e.type == CacheEventType.networkRequest), isTrue);
-      expect(events.any((e) => e.type == CacheEventType.networkResponse), isTrue);
+      expect(
+        events.any((e) => e.type == CacheEventType.networkRequest),
+        isTrue,
+      );
+      expect(
+        events.any((e) => e.type == CacheEventType.networkResponse),
+        isTrue,
+      );
     });
 
     test('trackNetworkRequest records error', () async {
@@ -271,8 +300,12 @@ void main() {
 
       await Future<void>.delayed(Duration(milliseconds: 10));
 
-      final reqEvents = events.where((e) => e.type == CacheEventType.networkRequest).toList();
-      final resEvents = events.where((e) => e.type == CacheEventType.networkResponse).toList();
+      final reqEvents = events
+          .where((e) => e.type == CacheEventType.networkRequest)
+          .toList();
+      final resEvents = events
+          .where((e) => e.type == CacheEventType.networkResponse)
+          .toList();
       expect(reqEvents.first.requestId, isNotEmpty);
       expect(resEvents.first.requestId, reqEvents.first.requestId);
     });

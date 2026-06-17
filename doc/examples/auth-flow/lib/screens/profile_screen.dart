@@ -62,10 +62,7 @@ class ProfileScreen extends StatelessWidget {
             // Cached Profile
             const Text(
               'Cached Profile:',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             SmartCacheBuilder<Map<String, dynamic>>(
@@ -100,10 +97,7 @@ class ProfileScreen extends StatelessWidget {
             // Cache Actions
             const Text(
               'Cache Actions:',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Wrap(

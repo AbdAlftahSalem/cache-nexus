@@ -36,8 +36,8 @@ class SmartCacheManager {
     this.syncEngine,
     this.mode = SmartCacheMode.production,
     CacheContext? context,
-  })  : memoryStorage = memoryStorage ?? MemoryCacheStorage(),
-        _context = context {
+  }) : memoryStorage = memoryStorage ?? MemoryCacheStorage(),
+       _context = context {
     _observability = ObservabilityManager(mode: mode);
     _policyResolver = PolicyResolver(
       observability: _observability,
@@ -120,12 +120,19 @@ class SmartCacheManager {
       fetcher: fetcher,
       ttl: ttl,
       policy: policy,
-      onStore: (resolvedKey, data, t) => _setResolved<T>(resolvedKey, data, ttl: t),
-      onNotify: (resolvedKey, data) async { _reactiveEngine.emit(resolvedKey, data); },
+      onStore: (resolvedKey, data, t) =>
+          _setResolved<T>(resolvedKey, data, ttl: t),
+      onNotify: (resolvedKey, data) async {
+        _reactiveEngine.emit(resolvedKey, data);
+      },
     );
   }
 
-  Future<void> _setResolved<T>(String resolvedKey, T data, {Duration? ttl}) async {
+  Future<void> _setResolved<T>(
+    String resolvedKey,
+    T data, {
+    Duration? ttl,
+  }) async {
     final entry = CacheEntry<T>(
       data: data,
       createdAt: DateTime.now(),
@@ -188,8 +195,12 @@ class SmartCacheManager {
     required String method,
     Map<String, dynamic>? headers,
     dynamic body,
-  }) =>
-      _observability.recordNetworkRequest(url: url, method: method, headers: headers, body: body);
+  }) => _observability.recordNetworkRequest(
+    url: url,
+    method: method,
+    headers: headers,
+    body: body,
+  );
 
   void recordNetworkResponse({
     required String requestId,
@@ -199,16 +210,15 @@ class SmartCacheManager {
     Map<String, dynamic>? headers,
     dynamic body,
     Duration? duration,
-  }) =>
-      _observability.recordNetworkResponse(
-        requestId: requestId,
-        url: url,
-        method: method,
-        statusCode: statusCode,
-        headers: headers,
-        body: body,
-        duration: duration,
-      );
+  }) => _observability.recordNetworkResponse(
+    requestId: requestId,
+    url: url,
+    method: method,
+    statusCode: statusCode,
+    headers: headers,
+    body: body,
+    duration: duration,
+  );
 
   void recordNetworkError({
     required String requestId,
@@ -217,15 +227,14 @@ class SmartCacheManager {
     required Object error,
     Map<String, dynamic>? headers,
     Duration? duration,
-  }) =>
-      _observability.recordNetworkError(
-        requestId: requestId,
-        url: url,
-        method: method,
-        error: error,
-        headers: headers,
-        duration: duration,
-      );
+  }) => _observability.recordNetworkError(
+    requestId: requestId,
+    url: url,
+    method: method,
+    error: error,
+    headers: headers,
+    duration: duration,
+  );
 
   Future<T> trackNetworkRequest<T>({
     required String url,
@@ -233,14 +242,13 @@ class SmartCacheManager {
     Map<String, dynamic>? headers,
     dynamic body,
     required Future<T> Function() request,
-  }) =>
-      _observability.trackNetworkRequest(
-        url: url,
-        method: method,
-        headers: headers,
-        body: body,
-        request: request,
-      );
+  }) => _observability.trackNetworkRequest(
+    url: url,
+    method: method,
+    headers: headers,
+    body: body,
+    request: request,
+  );
 
   void registerAdapter<T>(TypeAdapter<T> adapter) {
     _adapters[T] = adapter;

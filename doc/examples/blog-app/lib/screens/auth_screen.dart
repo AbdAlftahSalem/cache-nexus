@@ -43,6 +43,7 @@ class _AuthScreenState extends State<AuthScreen> {
     final profile = await widget.cacheService.cache.get<String>(
       key: 'profile',
       fetcher: () async {
+        // ignore: inference_failure_on_instance_creation
         await Future.delayed(const Duration(milliseconds: 500));
         return 'Profile for $_currentUser ($_currentRole)';
       },

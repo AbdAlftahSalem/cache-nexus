@@ -1,3 +1,5 @@
+// ignore_for_file: inference_failure_on_function_invocation
+
 import 'package:flutter/material.dart';
 import 'package:smart_cache/smart_cache.dart';
 import '../models/todo.dart';

@@ -14,6 +14,7 @@ void main() async {
   final syncEngine = SyncEngine(
     executor: (task) async {
       // Simulate API call
+      // ignore: inference_failure_on_instance_creation
       await Future.delayed(const Duration(seconds: 1));
       print('Syncing task: ${task.id}');
       return true; // Always succeed in demo

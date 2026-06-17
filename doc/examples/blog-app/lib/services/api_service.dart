@@ -1,3 +1,5 @@
+// ignore_for_file: inference_failure_on_function_invocation
+
 import 'package:dio/dio.dart';
 import 'package:smart_cache/smart_cache.dart';
 import '../models/post.dart';

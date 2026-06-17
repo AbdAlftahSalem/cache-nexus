@@ -1,3 +1,5 @@
+// ignore_for_file: strict_raw_type
+
 import 'dart:async';
 
 import 'package:smart_cache/smart_cache.dart';

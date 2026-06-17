@@ -73,28 +73,37 @@ class ReactiveEngine {
   }
 
   Stream<T?> _debounceStream<T>(Stream<T?> stream, Duration debounce) {
-    final controller = StreamController<T?>.broadcast();
+    StreamSubscription<T?>? subscription;
     Timer? timer;
-
-    stream.listen(
-      (event) {
-        timer?.cancel();
-        timer = Timer(debounce, () {
-          if (!controller.isClosed) {
-            controller.add(event);
-          }
-        });
+    
+    late final StreamController<T?> controller;
+    controller = StreamController<T?>.broadcast(
+      onListen: () {
+        subscription = stream.listen(
+          (event) {
+            timer?.cancel();
+            timer = Timer(debounce, () {
+              if (!controller.isClosed) {
+                controller.add(event);
+              }
+            });
+          },
+          onError: (Object error, StackTrace stackTrace) {
+            if (!controller.isClosed) {
+              controller.addError(error, stackTrace);
+            }
+          },
+          onDone: () {
+            timer?.cancel();
+            if (!controller.isClosed) {
+              controller.close();
+            }
+          },
+        );
       },
-      onError: (Object error, StackTrace stackTrace) {
-        if (!controller.isClosed) {
-          controller.addError(error, stackTrace);
-        }
-      },
-      onDone: () {
+      onCancel: () {
+        subscription?.cancel();
         timer?.cancel();
-        if (!controller.isClosed) {
-          controller.close();
-        }
       },
     );
 

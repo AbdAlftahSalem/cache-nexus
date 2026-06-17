@@ -154,14 +154,12 @@ void main() {
       expect(entry2, isNull);
     });
 
-    test('get should throw exception if fetcher returns null', () async {
-      expect(
-        () => cache.get<String?>(
-          key: 'key',
-          fetcher: () async => null,
-        ),
-        throwsException,
+    test('get should return null if fetcher returns null and T is nullable', () async {
+      final result = await cache.get<String?>(
+        key: 'key',
+        fetcher: () async => null,
       );
+      expect(result, isNull);
     });
 
     group('Phase 2: Cache Policies', () {

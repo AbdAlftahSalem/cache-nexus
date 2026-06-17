@@ -6,6 +6,7 @@ import 'package:smart_cache/smart_cache.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   late SmartCacheManager cacheManager;
   late HiveCacheStorage persistentStorage;
   late SyncEngine syncEngine;

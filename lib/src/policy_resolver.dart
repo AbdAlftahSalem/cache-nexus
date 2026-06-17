@@ -151,6 +151,9 @@ class PolicyResolver {
       }
     }
     _observability.emit(CacheEventType.miss, resolvedKey);
+    if (null is T) {
+      return null as T;
+    }
     throw Exception('Cache missing or expired for key: $resolvedKey');
   }
 
@@ -172,8 +175,8 @@ class PolicyResolver {
     try {
       final result = await future;
 
-      if (result == null) {
-        throw Exception('Fetcher returned null result for key: $resolvedKey');
+      if (result == null && null is! T) {
+        throw Exception('Fetcher returned null result for non-nullable type $T for key: $resolvedKey');
       }
 
       _observability.emit(CacheEventType.fetch, resolvedKey, data: result, duration: stopwatch.elapsed);

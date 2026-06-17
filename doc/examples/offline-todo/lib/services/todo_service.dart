@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:smart_cache/smart_cache.dart';
+import 'package:cache_nexus/cache_nexus.dart';
 import '../models/todo.dart';
 
 class TodoService extends InheritedWidget {
-  final SmartCacheManager cache;
+  final CacheNexusManager cache;
   final SyncEngine syncEngine;
 
   TodoService({

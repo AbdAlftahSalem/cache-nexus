@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_cache/smart_cache.dart';
+import 'package:cache_nexus/cache_nexus.dart';
 import 'dart:convert';
 
 void main() {
@@ -63,14 +63,14 @@ void main() {
   });
 
   group('Phase 5: Auth-Aware Cache Isolation', () {
-    late SmartCacheManager manager;
+    late CacheNexusManager manager;
     late MemoryCacheStorage memory;
     late MemoryCacheStorage persistent;
 
     setUp(() {
       memory = MemoryCacheStorage();
       persistent = MemoryCacheStorage();
-      manager = SmartCacheManager(
+      manager = CacheNexusManager(
         memoryStorage: memory,
         persistentStorage: persistent,
       );

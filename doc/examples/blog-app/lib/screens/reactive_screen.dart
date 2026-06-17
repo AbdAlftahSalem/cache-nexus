@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:smart_cache/smart_cache.dart';
+import 'package:cache_nexus/cache_nexus.dart';
 import '../models/post.dart';
 import '../services/cache_service.dart';
 

@@ -8,7 +8,7 @@ Smart Cache uses a **memory-first** architecture with optional persistent storag
 
 ```
 ┌─────────────────────────────────────────┐
-│              SmartCacheManager           │
+│              CacheNexusManager           │
 │                                          │
 │  Read:  Memory → Persistent → Restore    │
 │  Write: Memory + Persistent              │
@@ -31,7 +31,7 @@ In-memory `Map`-based storage. Fastest option, lost on app restart.
 ```dart
 final memoryStorage = MemoryCacheStorage();
 
-final cache = SmartCacheManager(
+final cache = CacheNexusManager(
   memoryStorage: memoryStorage,
 );
 ```
@@ -64,7 +64,7 @@ Persistent storage backed by [Hive](https://pub.dev/packages/hive). Survives app
 final hiveStorage = HiveCacheStorage(boxName: 'my_cache');
 await hiveStorage.init();  // Must initialize before use
 
-final cache = SmartCacheManager(
+final cache = CacheNexusManager(
   memoryStorage: MemoryCacheStorage(),
   persistentStorage: hiveStorage,
 );
@@ -101,7 +101,7 @@ final secureStorage = SecureCacheStorage(
   compressor: SimpleCompressor(),
 );
 
-final cache = SmartCacheManager(
+final cache = CacheNexusManager(
   memoryStorage: MemoryCacheStorage(),
   persistentStorage: secureStorage,
 );
@@ -134,7 +134,7 @@ Best balance of speed and persistence:
 final hiveStorage = HiveCacheStorage(boxName: 'cache');
 await hiveStorage.init();
 
-final cache = SmartCacheManager(
+final cache = CacheNexusManager(
   memoryStorage: MemoryCacheStorage(),     // Fast access
   persistentStorage: hiveStorage,
 );
@@ -154,7 +154,7 @@ final secureStorage = SecureCacheStorage(
   compressor: SimpleCompressor(),
 );
 
-final cache = SmartCacheManager(
+final cache = CacheNexusManager(
   memoryStorage: MemoryCacheStorage(),
   persistentStorage: secureStorage,
 );
@@ -165,7 +165,7 @@ final cache = SmartCacheManager(
 For testing or when persistence isn't needed:
 
 ```dart
-final cache = SmartCacheManager(
+final cache = CacheNexusManager(
   memoryStorage: MemoryCacheStorage(),
 );
 ```
@@ -188,7 +188,7 @@ final users2 = await cache.get<List<User>>(key: 'users');
 // No API call, instant from memory
 
 // 3. App restart
-final cache2 = SmartCacheManager(
+final cache2 = CacheNexusManager(
   memoryStorage: MemoryCacheStorage(),
   persistentStorage: hiveStorage,
 );

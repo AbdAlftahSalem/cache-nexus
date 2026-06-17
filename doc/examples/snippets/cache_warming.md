@@ -13,7 +13,7 @@ void main() async {
   final hiveStorage = HiveCacheStorage(boxName: 'cache');
   await hiveStorage.init();
 
-  final cache = SmartCacheManager(
+  final cache = CacheNexusManager(
     memoryStorage: MemoryCacheStorage(),
     persistentStorage: hiveStorage,
   );
@@ -24,7 +24,7 @@ void main() async {
   runApp(MyApp(cache: cache));
 }
 
-Future<void> _warmCache(SmartCacheManager cache) async {
+Future<void> _warmCache(CacheNexusManager cache) async {
   // Pre-fetch critical data
   await cache.get<User>(
     key: 'profile',
@@ -45,7 +45,7 @@ Future<void> _warmCache(SmartCacheManager cache) async {
 ## Parallel Warming
 
 ```dart
-Future<void> _warmCache(SmartCacheManager cache) async {
+Future<void> _warmCache(CacheNexusManager cache) async {
   // Fetch all critical data in parallel
   await Future.wait([
     cache.get<User>(
@@ -72,7 +72,7 @@ Future<void> _warmCache(SmartCacheManager cache) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final cache = SmartCacheManager(
+  final cache = CacheNexusManager(
     memoryStorage: MemoryCacheStorage(),
   );
 
@@ -83,7 +83,7 @@ void main() async {
   _warmCacheInBackground(cache);
 }
 
-Future<void> _warmCacheInBackground(SmartCacheManager cache) async {
+Future<void> _warmCacheInBackground(CacheNexusManager cache) async {
   try {
     await cache.get<List<Post>>(
       key: 'feed',
@@ -101,7 +101,7 @@ Future<void> _warmCacheInBackground(SmartCacheManager cache) async {
 ## Conditional Warming
 
 ```dart
-Future<void> _warmCache(SmartCacheManager cache) async {
+Future<void> _warmCache(CacheNexusManager cache) async {
   // Only warm if cache is empty
   final existing = await cache.get<String>(key: 'profile', fetcher: () => null);
   if (existing == null) {
@@ -126,7 +126,7 @@ Future<void> _warmCache(SmartCacheManager cache) async {
 
 ```dart
 class WarmingScreen extends StatefulWidget {
-  final SmartCacheManager cache;
+  final CacheNexusManager cache;
 
   const WarmingScreen({super.key, required this.cache});
 

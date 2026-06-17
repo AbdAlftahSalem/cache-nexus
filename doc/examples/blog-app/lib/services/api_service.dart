@@ -1,14 +1,14 @@
 // ignore_for_file: inference_failure_on_function_invocation
 
 import 'package:dio/dio.dart';
-import 'package:smart_cache/smart_cache.dart';
+import 'package:cache_nexus/cache_nexus.dart';
 import '../models/post.dart';
 
 class ApiService {
   final Dio _dio;
-  final SmartCacheManager? _cache;
+  final CacheNexusManager? _cache;
 
-  ApiService({Dio? dio, SmartCacheManager? cache})
+  ApiService({Dio? dio, CacheNexusManager? cache})
     : _dio =
           dio ??
           Dio(
@@ -20,7 +20,7 @@ class ApiService {
           ),
       _cache = cache {
     if (_cache != null) {
-      _dio.interceptors.add(SmartCacheDioInterceptor(_cache));
+      _dio.interceptors.add(CacheNexusDioInterceptor(_cache));
     }
   }
 

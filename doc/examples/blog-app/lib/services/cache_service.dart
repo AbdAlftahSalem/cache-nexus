@@ -1,21 +1,21 @@
-import 'package:smart_cache/smart_cache.dart';
+import 'package:cache_nexus/cache_nexus.dart';
 import '../models/post.dart';
 import 'api_service.dart';
 
 class CacheService {
   final ApiService _api;
-  final SmartCacheManager _cache;
+  final CacheNexusManager _cache;
   final SyncEngine _syncEngine;
 
   CacheService({
     required ApiService api,
-    required SmartCacheManager cache,
+    required CacheNexusManager cache,
     required SyncEngine syncEngine,
   }) : _api = api,
        _cache = cache,
        _syncEngine = syncEngine;
 
-  SmartCacheManager get cache => _cache;
+  CacheNexusManager get cache => _cache;
   SyncEngine get syncEngine => _syncEngine;
 
   static Future<CacheService> create() async {
@@ -27,11 +27,11 @@ class CacheService {
       compressor: SimpleCompressor(),
     );
 
-    final cache = SmartCacheManager(
+    final cache = CacheNexusManager(
       memoryStorage: memoryStorage,
       persistentStorage: persistentStorage,
       syncEngine: null,
-      mode: SmartCacheMode.dev,
+      mode: CacheNexusMode.dev,
     );
 
     final api = ApiService(cache: cache);

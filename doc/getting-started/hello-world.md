@@ -7,11 +7,11 @@ The absolute minimal example to get Smart Cache running. Perfect for testing or 
 ## Minimal Example
 
 ```dart
-import 'package:smart_cache/smart_cache.dart';
+import 'package:cache_nexus/cache_nexus.dart';
 
 void main() async {
   // 1. Create cache
-  final cache = SmartCacheManager(
+  final cache = CacheNexusManager(
     memoryStorage: MemoryCacheStorage(),
   );
 
@@ -47,7 +47,7 @@ Cached users: [Alice, Bob, Charlie]
 For quick testing:
 
 ```dart
-final cache = SmartCacheManager(memoryStorage: MemoryCacheStorage());
+final cache = CacheNexusManager(memoryStorage: MemoryCacheStorage());
 final data = await cache.get<String>(key: 'test', fetcher: () async => 'Hello World!');
 print(data); // 'Hello World!'
 ```
@@ -57,13 +57,13 @@ print(data); // 'Hello World!'
 ## Minimal with Persistent Storage
 
 ```dart
-import 'package:smart_cache/smart_cache.dart';
+import 'package:cache_nexus/cache_nexus.dart';
 
 void main() async {
   final hiveStorage = HiveCacheStorage(boxName: 'hello_cache');
   await hiveStorage.init();
 
-  final cache = SmartCacheManager(
+  final cache = CacheNexusManager(
     memoryStorage: MemoryCacheStorage(),
     persistentStorage: hiveStorage,
   );

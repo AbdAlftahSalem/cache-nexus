@@ -1,7 +1,7 @@
 // ignore_for_file: inference_failure_on_instance_creation
 
 import 'package:flutter/material.dart';
-import 'package:smart_cache/smart_cache.dart';
+import 'package:cache_nexus/cache_nexus.dart';
 import '../services/cache_service.dart';
 
 class AuthScreen extends StatefulWidget {

@@ -1,12 +1,12 @@
 import 'package:dio/dio.dart';
-import 'package:smart_cache/smart_cache.dart';
+import 'package:cache_nexus/cache_nexus.dart';
 import '../models/post.dart';
 
 class ApiService {
   final Dio _dio;
-  final SmartCacheManager? _cache;
+  final CacheNexusManager? _cache;
 
-  ApiService({Dio? dio, SmartCacheManager? cache})
+  ApiService({Dio? dio, CacheNexusManager? cache})
     : _dio =
           dio ??
           Dio(
@@ -18,8 +18,8 @@ class ApiService {
           ),
       _cache = cache {
     if (_cache != null) {
-      print('🔵 [ApiService] Adding SmartCacheDioInterceptor to Dio');
-      _dio.interceptors.add(SmartCacheDioInterceptor(_cache));
+      print('🔵 [ApiService] Adding CacheNexusDioInterceptor to Dio');
+      _dio.interceptors.add(CacheNexusDioInterceptor(_cache));
     }
   }
 

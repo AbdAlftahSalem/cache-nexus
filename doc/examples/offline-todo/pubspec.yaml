@@ -1,5 +1,5 @@
-name: smart_cache_offline_todo
-description: Offline-first todo example demonstrating smart_cache SyncEngine
+name: cache_nexus_offline_todo
+description: Offline-first todo example demonstrating cache_nexus SyncEngine
 publish_to: 'none'
 
 environment:
@@ -9,7 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  smart_cache:
+  cache_nexus:
     path: ../../../
   hive_flutter: ^1.1.0
   connectivity_plus: ^7.1.1

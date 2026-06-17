@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import '../cache_manager.dart';
-import '../smart_cache_mode.dart';
+import '../cache_nexus_mode.dart';
 import 'cache_panel_screen.dart';
 
-class SmartCacheOverlay extends StatelessWidget {
-  final SmartCacheManager manager;
+class CacheNexusOverlay extends StatelessWidget {
+  final CacheNexusManager manager;
   final Widget child;
 
-  const SmartCacheOverlay({
+  const CacheNexusOverlay({
     super.key,
     required this.manager,
     required this.child,
@@ -15,7 +15,7 @@ class SmartCacheOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (manager.mode != SmartCacheMode.dev) {
+    if (manager.mode != CacheNexusMode.dev) {
       return child;
     }
 

@@ -1,14 +1,14 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_cache/smart_cache.dart';
+import 'package:cache_nexus/cache_nexus.dart';
 
 void main() {
-  late SmartCacheManager cache;
+  late CacheNexusManager cache;
   late MemoryCacheStorage storage;
 
   setUp(() {
     NetworkStatus.setMockStatus(true);
     storage = MemoryCacheStorage();
-    cache = SmartCacheManager(memoryStorage: storage);
+    cache = CacheNexusManager(memoryStorage: storage);
   });
 
   tearDown(() {

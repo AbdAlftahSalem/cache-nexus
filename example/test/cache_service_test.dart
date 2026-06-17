@@ -1,17 +1,17 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_cache/smart_cache.dart';
-import 'package:smart_cache_example/models/post.dart';
+import 'package:cache_nexus/cache_nexus.dart';
+import 'package:cache_nexus_example/models/post.dart';
 
 void main() {
-  late SmartCacheManager cache;
+  late CacheNexusManager cache;
   late MemoryCacheStorage memoryStorage;
 
   setUp(() {
     NetworkStatus.setMockStatus(true);
     memoryStorage = MemoryCacheStorage();
-    cache = SmartCacheManager(
+    cache = CacheNexusManager(
       memoryStorage: memoryStorage,
-      mode: SmartCacheMode.dev,
+      mode: CacheNexusMode.dev,
     );
   });
 
@@ -59,7 +59,7 @@ void main() {
 
   test('cache stores in both memory and persistent', () async {
     final persistent = MemoryCacheStorage();
-    final manager = SmartCacheManager(
+    final manager = CacheNexusManager(
       memoryStorage: memoryStorage,
       persistentStorage: persistent,
     );

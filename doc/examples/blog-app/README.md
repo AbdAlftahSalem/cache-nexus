@@ -35,10 +35,10 @@ final securePersistentStorage = SecureCacheStorage(
   compressor: SimpleCompressor(),
 );
 
-final cache = SmartCacheManager(
+final cache = CacheNexusManager(
   memoryStorage: memoryStorage,
   persistentStorage: securePersistentStorage,
-  mode: SmartCacheMode.dev,
+  mode: CacheNexusMode.dev,
 );
 ```
 
@@ -104,7 +104,7 @@ flutter run
 
 ## Dependencies
 
-- `smart_cache`: The cache package
+- `cache_nexus`: The cache package
 - `dio`: HTTP client
 - `hive_flutter`: Persistent storage
 - `connectivity_plus`: Network status monitoring

@@ -173,5 +173,5 @@ Request → Cache Hit? → Yes → Return stale data immediately
 
 ## Related
 
-- [SmartCacheManager](smart-cache-manager.md)
+- [CacheNexusManager](cache-nexus-manager.md)
 - [Cache Policies Guide](../guides/cache-policies.md)

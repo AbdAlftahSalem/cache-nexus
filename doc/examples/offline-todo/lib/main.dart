@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:smart_cache/smart_cache.dart';
+import 'package:cache_nexus/cache_nexus.dart';
 import 'services/todo_service.dart';
 import 'screens/todo_screen.dart';
 
@@ -24,18 +24,18 @@ void main() async {
   await syncEngine.init();
 
   // Initialize cache
-  final cache = SmartCacheManager(
+  final cache = CacheNexusManager(
     memoryStorage: MemoryCacheStorage(),
     persistentStorage: hiveStorage,
     syncEngine: syncEngine,
-    mode: SmartCacheMode.dev,
+    mode: CacheNexusMode.dev,
   );
 
   runApp(OfflineTodoApp(cache: cache, syncEngine: syncEngine));
 }
 
 class OfflineTodoApp extends StatelessWidget {
-  final SmartCacheManager cache;
+  final CacheNexusManager cache;
   final SyncEngine syncEngine;
 
   const OfflineTodoApp({
@@ -53,7 +53,7 @@ class OfflineTodoApp extends StatelessWidget {
         useMaterial3: true,
       ),
       debugShowCheckedModeBanner: false,
-      home: SmartCacheOverlay(
+      home: CacheNexusOverlay(
         manager: cache,
         child: TodoService(
           cache: cache,

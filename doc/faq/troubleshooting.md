@@ -9,8 +9,8 @@ Step-by-step debugging guide for Smart Cache issues.
 Enable dev mode to see cache events:
 
 ```dart
-final cache = SmartCacheManager(
-  mode: SmartCacheMode.dev,
+final cache = CacheNexusManager(
+  mode: CacheNexusMode.dev,
 );
 
 // Listen to events
@@ -186,7 +186,7 @@ Check for memory leaks:
 ```dart
 // Create and dispose multiple caches
 for (int i = 0; i < 100; i++) {
-  final cache = SmartCacheManager(
+  final cache = CacheNexusManager(
     memoryStorage: MemoryCacheStorage(),
   );
   await cache.set<String>(key: 'test_$i', data: 'data_$i');
@@ -247,7 +247,7 @@ cache.setContext(CacheContext(userId: 'user_123'));
 
 1. Check the [Common Issues](common-issues.md) page
 2. Review the [API Reference](../api/)
-3. Open an issue on [GitHub](https://github.com/AbdAlftahSalem/smart-cache/issues)
+3. Open an issue on [GitHub](https://github.com/AbdAlftahSalem/cache-nexus/issues)
 
 ---
 

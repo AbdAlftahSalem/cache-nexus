@@ -8,7 +8,7 @@ Smart Cache can be installed in three ways: from pub.dev, from Git, or from a lo
 
 ```yaml
 dependencies:
-  smart_cache: ^1.0.0
+  cache_nexus: ^1.0.0
 ```
 
 Then run:
@@ -23,9 +23,9 @@ flutter pub get
 
 ```yaml
 dependencies:
-  smart_cache:
+  cache_nexus:
     git:
-      url: https://github.com/AbdAlftahSalem/smart-cache.git
+      url: https://github.com/AbdAlftahSalem/cache-nexus.git
       ref: main
 ```
 
@@ -39,9 +39,9 @@ flutter pub get
 
 ```yaml
 dependencies:
-  smart_cache:
+  cache_nexus:
     git:
-      url: https://github.com/AbdAlftahSalem/smart-cache.git
+      url: https://github.com/AbdAlftahSalem/cache-nexus.git
       ref: v1.0.0  # or any branch/tag
 ```
 
@@ -51,8 +51,8 @@ dependencies:
 
 ```yaml
 dependencies:
-  smart_cache:
-    path: ../smart_cache
+  cache_nexus:
+    path: ../cache_nexus
 ```
 
 This is useful for development or when using a custom fork.
@@ -64,10 +64,10 @@ This is useful for development or when using a custom fork.
 After installation, verify it works:
 
 ```dart
-import 'package:smart_cache/smart_cache.dart';
+import 'package:cache_nexus/cache_nexus.dart';
 
 void main() {
-  final cache = SmartCacheManager(
+  final cache = CacheNexusManager(
     memoryStorage: MemoryCacheStorage(),
   );
   print('Smart Cache installed successfully!');

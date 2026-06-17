@@ -8,7 +8,7 @@ import 'cache_manager.dart';
 ///
 /// Example:
 /// ```dart
-/// SmartCacheBuilder<List<User>>(
+/// CacheNexusBuilder<List<User>>(
 ///   cache: cache,
 ///   key: "users",
 ///   builder: (context, users) {
@@ -18,13 +18,13 @@ import 'cache_manager.dart';
 ///   },
 /// );
 /// ```
-class SmartCacheBuilder<T> extends StatefulWidget {
-  final SmartCacheManager cache;
+class CacheNexusBuilder<T> extends StatefulWidget {
+  final CacheNexusManager cache;
   final String cacheKey;
   final Widget Function(BuildContext context, T? data) builder;
   final Duration? debounce;
 
-  const SmartCacheBuilder({
+  const CacheNexusBuilder({
     super.key,
     required this.cache,
     required this.cacheKey,
@@ -33,10 +33,10 @@ class SmartCacheBuilder<T> extends StatefulWidget {
   });
 
   @override
-  State<SmartCacheBuilder<T>> createState() => _SmartCacheBuilderState<T>();
+  State<CacheNexusBuilder<T>> createState() => _CacheNexusBuilderState<T>();
 }
 
-class _SmartCacheBuilderState<T> extends State<SmartCacheBuilder<T>> {
+class _CacheNexusBuilderState<T> extends State<CacheNexusBuilder<T>> {
   T? _data;
   StreamSubscription<T?>? _subscription;
 
@@ -47,7 +47,7 @@ class _SmartCacheBuilderState<T> extends State<SmartCacheBuilder<T>> {
   }
 
   @override
-  void didUpdateWidget(covariant SmartCacheBuilder<T> oldWidget) {
+  void didUpdateWidget(covariant CacheNexusBuilder<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.cache != widget.cache ||
         oldWidget.cacheKey != widget.cacheKey) {

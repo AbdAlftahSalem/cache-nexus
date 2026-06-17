@@ -1,6 +1,6 @@
 {
-    "name": "smart_cache_example",
-    "short_name": "smart_cache_example",
+    "name": "cache_nexus_example",
+    "short_name": "cache_nexus_example",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

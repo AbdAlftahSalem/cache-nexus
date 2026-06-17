@@ -14,7 +14,7 @@ Frequently encountered problems and solutions.
 final hiveStorage = HiveCacheStorage(boxName: 'cache');
 await hiveStorage.init(); // Don't forget to initialize!
 
-final cache = SmartCacheManager(
+final cache = CacheNexusManager(
   memoryStorage: MemoryCacheStorage(),
   persistentStorage: hiveStorage, // Add this
 );
@@ -86,15 +86,15 @@ await Future.wait([f1, f2, f3]);
 
 **Problem:** UI doesn't update when cache changes.
 
-**Solution:** Use SmartCacheBuilder or watch():
+**Solution:** Use CacheNexusBuilder or watch():
 
 ```dart
 // Bad: manual setState
 final data = await cache.get<String>(key: 'data', fetcher: () => null);
 setState(() => _data = data);
 
-// Good: SmartCacheBuilder
-SmartCacheBuilder<String>(
+// Good: CacheNexusBuilder
+CacheNexusBuilder<String>(
   cache: cache,
   cacheKey: 'data',
   builder: (context, data) {
@@ -175,11 +175,11 @@ cache.syncEngine = syncEngine; // Connect to cache
 
 ```dart
 // Bad: production mode (default)
-final cache = SmartCacheManager();
+final cache = CacheNexusManager();
 
 // Good: dev mode
-final cache = SmartCacheManager(
-  mode: SmartCacheMode.dev,
+final cache = CacheNexusManager(
+  mode: CacheNexusMode.dev,
 );
 ```
 
@@ -194,12 +194,12 @@ final cache = SmartCacheManager(
 1. **Using SecureCacheStorage for non-sensitive data:**
    ```dart
    // Bad: encryption overhead for non-sensitive data
-   final cache = SmartCacheManager(
+   final cache = CacheNexusManager(
      persistentStorage: SecureCacheStorage(hiveStorage, ...),
    );
 
    // Good: use plain Hive for non-sensitive data
-   final cache = SmartCacheManager(
+   final cache = CacheNexusManager(
      persistentStorage: hiveStorage,
    );
    ```
@@ -207,12 +207,12 @@ final cache = SmartCacheManager(
 2. **Missing in-memory cache:**
    ```dart
    // Bad: only persistent storage
-   final cache = SmartCacheManager(
+   final cache = CacheNexusManager(
      persistentStorage: hiveStorage,
    );
 
    // Good: two-tier storage
-   final cache = SmartCacheManager(
+   final cache = CacheNexusManager(
      memoryStorage: MemoryCacheStorage(),
      persistentStorage: hiveStorage,
    );
@@ -221,13 +221,13 @@ final cache = SmartCacheManager(
 3. **Using production mode in development:**
    ```dart
    // Bad: no dev tools
-   final cache = SmartCacheManager(
-     mode: SmartCacheMode.production,
+   final cache = CacheNexusManager(
+     mode: CacheNexusMode.production,
    );
 
    // Good: dev mode for debugging
-   final cache = SmartCacheManager(
-     mode: SmartCacheMode.dev,
+   final cache = CacheNexusManager(
+     mode: CacheNexusMode.dev,
    );
    ```
 

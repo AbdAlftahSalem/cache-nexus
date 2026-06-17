@@ -15,17 +15,17 @@ class AppCache {
   factory AppCache() => _instance;
   AppCache._();
 
-  late final SmartCacheManager cache;
+  late final CacheNexusManager cache;
   late final SyncEngine syncEngine;
 
   Future<void> init() async {
     final hiveStorage = HiveCacheStorage(boxName: 'app_cache');
     await hiveStorage.init();
 
-    cache = SmartCacheManager(
+    cache = CacheNexusManager(
       memoryStorage: MemoryCacheStorage(),
       persistentStorage: hiveStorage,
-      mode: kReleaseMode ? SmartCacheMode.production : SmartCacheMode.dev,
+      mode: kReleaseMode ? CacheNexusMode.production : CacheNexusMode.dev,
     );
 
     syncEngine = SyncEngine(
@@ -77,13 +77,13 @@ final getIt = GetIt.instance;
 void setupDependencies() {
   final hiveStorage = HiveCacheStorage(boxName: 'cache');
 
-  getIt.registerLazySingleton(() => SmartCacheManager(
+  getIt.registerLazySingleton(() => CacheNexusManager(
     memoryStorage: MemoryCacheStorage(),
     persistentStorage: hiveStorage,
   ));
 
   getIt.registerLazySingleton(() => ApiService(
-    cache: getIt<SmartCacheManager>(),
+    cache: getIt<CacheNexusManager>(),
   ));
 }
 
@@ -99,7 +99,7 @@ Create a cache service for each domain:
 
 ```dart
 class UserService {
-  final SmartCacheManager _cache;
+  final CacheNexusManager _cache;
   final ApiClient _api;
 
   UserService(this._cache, this._api);

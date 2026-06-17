@@ -80,7 +80,7 @@ cache.watch<List<Product>>(
 Development mode that enables debug tools (events, stats, overlay).
 
 ```dart
-SmartCacheMode.dev
+CacheNexusMode.dev
 ```
 
 ---
@@ -136,7 +136,7 @@ final isOnline = await NetworkStatus.isOnline;
 Mode that disables all dev features for release builds.
 
 ```dart
-SmartCacheMode.production
+CacheNexusMode.production
 ```
 
 ---
@@ -155,24 +155,24 @@ SecureCacheStorage(
 )
 ```
 
-### SmartCacheBuilder
+### CacheNexusBuilder
 
 Flutter widget that automatically rebuilds when a cache key changes.
 
 ```dart
-SmartCacheBuilder<List<User>>(
+CacheNexusBuilder<List<User>>(
   cache: cache,
   cacheKey: 'users',
   builder: (context, users) => UserList(users: users),
 )
 ```
 
-### SmartCacheManager
+### CacheNexusManager
 
 Central class that orchestrates all caching operations.
 
 ```dart
-final cache = SmartCacheManager(
+final cache = CacheNexusManager(
   memoryStorage: MemoryCacheStorage(),
   persistentStorage: HiveCacheStorage(boxName: 'cache'),
 );
@@ -223,7 +223,7 @@ SyncTask(
 Architecture using fast in-memory storage (Layer 1) and persistent disk storage (Layer 2).
 
 ```dart
-SmartCacheManager(
+CacheNexusManager(
   memoryStorage: MemoryCacheStorage(),    // Layer 1
   persistentStorage: hiveStorage,         // Layer 2
 )

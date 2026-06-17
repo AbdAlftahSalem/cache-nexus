@@ -35,21 +35,21 @@ final results = await Future.wait([future1, future2, future3]);
 
 ```dart
 // Widget A
-SmartCacheBuilder<List<User>>(
+CacheNexusBuilder<List<User>>(
   cache: cache,
   cacheKey: 'users',
   builder: (context, users) => UserList(users: users),
 );
 
 // Widget B (also requests 'users')
-SmartCacheBuilder<List<User>>(
+CacheNexusBuilder<List<User>>(
   cache: cache,
   cacheKey: 'users',
   builder: (context, users) => UserCount(count: users?.length ?? 0),
 );
 
 // Widget C (also requests 'users')
-SmartCacheBuilder<List<User>>(
+CacheNexusBuilder<List<User>>(
   cache: cache,
   cacheKey: 'users',
   builder: (context, users) => UserAvatar(user: users?.first),

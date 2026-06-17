@@ -2,12 +2,12 @@
 
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_cache/smart_cache.dart';
+import 'package:cache_nexus/cache_nexus.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  late SmartCacheManager cacheManager;
+  late CacheNexusManager cacheManager;
   late HiveCacheStorage persistentStorage;
   late SyncEngine syncEngine;
   final tempDir = Directory.systemTemp.createTempSync();
@@ -39,10 +39,10 @@ void main() {
     );
     await syncEngine.init();
 
-    cacheManager = SmartCacheManager(
+    cacheManager = CacheNexusManager(
       persistentStorage: persistentStorage,
       syncEngine: syncEngine,
-      mode: SmartCacheMode.dev,
+      mode: CacheNexusMode.dev,
     );
   });
 
@@ -54,7 +54,7 @@ void main() {
       await cacheManager.set(key: key, data: data);
 
       // Simulate app restart by creating a new manager with same storage
-      final newManager = SmartCacheManager(
+      final newManager = CacheNexusManager(
         persistentStorage: persistentStorage,
       );
 

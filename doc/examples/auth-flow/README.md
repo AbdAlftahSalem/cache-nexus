@@ -22,14 +22,14 @@ A complete authentication flow demonstrating Smart Cache's auth-aware caching, u
 ### Initialize Cache
 
 ```dart
-final cache = SmartCacheManager(
+final cache = CacheNexusManager(
   memoryStorage: MemoryCacheStorage(),
   persistentStorage: SecureCacheStorage(
     MemoryCacheStorage(),
     encryptor: SimpleEncryptor('auth_secret_key'),
     compressor: SimpleCompressor(),
   ),
-  mode: SmartCacheMode.dev,
+  mode: CacheNexusMode.dev,
 );
 ```
 
@@ -37,7 +37,7 @@ final cache = SmartCacheManager(
 
 ```dart
 class AuthService {
-  final SmartCacheManager _cache;
+  final CacheNexusManager _cache;
 
   AuthService(this._cache);
 
@@ -78,13 +78,13 @@ class AuthService {
 
 ```dart
 class ProfileScreen extends StatelessWidget {
-  final SmartCacheManager cache;
+  final CacheNexusManager cache;
 
   const ProfileScreen({super.key, required this.cache});
 
   @override
   Widget build(BuildContext context) {
-    return SmartCacheBuilder<User>(
+    return CacheNexusBuilder<User>(
       cache: cache,
       cacheKey: 'profile',
       builder: (context, user) {
@@ -166,6 +166,6 @@ flutter run
 
 ## Dependencies
 
-- `smart_cache`: Cache with auth isolation
+- `cache_nexus`: Cache with auth isolation
 - `dio`: HTTP client
 - `hive_flutter`: Persistent storage

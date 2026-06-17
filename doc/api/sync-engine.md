@@ -208,7 +208,7 @@ await cache.enqueueSyncTask(SyncTask(
 
 ```dart
 class TodoService {
-  final SmartCacheManager _cache;
+  final CacheNexusManager _cache;
   final SyncEngine _syncEngine;
 
   TodoService(this._cache, this._syncEngine);
@@ -288,6 +288,6 @@ NetworkStatus.setMockStatus(null);  // Reset to real status
 
 ## Related
 
-- [SmartCacheManager](smart-cache-manager.md)
+- [CacheNexusManager](cache-nexus-manager.md)
 - [Offline Sync Guide](../guides/offline-sync.md)
 - [Offline Todo Example](../examples/offline-todo/)

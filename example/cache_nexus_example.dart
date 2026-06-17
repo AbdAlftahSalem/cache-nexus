@@ -1,4 +1,4 @@
-import 'package:smart_cache/smart_cache.dart';
+import 'package:cache_nexus/cache_nexus.dart';
 
 void main() async {
   // 1. Initialize storage
@@ -13,7 +13,7 @@ void main() async {
   );
 
   // 3. Initialize manager with security and context
-  final cache = SmartCacheManager(
+  final cache = CacheNexusManager(
     memoryStorage: memoryStorage,
     persistentStorage: securePersistentStorage,
   );

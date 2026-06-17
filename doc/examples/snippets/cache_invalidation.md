@@ -25,7 +25,7 @@ await cache.clear();
 
 ```dart
 // Delete all keys starting with 'user_'
-// Note: deleteByPrefix is on CacheStorage, not SmartCacheManager directly
+// Note: deleteByPrefix is on CacheStorage, not CacheNexusManager directly
 await cache.memoryStorage.deleteByPrefix('user_');
 
 // Examples:

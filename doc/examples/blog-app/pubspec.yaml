@@ -1,5 +1,5 @@
-name: smart_cache_blog_app
-description: Blog app example demonstrating smart_cache with Dio
+name: cache_nexus_blog_app
+description: Blog app example demonstrating cache_nexus with Dio
 publish_to: 'none'
 
 environment:
@@ -10,7 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.8
-  smart_cache:
+  cache_nexus:
     path: ../../../
   dio: ^5.4.0
   hive_flutter: ^1.1.0

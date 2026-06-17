@@ -1,7 +1,7 @@
 // ignore_for_file: inference_failure_on_instance_creation
 
 import 'package:flutter/material.dart';
-import 'package:smart_cache/smart_cache.dart';
+import 'package:cache_nexus/cache_nexus.dart';
 import '../services/auth_service.dart';
 import 'login_screen.dart';
 
@@ -65,7 +65,7 @@ class ProfileScreen extends StatelessWidget {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            SmartCacheBuilder<Map<String, dynamic>>(
+            CacheNexusBuilder<Map<String, dynamic>>(
               cache: cache,
               cacheKey: 'profile',
               builder: (context, profile) {

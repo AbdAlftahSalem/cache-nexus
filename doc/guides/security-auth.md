@@ -11,7 +11,7 @@ Smart Cache provides encryption for sensitive data and auth-aware caching to iso
 ### Basic Usage
 
 ```dart
-import 'package:smart_cache/smart_cache.dart';
+import 'package:cache_nexus/cache_nexus.dart';
 
 final secureStorage = SecureCacheStorage(
   MemoryCacheStorage(),                    // or HiveCacheStorage
@@ -19,7 +19,7 @@ final secureStorage = SecureCacheStorage(
   compressor: SimpleCompressor(),
 );
 
-final cache = SmartCacheManager(
+final cache = CacheNexusManager(
   memoryStorage: MemoryCacheStorage(),
   persistentStorage: secureStorage,
 );

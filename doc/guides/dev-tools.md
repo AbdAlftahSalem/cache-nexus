@@ -7,9 +7,9 @@ Smart Cache includes built-in **developer tools** that are automatically disable
 ## Enable Dev Mode
 
 ```dart
-final cache = SmartCacheManager(
-  mode: SmartCacheMode.dev,        // enables all dev features
-  // mode: SmartCacheMode.production, // disables everything (default)
+final cache = CacheNexusManager(
+  mode: CacheNexusMode.dev,        // enables all dev features
+  // mode: CacheNexusMode.production, // disables everything (default)
 );
 ```
 
@@ -22,7 +22,7 @@ Add the floating debug button to your app:
 ```dart
 MaterialApp(
   builder: (context, child) {
-    return SmartCacheOverlay(
+    return CacheNexusOverlay(
       manager: cache,
       child: child!,
     );
@@ -103,7 +103,7 @@ print('Hit Rate: ${(cache.stats.hitRate * 100).toStringAsFixed(1)}%');
 
 ## Production Safety
 
-In `SmartCacheMode.production`:
+In `CacheNexusMode.production`:
 
 - `_emit()` returns immediately (no events created)
 - Stats are not tracked
@@ -111,8 +111,8 @@ In `SmartCacheMode.production`:
 - **Zero performance overhead** in release builds
 
 ```dart
-final cache = SmartCacheManager(
-  mode: kReleaseMode ? SmartCacheMode.production : SmartCacheMode.dev,
+final cache = CacheNexusManager(
+  mode: kReleaseMode ? CacheNexusMode.production : CacheNexusMode.dev,
 );
 ```
 
@@ -122,8 +122,8 @@ final cache = SmartCacheManager(
 
 ```dart
 void main() {
-  final cache = SmartCacheManager(
-    mode: SmartCacheMode.dev,
+  final cache = CacheNexusManager(
+    mode: CacheNexusMode.dev,
   );
 
   // Log all events
@@ -160,7 +160,7 @@ void main() {
 
 ```dart
 class StatsDashboard extends StatelessWidget {
-  final SmartCacheManager cache;
+  final CacheNexusManager cache;
 
   const StatsDashboard({super.key, required this.cache});
 
@@ -199,8 +199,8 @@ class StatsDashboard extends StatelessWidget {
 ### Use Dev Mode in Development
 
 ```dart
-final cache = SmartCacheManager(
-  mode: kReleaseMode ? SmartCacheMode.production : SmartCacheMode.dev,
+final cache = CacheNexusManager(
+  mode: kReleaseMode ? CacheNexusMode.production : CacheNexusMode.dev,
 );
 ```
 

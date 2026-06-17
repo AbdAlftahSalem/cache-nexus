@@ -4,15 +4,15 @@ Debug tools for monitoring cache events and statistics.
 
 ---
 
-## SmartCacheOverlay
+## CacheNexusOverlay
 
 A floating debug button that opens the Dev Panel.
 
 ### Constructor
 
 ```dart
-SmartCacheOverlay({
-  required SmartCacheManager manager,
+CacheNexusOverlay({
+  required CacheNexusManager manager,
   required Widget child,
 })
 ```
@@ -21,7 +21,7 @@ SmartCacheOverlay({
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `manager` | `SmartCacheManager` | Cache instance |
+| `manager` | `CacheNexusManager` | Cache instance |
 | `child` | `Widget` | App widget |
 
 ### Usage
@@ -29,7 +29,7 @@ SmartCacheOverlay({
 ```dart
 MaterialApp(
   builder: (context, child) {
-    return SmartCacheOverlay(
+    return CacheNexusOverlay(
       manager: cache,
       child: child!,
     );
@@ -110,7 +110,7 @@ print('Hit Rate: ${(cache.stats.hitRate * 100).toStringAsFixed(1)}%');
 
 ## Production Mode
 
-In `SmartCacheMode.production`:
+In `CacheNexusMode.production`:
 
 - `_emit()` returns immediately (no events created)
 - Stats are not tracked
@@ -118,8 +118,8 @@ In `SmartCacheMode.production`:
 - **Zero performance overhead** in release builds
 
 ```dart
-final cache = SmartCacheManager(
-  mode: kReleaseMode ? SmartCacheMode.production : SmartCacheMode.dev,
+final cache = CacheNexusManager(
+  mode: kReleaseMode ? CacheNexusMode.production : CacheNexusMode.dev,
 );
 ```
 
@@ -129,8 +129,8 @@ final cache = SmartCacheManager(
 
 ```dart
 void main() {
-  final cache = SmartCacheManager(
-    mode: SmartCacheMode.dev,
+  final cache = CacheNexusManager(
+    mode: CacheNexusMode.dev,
   );
 
   // Log all events
@@ -167,7 +167,7 @@ void main() {
 
 ```dart
 class StatsDashboard extends StatelessWidget {
-  final SmartCacheManager cache;
+  final CacheNexusManager cache;
 
   const StatsDashboard({super.key, required this.cache});
 
@@ -203,5 +203,5 @@ class StatsDashboard extends StatelessWidget {
 
 ## Related
 
-- [SmartCacheManager](smart-cache-manager.md)
+- [CacheNexusManager](cache-nexus-manager.md)
 - [Dev Tools Guide](../guides/dev-tools.md)

@@ -6,8 +6,8 @@ Thanks for your interest in contributing! Here's how to get started.
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/AbdAlftahSalem/smart-cache.git
-   cd smart-cache
+   git clone https://github.com/AbdAlftahSalem/cache-nexus.git
+   cd cache-nexus
    ```
 
 2. Install dependencies:
@@ -43,4 +43,4 @@ flutter test
 
 ## Reporting Issues
 
-Use the [GitHub issue tracker](https://github.com/AbdAlftahSalem/smart-cache/issues) to report bugs or request features.
+Use the [GitHub issue tracker](https://github.com/AbdAlftahSalem/cache-nexus/issues) to report bugs or request features.

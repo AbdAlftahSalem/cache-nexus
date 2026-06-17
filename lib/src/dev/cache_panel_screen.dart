@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../cache_manager.dart';
 import '../cache_event.dart';
-import 'cache_stats_widget.dart';
 import 'cache_detail_screen.dart';
 
 class CachePanelScreen extends StatefulWidget {

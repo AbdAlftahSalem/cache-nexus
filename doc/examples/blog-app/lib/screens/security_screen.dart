@@ -36,11 +36,11 @@ class _SecurityScreenState extends State<SecurityScreen> {
     final rawEntry = await inner.read('secret_key');
     final rawText = rawEntry?.data.toString() ?? 'null';
 
-    final recoveredEntry = await secure.read('secret_key');
+    final recoveredEntry = await secure.read('secret_key') ?? CacheEntry(data: 'null', createdAt: DateTime.now(), ttl: const Duration(minutes: 5));
 
     setState(() {
       _rawStored = rawText;
-      _recovered = recoveredEntry?.data ?? 'null';
+      _recovered = recoveredEntry.data.toString();
     });
   }
 

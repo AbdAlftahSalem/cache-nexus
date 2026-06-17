@@ -2,7 +2,7 @@
 
 import 'dart:async';
 
-import 'package:smart_cache/smart_cache.dart';
+import 'package:cache_nexus/cache_nexus.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -67,14 +67,14 @@ void main() {
     });
   });
 
-  group('SmartCacheManager', () {
-    late SmartCacheManager cache;
+  group('CacheNexusManager', () {
+    late CacheNexusManager cache;
     late MemoryCacheStorage storage;
 
     setUp(() {
       NetworkStatus.setMockStatus(true);
       storage = MemoryCacheStorage();
-      cache = SmartCacheManager(memoryStorage: storage);
+      cache = CacheNexusManager(memoryStorage: storage);
     });
 
     test('set and get should work correctly', () async {
@@ -337,7 +337,7 @@ void main() {
     });
 
     group('Phase 7: Persistent Storage Type Mismatch Resilience', () {
-      late SmartCacheManager cacheWithPersistent;
+      late CacheNexusManager cacheWithPersistent;
       late MemoryCacheStorage memStorage;
       late MemoryCacheStorage persistentStorage;
 
@@ -345,7 +345,7 @@ void main() {
         NetworkStatus.setMockStatus(true);
         memStorage = MemoryCacheStorage();
         persistentStorage = MemoryCacheStorage();
-        cacheWithPersistent = SmartCacheManager(
+        cacheWithPersistent = CacheNexusManager(
           memoryStorage: memStorage,
           persistentStorage: persistentStorage,
         );
@@ -498,13 +498,13 @@ void main() {
   });
 
   group('TypeAdapter round-trip', () {
-    late SmartCacheManager cache;
+    late CacheNexusManager cache;
     late MemoryCacheStorage storage;
 
     setUp(() {
       NetworkStatus.setMockStatus(true);
       storage = MemoryCacheStorage();
-      cache = SmartCacheManager(memoryStorage: storage);
+      cache = CacheNexusManager(memoryStorage: storage);
       cache.registerAdapter<List<_Post>>(_ListPostAdapter());
     });
 
@@ -573,7 +573,7 @@ void main() {
     test(
       'cacheFirst calls fetcher on miss when no adapter and data is Map',
       () async {
-        final cacheWithoutAdapter = SmartCacheManager(
+        final cacheWithoutAdapter = CacheNexusManager(
           memoryStorage: MemoryCacheStorage(),
         );
 
@@ -605,16 +605,16 @@ void main() {
     );
   });
 
-  group('SmartCacheManager coverage', () {
-    late SmartCacheManager cache;
+  group('CacheNexusManager coverage', () {
+    late CacheNexusManager cache;
     late MemoryCacheStorage storage;
 
     setUp(() {
       NetworkStatus.setMockStatus(true);
       storage = MemoryCacheStorage();
-      cache = SmartCacheManager(
+      cache = CacheNexusManager(
         memoryStorage: storage,
-        mode: SmartCacheMode.dev,
+        mode: CacheNexusMode.dev,
       );
     });
 
@@ -640,9 +640,9 @@ void main() {
     });
 
     test('dispose() cleans up reactive engine and observability', () async {
-      final manager = SmartCacheManager(
+      final manager = CacheNexusManager(
         memoryStorage: MemoryCacheStorage(),
-        mode: SmartCacheMode.dev,
+        mode: CacheNexusMode.dev,
       );
       manager.watch<String>('test').listen((_) {});
       await Future<void>.delayed(Duration(milliseconds: 10));

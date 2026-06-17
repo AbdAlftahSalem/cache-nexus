@@ -1,5 +1,5 @@
-name: smart_cache_auth_flow
-description: Auth flow example demonstrating smart_cache with user isolation
+name: cache_nexus_auth_flow
+description: Auth flow example demonstrating cache_nexus with user isolation
 publish_to: 'none'
 
 environment:
@@ -9,7 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  smart_cache:
+  cache_nexus:
     path: ../../../
   hive_flutter: ^1.1.0
   connectivity_plus: ^7.1.1

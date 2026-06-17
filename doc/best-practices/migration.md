@@ -27,12 +27,12 @@ await box.delete('users');
 ### After (Smart Cache)
 
 ```dart
-import 'package:smart_cache/smart_cache.dart';
+import 'package:cache_nexus/cache_nexus.dart';
 
 final hiveStorage = HiveCacheStorage(boxName: 'cache');
 await hiveStorage.init();
 
-final cache = SmartCacheManager(
+final cache = CacheNexusManager(
   memoryStorage: MemoryCacheStorage(),
   persistentStorage: hiveStorage,
 );
@@ -84,12 +84,12 @@ await prefs.remove('token');
 ### After (Smart Cache)
 
 ```dart
-import 'package:smart_cache/smart_cache.dart';
+import 'package:cache_nexus/cache_nexus.dart';
 
 final hiveStorage = HiveCacheStorage(boxName: 'prefs');
 await hiveStorage.init();
 
-final cache = SmartCacheManager(
+final cache = CacheNexusManager(
   memoryStorage: MemoryCacheStorage(),
   persistentStorage: hiveStorage,
 );
@@ -140,10 +140,10 @@ ref.watch(usersProvider);
 ### After (Smart Cache)
 
 ```dart
-import 'package:smart_cache/smart_cache.dart';
+import 'package:cache_nexus/cache_nexus.dart';
 
-final cacheProvider = Provider<SmartCacheManager>((ref) {
-  return SmartCacheManager(
+final cacheProvider = Provider<CacheNexusManager>((ref) {
+  return CacheNexusManager(
     memoryStorage: MemoryCacheStorage(),
   );
 });
@@ -193,13 +193,13 @@ final dio = Dio()..interceptors.add(DioCacheInterceptor(options: cacheOptions));
 ### After (Smart Cache)
 
 ```dart
-import 'package:smart_cache/smart_cache.dart';
+import 'package:cache_nexus/cache_nexus.dart';
 
-final cache = SmartCacheManager(
+final cache = CacheNexusManager(
   memoryStorage: MemoryCacheStorage(),
 );
 
-final dio = Dio()..interceptors.add(SmartCacheDioInterceptor(cache));
+final dio = Dio()..interceptors.add(CacheNexusDioInterceptor(cache));
 
 // Usage
 final users = await cache.get<List<User>>(

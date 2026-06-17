@@ -4,10 +4,10 @@
 </p>
 
 <p align="center">
-  <a href="https://pub.dev/packages/smart_cache"><img src="https://img.shields.io/pub/v/smart_cache.svg" alt="pub.dev"></a>
-  <a href="https://github.com/AbdAlftahSalem/smart-cache/blob/main/LICENSE"><img src="https://img.shields.io/github/license/AbdAlftahSalem/smart-cache" alt="license"></a>
+  <a href="https://pub.dev/packages/cache_nexus"><img src="https://img.shields.io/pub/v/cache_nexus.svg" alt="pub.dev"></a>
+  <a href="https://github.com/AbdAlftahSalem/cache-nexus/blob/main/LICENSE"><img src="https://img.shields.io/github/license/AbdAlftahSalem/cache-nexus" alt="license"></a>
   <a href="https://flutter.dev"><img src="https://img.shields.io/badge/Flutter-%3E%3D3.0.0-blue.svg" alt="flutter"></a>
-  <a href="https://github.com/AbdAlftahSalem/smart-cache"><img src="https://img.shields.io/github/stars/AbdAlftahSalem/smart-cache?style=social" alt="stars"></a>
+  <a href="https://github.com/AbdAlftahSalem/cache-nexus"><img src="https://img.shields.io/github/stars/AbdAlftahSalem/cache-nexus?style=social" alt="stars"></a>
 </p>
 
 ---
@@ -23,15 +23,15 @@ Smart Cache is **not just a caching library**. It is a full **data orchestration
 ```yaml
 # pubspec.yaml
 dependencies:
-  smart_cache: ^1.0.0
+  cache_nexus: ^1.0.0
 ```
 
 ### 2. Initialize & cache
 
 ```dart
-import 'package:smart_cache/smart_cache.dart';
+import 'package:cache_nexus/cache_nexus.dart';
 
-final cache = SmartCacheManager(
+final cache = CacheNexusManager(
   memoryStorage: MemoryCacheStorage(),
 );
 
@@ -60,7 +60,7 @@ That's it. See [docs/getting-started/quick-start.md](docs/getting-started/quick-
 | **Offline Sync Queue** | Tasks retry when connectivity returns |
 | **Security Layer** | Encryption + compression decorators |
 | **Auth-Aware Caching** | Isolate cache by user ID and role |
-| **Reactive Streams** | `watch()` API + `SmartCacheBuilder` widget |
+| **Reactive Streams** | `watch()` API + `CacheNexusBuilder` widget |
 | **Dev Tools** | Floating debug button, live event panel, stats |
 | **Cache Stats** | Hit/miss/fetch/error tracking with hit rate |
 
@@ -86,7 +86,7 @@ That's it. See [docs/getting-started/quick-start.md](docs/getting-started/quick-
 A complete blog app with posts list, detail view, cache policies, reactive UI, and offline sync.
 
 **Features demonstrated:**
-- SmartCacheBuilder for auto-rebuilding UI
+- CacheNexusBuilder for auto-rebuilding UI
 - Cache policies (cacheFirst vs networkFirst)
 - Request deduplication
 - Dev tools overlay
@@ -139,16 +139,16 @@ See [docs/examples/offline-todo/](docs/examples/offline-todo/) for full code.
 
 ```yaml
 dependencies:
-  smart_cache: ^1.0.0
+  cache_nexus: ^1.0.0
 ```
 
 ### From Git
 
 ```yaml
 dependencies:
-  smart_cache:
+  cache_nexus:
     git:
-      url: https://github.com/AbdAlftahSalem/smart-cache.git
+      url: https://github.com/AbdAlftahSalem/cache-nexus.git
       ref: main
 ```
 
@@ -156,8 +156,8 @@ dependencies:
 
 ```yaml
 dependencies:
-  smart_cache:
-    path: ../smart_cache
+  cache_nexus:
+    path: ../cache_nexus
 ```
 
 Then run:
@@ -179,10 +179,10 @@ class AppCache {
   factory AppCache() => _instance;
   AppCache._();
 
-  final SmartCacheManager cache = SmartCacheManager(
+  final CacheNexusManager cache = CacheNexusManager(
     memoryStorage: MemoryCacheStorage(),
     persistentStorage: HiveCacheStorage(boxName: 'app_cache'),
-    mode: kReleaseMode ? SmartCacheMode.production : SmartCacheMode.dev,
+    mode: kReleaseMode ? CacheNexusMode.production : CacheNexusMode.dev,
   );
 }
 ```
@@ -214,7 +214,7 @@ Already using Hive, shared_preferences, or Riverpod? See [docs/best-practices/mi
 - [x] Phase 3: Request Deduplication, Stale While Revalidate
 - [x] Phase 4: Hive Persistent Storage, Two-Tier Architecture
 - [x] Phase 5: Encryption, Compression, Auth-Aware Caching
-- [x] Phase 6: Reactive Streams, SmartCacheBuilder Widget
+- [x] Phase 6: Reactive Streams, CacheNexusBuilder Widget
 - [x] Phase 7: Offline Sync Queue, Background Retry
 
 ### Planned

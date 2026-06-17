@@ -81,7 +81,7 @@ final secureStorage = SecureCacheStorage(
   compressor: SimpleCompressor(),
 );
 
-final cache = SmartCacheManager(
+final cache = CacheNexusManager(
   memoryStorage: MemoryCacheStorage(),
   persistentStorage: secureStorage,
 );

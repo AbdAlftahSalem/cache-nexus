@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:smart_cache/smart_cache.dart';
+import 'package:cache_nexus/cache_nexus.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

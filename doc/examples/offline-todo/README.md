@@ -44,7 +44,7 @@ final syncEngine = SyncEngine(
 await syncEngine.init();
 
 // Initialize cache
-final cache = SmartCacheManager(
+final cache = CacheNexusManager(
   memoryStorage: MemoryCacheStorage(),
   persistentStorage: hiveStorage,
   syncEngine: syncEngine,
@@ -127,7 +127,7 @@ NetworkStatus.setMockStatus(false); // Force offline
 
 ```dart
 class TodoScreen extends StatelessWidget {
-  final SmartCacheManager cache;
+  final CacheNexusManager cache;
 
   const TodoScreen({super.key, required this.cache});
 
@@ -135,7 +135,7 @@ class TodoScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Offline Todos')),
-      body: SmartCacheBuilder<List<Todo>>(
+      body: CacheNexusBuilder<List<Todo>>(
         cache: cache,
         cacheKey: 'todos',
         builder: (context, todos) {
@@ -182,6 +182,6 @@ flutter run
 
 ## Dependencies
 
-- `smart_cache`: Cache + SyncEngine
+- `cache_nexus`: Cache + SyncEngine
 - `hive_flutter`: Persistent storage
 - `connectivity_plus`: Network status

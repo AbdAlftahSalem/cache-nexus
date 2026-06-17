@@ -166,6 +166,6 @@ await cache.invalidateByContext(CacheContext(userId: 'user_123', role: 'admin'))
 
 ## Related
 
-- [SmartCacheManager](smart-cache-manager.md)
+- [CacheNexusManager](cache-nexus-manager.md)
 - [Security & Auth Guide](../guides/security-auth.md)
 - [Auth Flow Example](../examples/auth-flow/)

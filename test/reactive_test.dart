@@ -1,16 +1,16 @@
 import 'dart:async';
 
-import 'package:smart_cache/smart_cache.dart';
+import 'package:cache_nexus/cache_nexus.dart';
 import 'package:test/test.dart';
 
 void main() {
   group('Phase 6: Reactive Cache System', () {
-    late SmartCacheManager cache;
+    late CacheNexusManager cache;
     late MemoryCacheStorage storage;
 
     setUp(() {
       storage = MemoryCacheStorage();
-      cache = SmartCacheManager(memoryStorage: storage);
+      cache = CacheNexusManager(memoryStorage: storage);
     });
 
     tearDown(() {

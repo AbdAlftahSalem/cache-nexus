@@ -1,26 +1,26 @@
 import 'dart:async';
 
 import 'package:test/test.dart';
-import 'package:smart_cache/smart_cache.dart';
+import 'package:cache_nexus/cache_nexus.dart';
 
 void main() {
-  late SmartCacheManager devCache;
-  late SmartCacheManager prodCache;
+  late CacheNexusManager devCache;
+  late CacheNexusManager prodCache;
   late MemoryCacheStorage storage;
 
   setUp(() {
     storage = MemoryCacheStorage();
-    devCache = SmartCacheManager(
+    devCache = CacheNexusManager(
       memoryStorage: storage,
-      mode: SmartCacheMode.dev,
+      mode: CacheNexusMode.dev,
     );
-    prodCache = SmartCacheManager(
+    prodCache = CacheNexusManager(
       memoryStorage: storage,
-      mode: SmartCacheMode.production,
+      mode: CacheNexusMode.production,
     );
   });
 
-  group('SmartCacheManager Phase 3 - Observability', () {
+  group('CacheNexusManager Phase 3 - Observability', () {
     test('dev mode emits events and updates stats', () async {
       final futureEvent = devCache.events.firstWhere(
         (e) => e.type == CacheEventType.fetch,
@@ -141,9 +141,9 @@ void main() {
     });
 
     test('dispose closes event stream', () async {
-      final manager = SmartCacheManager(
+      final manager = CacheNexusManager(
         memoryStorage: MemoryCacheStorage(),
-        mode: SmartCacheMode.dev,
+        mode: CacheNexusMode.dev,
       );
       final done = Completer<void>();
       manager.events.listen((_) {}, onDone: () => done.complete());
@@ -156,13 +156,13 @@ void main() {
   });
 
   group('ObservabilityManager - Network Recording', () {
-    late SmartCacheManager cache;
+    late CacheNexusManager cache;
 
     setUp(() {
       NetworkStatus.setMockStatus(true);
-      cache = SmartCacheManager(
+      cache = CacheNexusManager(
         memoryStorage: MemoryCacheStorage(),
-        mode: SmartCacheMode.dev,
+        mode: CacheNexusMode.dev,
       );
     });
 

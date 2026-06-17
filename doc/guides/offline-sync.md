@@ -17,7 +17,7 @@ The `SyncEngine` manages a persistent queue of tasks that retry automatically wh
 ## Setup
 
 ```dart
-import 'package:smart_cache/smart_cache.dart';
+import 'package:cache_nexus/cache_nexus.dart';
 
 final syncEngine = SyncEngine(
   executor: (task) async {
@@ -85,7 +85,7 @@ SyncTask({
 
 ```dart
 class TodoService {
-  final SmartCacheManager _cache;
+  final CacheNexusManager _cache;
   final SyncEngine _syncEngine;
 
   TodoService(this._cache, this._syncEngine);
@@ -193,7 +193,7 @@ void main() async {
   await syncEngine.init();
 
   // Initialize cache
-  final cache = SmartCacheManager(
+  final cache = CacheNexusManager(
     memoryStorage: MemoryCacheStorage(),
     persistentStorage: hiveStorage,
     syncEngine: syncEngine,

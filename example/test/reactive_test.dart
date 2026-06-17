@@ -1,13 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_cache/smart_cache.dart';
+import 'package:cache_nexus/cache_nexus.dart';
 
 void main() {
-  late SmartCacheManager cache;
+  late CacheNexusManager cache;
   late MemoryCacheStorage storage;
 
   setUp(() {
     storage = MemoryCacheStorage();
-    cache = SmartCacheManager(memoryStorage: storage);
+    cache = CacheNexusManager(memoryStorage: storage);
   });
 
   tearDown(() {
@@ -39,7 +39,7 @@ void main() {
     await sub.cancel();
   });
 
-  test('SmartCacheBuilder rebuilds on change', () async {
+  test('CacheNexusBuilder rebuilds on change', () async {
     await cache.set(key: 'test', data: 'initial');
 
     final values = <String?>[];

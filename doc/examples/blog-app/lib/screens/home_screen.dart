@@ -75,7 +75,7 @@ class _OverviewScreen extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'A full demonstration of every smart_cache feature using Dio.',
+              'A full demonstration of every cache_nexus feature using Dio.',
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 24),
@@ -92,7 +92,7 @@ class _OverviewScreen extends StatelessWidget {
                   _FeatureTile(
                     icon: Icons.cached,
                     title: 'Reactive Streams',
-                    subtitle: 'watch() API + SmartCacheBuilder widget',
+                    subtitle: 'watch() API + CacheNexusBuilder widget',
                     color: Colors.green,
                   ),
                   _FeatureTile(

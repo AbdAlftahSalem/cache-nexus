@@ -1,15 +1,15 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_cache/smart_cache.dart';
+import 'package:cache_nexus/cache_nexus.dart';
 
 void main() {
-  late SmartCacheManager cache;
+  late CacheNexusManager cache;
   late MemoryCacheStorage memory;
   late MemoryCacheStorage persistent;
 
   setUp(() {
     memory = MemoryCacheStorage();
     persistent = MemoryCacheStorage();
-    cache = SmartCacheManager(
+    cache = CacheNexusManager(
       memoryStorage: memory,
       persistentStorage: persistent,
     );

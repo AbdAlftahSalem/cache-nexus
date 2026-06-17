@@ -17,10 +17,10 @@ cache.watch<List<Product>>(
 
 ---
 
-## SmartCacheBuilder with Debounce
+## CacheNexusBuilder with Debounce
 
 ```dart
-SmartCacheBuilder<List<Message>>(
+CacheNexusBuilder<List<Message>>(
   cache: cache,
   cacheKey: 'messages',
   debounce: const Duration(milliseconds: 500),
@@ -56,7 +56,7 @@ TextField(
 
 ```dart
 // Chat messages arriving rapidly
-SmartCacheBuilder<List<Message>>(
+CacheNexusBuilder<List<Message>>(
   cache: cache,
   cacheKey: 'chat_$conversationId',
   debounce: const Duration(milliseconds: 200),
@@ -74,7 +74,7 @@ SmartCacheBuilder<List<Message>>(
 
 ```dart
 // Prices updating every second
-SmartCacheBuilder<Map<String, double>>(
+CacheNexusBuilder<Map<String, double>>(
   cache: cache,
   cacheKey: 'stock_prices',
   debounce: const Duration(milliseconds: 500),

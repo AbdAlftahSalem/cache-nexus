@@ -8,14 +8,14 @@ Unit, widget, and integration testing patterns for Smart Cache.
 
 ```dart
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_cache/smart_cache.dart';
+import 'package:cache_nexus/cache_nexus.dart';
 
-late SmartCacheManager cache;
+late CacheNexusManager cache;
 
 setUp(() {
-  cache = SmartCacheManager(
+  cache = CacheNexusManager(
     memoryStorage: MemoryCacheStorage(),
-    mode: SmartCacheMode.dev,
+    mode: CacheNexusMode.dev,
   );
 });
 
@@ -157,14 +157,14 @@ test('watch notifies on update', () async {
 ## Widget Testing
 
 ```dart
-testWidgets('SmartCacheBuilder rebuilds', (tester) async {
-  final cache = SmartCacheManager(
+testWidgets('CacheNexusBuilder rebuilds', (tester) async {
+  final cache = CacheNexusManager(
     memoryStorage: MemoryCacheStorage(),
   );
 
   await tester.pumpWidget(
     MaterialApp(
-      home: SmartCacheBuilder<String>(
+      home: CacheNexusBuilder<String>(
         cache: cache,
         cacheKey: 'test',
         builder: (context, data) {
@@ -188,11 +188,11 @@ testWidgets('SmartCacheBuilder rebuilds', (tester) async {
 ## Mocking
 
 ```dart
-class MockSmartCacheManager extends Mock implements SmartCacheManager {}
+class MockCacheNexusManager extends Mock implements CacheNexusManager {}
 
 void main() {
   test('service uses cache', () async {
-    final cache = MockSmartCacheManager();
+    final cache = MockCacheNexusManager();
     when(() => cache.get<String>(
       key: any(named: 'key'),
       fetcher: any(named: 'fetcher'),
@@ -216,14 +216,14 @@ void main() {
 
 ```dart
 testWidgets('full cache flow', (tester) async {
-  final cache = SmartCacheManager(
+  final cache = CacheNexusManager(
     memoryStorage: MemoryCacheStorage(),
   );
 
   await tester.pumpWidget(
     MaterialApp(
       home: Scaffold(
-        body: SmartCacheBuilder<String>(
+        body: CacheNexusBuilder<String>(
           cache: cache,
           cacheKey: 'counter',
           builder: (context, data) {
@@ -289,7 +289,7 @@ test('handles fetcher error gracefully', () async {
 
 ```dart
 test('dispose cleans up resources', () async {
-  final cache = SmartCacheManager(
+  final cache = CacheNexusManager(
     memoryStorage: MemoryCacheStorage(),
   );
   

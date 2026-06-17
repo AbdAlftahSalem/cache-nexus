@@ -9,7 +9,7 @@ Get Smart Cache up and running in 5 minutes. This guide covers everything from i
 ```yaml
 # pubspec.yaml
 dependencies:
-  smart_cache: ^1.0.0
+  cache_nexus: ^1.0.0
 ```
 
 Run:
@@ -25,7 +25,7 @@ Create a new file `main.dart`:
 
 ```dart
 import 'package:flutter/material.dart';
-import 'package:smart_cache/smart_cache.dart';
+import 'package:cache_nexus/cache_nexus.dart';
 
 void main() {
   runApp(const MyApp());
@@ -51,7 +51,7 @@ class CacheDemoScreen extends StatefulWidget {
 }
 
 class _CacheDemoScreenState extends State<CacheDemoScreen> {
-  late final SmartCacheManager _cache;
+  late final CacheNexusManager _cache;
   List<String>? _users;
   bool _loading = false;
 
@@ -59,7 +59,7 @@ class _CacheDemoScreenState extends State<CacheDemoScreen> {
   void initState() {
     super.initState();
     // Initialize cache with memory storage
-    _cache = SmartCacheManager(
+    _cache = CacheNexusManager(
       memoryStorage: MemoryCacheStorage(),
     );
   }
@@ -137,7 +137,7 @@ flutter run
 To cache data across app restarts, add Hive storage:
 
 ```dart
-import 'package:smart_cache/smart_cache.dart';
+import 'package:cache_nexus/cache_nexus.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -146,7 +146,7 @@ void main() async {
   final hiveStorage = HiveCacheStorage(boxName: 'my_cache');
   await hiveStorage.init();
 
-  final cache = SmartCacheManager(
+  final cache = CacheNexusManager(
     memoryStorage: MemoryCacheStorage(),
     persistentStorage: hiveStorage,  // Survives app restart!
   );
@@ -164,7 +164,7 @@ Add the debug overlay to see cache events in real-time:
 ```dart
 MaterialApp(
   builder: (context, child) {
-    return SmartCacheOverlay(
+    return CacheNexusOverlay(
       manager: cache,
       child: child!,
     );
@@ -185,12 +185,12 @@ A floating blue button appears. Tap it to see:
 
 | Concept | Description |
 |---------|-------------|
-| `SmartCacheManager` | Main cache class |
+| `CacheNexusManager` | Main cache class |
 | `MemoryCacheStorage` | In-memory cache |
 | `get()` | Fetch with cache policy |
 | `ttl` | Time-to-live (expiration) |
 | `fetcher` | Function to fetch fresh data |
-| `SmartCacheOverlay` | Debug tools |
+| `CacheNexusOverlay` | Debug tools |
 
 ---
 

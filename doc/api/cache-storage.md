@@ -33,7 +33,7 @@ MemoryCacheStorage()
 ```dart
 final memoryStorage = MemoryCacheStorage();
 
-final cache = SmartCacheManager(
+final cache = CacheNexusManager(
   memoryStorage: memoryStorage,
 );
 ```
@@ -56,7 +56,7 @@ Persistent storage backed by Hive. Survives app restarts.
 ### Constructor
 
 ```dart
-HiveCacheStorage({String boxName = 'smart_cache'})
+HiveCacheStorage({String boxName = 'cache_nexus'})
 ```
 
 ### Methods
@@ -76,7 +76,7 @@ HiveCacheStorage({String boxName = 'smart_cache'})
 final hiveStorage = HiveCacheStorage(boxName: 'my_cache');
 await hiveStorage.init(); // Must initialize before use
 
-final cache = SmartCacheManager(
+final cache = CacheNexusManager(
   memoryStorage: MemoryCacheStorage(),
   persistentStorage: hiveStorage,
 );
@@ -124,7 +124,7 @@ final secureStorage = SecureCacheStorage(
   compressor: SimpleCompressor(),
 );
 
-final cache = SmartCacheManager(
+final cache = CacheNexusManager(
   memoryStorage: MemoryCacheStorage(),
   persistentStorage: secureStorage,
 );
@@ -194,7 +194,7 @@ print(entry.isExpired); // false
 final hiveStorage = HiveCacheStorage(boxName: 'cache');
 await hiveStorage.init();
 
-final cache = SmartCacheManager(
+final cache = CacheNexusManager(
   memoryStorage: MemoryCacheStorage(),
   persistentStorage: hiveStorage,
 );
@@ -212,7 +212,7 @@ final secureStorage = SecureCacheStorage(
   compressor: SimpleCompressor(),
 );
 
-final cache = SmartCacheManager(
+final cache = CacheNexusManager(
   memoryStorage: MemoryCacheStorage(),
   persistentStorage: secureStorage,
 );
@@ -222,6 +222,6 @@ final cache = SmartCacheManager(
 
 ## Related
 
-- [SmartCacheManager](smart-cache-manager.md)
+- [CacheNexusManager](cache-nexus-manager.md)
 - [CachePolicy](cache-policy.md)
 - [Security & Auth](../guides/security-auth.md)

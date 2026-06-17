@@ -95,7 +95,7 @@ await cache.delete( 'users');
 await cache.delete( 'config');
 
 // Delete by prefix (all keys starting with 'user_')
-// Note: deleteByPrefix is on CacheStorage, not SmartCacheManager directly
+// Note: deleteByPrefix is on CacheStorage, not CacheNexusManager directly
 await cache.memoryStorage.deleteByPrefix('user_');
 ```
 

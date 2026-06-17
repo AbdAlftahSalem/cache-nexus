@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="smart_cache_example"
+        android:label="cache_nexus_example"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

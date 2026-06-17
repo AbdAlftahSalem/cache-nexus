@@ -6,7 +6,7 @@ import '../cache_event.dart';
 import 'cache_detail_screen.dart';
 
 class CachePanelScreen extends StatefulWidget {
-  final SmartCacheManager manager;
+  final CacheNexusManager manager;
 
   const CachePanelScreen({super.key, required this.manager});
 

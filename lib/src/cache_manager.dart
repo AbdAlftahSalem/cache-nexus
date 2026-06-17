@@ -14,14 +14,14 @@ import 'cache_context.dart';
 import 'observability_manager.dart';
 import 'policy_resolver.dart';
 import 'reactive_engine.dart';
-import 'smart_cache_mode.dart';
+import 'cache_nexus_mode.dart';
 import 'type_adapter.dart';
 
-class SmartCacheManager {
+class CacheNexusManager {
   final CacheStorage memoryStorage;
   final CacheStorage? persistentStorage;
   SyncEngine? syncEngine;
-  final SmartCacheMode mode;
+  final CacheNexusMode mode;
   CacheContext? _context;
 
   late final ObservabilityManager _observability;
@@ -30,11 +30,11 @@ class SmartCacheManager {
 
   final Map<Type, dynamic> _adapters = {};
 
-  SmartCacheManager({
+  CacheNexusManager({
     CacheStorage? memoryStorage,
     this.persistentStorage,
     this.syncEngine,
-    this.mode = SmartCacheMode.production,
+    this.mode = CacheNexusMode.production,
     CacheContext? context,
   }) : memoryStorage = memoryStorage ?? MemoryCacheStorage(),
        _context = context {

@@ -6,7 +6,7 @@ class HiveCacheStorage implements CacheStorage {
   final String boxName;
   Box<dynamic>? _box;
 
-  HiveCacheStorage({this.boxName = 'smart_cache'});
+  HiveCacheStorage({this.boxName = 'cache_nexus'});
 
   Future<void> init({bool initHive = true}) async {
     if (initHive) {

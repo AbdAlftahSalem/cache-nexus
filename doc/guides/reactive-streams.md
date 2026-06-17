@@ -27,7 +27,7 @@ await cache.set(key: 'users', data: [User('Alice'), User('Bob')]);
 1. `watch(key)` subscribes to a broadcast `StreamController` for that key
 2. On subscription, the current value (if any) is emitted immediately
 3. When `set()` or `delete()` is called, all subscribers for that key are notified
-4. `SmartCacheBuilder` listens to this stream and calls `setState()` on updates
+4. `CacheNexusBuilder` listens to this stream and calls `setState()` on updates
 
 ---
 
@@ -52,12 +52,12 @@ cache.watch<List<Product>>(
 
 ---
 
-## SmartCacheBuilder Widget
+## CacheNexusBuilder Widget
 
 A Flutter widget that **automatically rebuilds** when a cache key changes:
 
 ```dart
-SmartCacheBuilder<List<User>>(
+CacheNexusBuilder<List<User>>(
   cache: cache,
   cacheKey: 'users',
   builder: (context, users) {
@@ -75,17 +75,17 @@ SmartCacheBuilder<List<User>>(
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `cache` | `SmartCacheManager` | Cache instance |
+| `cache` | `CacheNexusManager` | Cache instance |
 | `cacheKey` | `String` | Key to watch |
 | `builder` | `Widget Function(BuildContext, T?)` | Builder function |
 | `debounce` | `Duration?` | Debounce interval |
 
 ---
 
-## SmartCacheBuilder with Debounce
+## CacheNexusBuilder with Debounce
 
 ```dart
-SmartCacheBuilder<List<Message>>(
+CacheNexusBuilder<List<Message>>(
   cache: cache,
   cacheKey: 'messages',
   debounce: Duration(milliseconds: 500),
@@ -102,7 +102,7 @@ SmartCacheBuilder<List<Message>>(
 
 ```dart
 class ChatScreen extends StatelessWidget {
-  final SmartCacheManager cache;
+  final CacheNexusManager cache;
 
   const ChatScreen({super.key, required this.cache});
 
@@ -110,7 +110,7 @@ class ChatScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Chat')),
-      body: SmartCacheBuilder<List<Message>>(
+      body: CacheNexusBuilder<List<Message>>(
         cache: cache,
         cacheKey: 'messages',
         debounce: Duration(milliseconds: 300),
@@ -151,7 +151,7 @@ await cache.set<List<Message>>(
   data: [...existingMessages, newMessage],
 );
 
-// All SmartCacheBuilder widgets watching 'messages' will rebuild
+// All CacheNexusBuilder widgets watching 'messages' will rebuild
 ```
 
 ---
@@ -162,14 +162,14 @@ You can watch the same key from multiple places:
 
 ```dart
 // Widget A
-SmartCacheBuilder<List<User>>(
+CacheNexusBuilder<List<User>>(
   cache: cache,
   cacheKey: 'users',
   builder: (context, users) => UserList(users: users),
 );
 
 // Widget B (also watches 'users')
-SmartCacheBuilder<List<User>>(
+CacheNexusBuilder<List<User>>(
   cache: cache,
   cacheKey: 'users',
   builder: (context, users) => UserCount(count: users?.length ?? 0),
@@ -182,7 +182,7 @@ SmartCacheBuilder<List<User>>(
 
 ## Cleanup
 
-SmartCacheBuilder automatically cleans up subscriptions when the widget is disposed. No manual cleanup needed.
+CacheNexusBuilder automatically cleans up subscriptions when the widget is disposed. No manual cleanup needed.
 
 ---
 

@@ -1,4 +1,4 @@
-# SmartCacheManager
+# CacheNexusManager
 
 The central class that orchestrates all caching operations.
 
@@ -7,7 +7,7 @@ The central class that orchestrates all caching operations.
 ## Import
 
 ```dart
-import 'package:smart_cache/smart_cache.dart';
+import 'package:cache_nexus/cache_nexus.dart';
 ```
 
 ---
@@ -15,11 +15,11 @@ import 'package:smart_cache/smart_cache.dart';
 ## Constructor
 
 ```dart
-SmartCacheManager({
+CacheNexusManager({
   CacheStorage? memoryStorage,
   CacheStorage? persistentStorage,
   SyncEngine? syncEngine,
-  SmartCacheMode mode = SmartCacheMode.production,
+  CacheNexusMode mode = CacheNexusMode.production,
   CacheContext? context,
 })
 ```
@@ -31,7 +31,7 @@ SmartCacheManager({
 | `memoryStorage` | `CacheStorage?` | `MemoryCacheStorage()` | In-memory cache |
 | `persistentStorage` | `CacheStorage?` | `null` | Persistent storage |
 | `syncEngine` | `SyncEngine?` | `null` | Offline sync queue |
-| `mode` | `SmartCacheMode` | `SmartCacheMode.production` | Dev or production mode |
+| `mode` | `CacheNexusMode` | `CacheNexusMode.production` | Dev or production mode |
 | `context` | `CacheContext?` | `null` | Auth context |
 
 ---

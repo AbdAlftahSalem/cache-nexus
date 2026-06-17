@@ -114,7 +114,7 @@ if (cache.stats.hits > 1000) {
 ### Use Two-Tier Storage
 
 ```dart
-final cache = SmartCacheManager(
+final cache = CacheNexusManager(
   memoryStorage: MemoryCacheStorage(),  // Fast, limited
   persistentStorage: hiveStorage,        // Slow, unlimited
 );
@@ -174,8 +174,8 @@ cache.watch<List<Product>>(
 Disable dev features in production:
 
 ```dart
-final cache = SmartCacheManager(
-  mode: kReleaseMode ? SmartCacheMode.production : SmartCacheMode.dev,
+final cache = CacheNexusManager(
+  mode: kReleaseMode ? CacheNexusMode.production : CacheNexusMode.dev,
 );
 ```
 
@@ -193,7 +193,7 @@ In production mode:
 import 'dart:developer' as developer;
 
 Future<void> benchmarkCache() async {
-  final cache = SmartCacheManager(
+  final cache = CacheNexusManager(
     memoryStorage: MemoryCacheStorage(),
   );
 

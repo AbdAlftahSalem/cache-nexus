@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:smart_cache/smart_cache.dart';
+import 'package:cache_nexus/cache_nexus.dart';
 import 'services/auth_service.dart';
 import 'screens/login_screen.dart';
 
@@ -7,21 +7,21 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize cache
-  final cache = SmartCacheManager(
+  final cache = CacheNexusManager(
     memoryStorage: MemoryCacheStorage(),
     persistentStorage: SecureCacheStorage(
       MemoryCacheStorage(),
       encryptor: SimpleEncryptor('auth_secret_key'),
       compressor: SimpleCompressor(),
     ),
-    mode: SmartCacheMode.dev,
+    mode: CacheNexusMode.dev,
   );
 
   runApp(AuthFlowApp(cache: cache));
 }
 
 class AuthFlowApp extends StatelessWidget {
-  final SmartCacheManager cache;
+  final CacheNexusManager cache;
 
   const AuthFlowApp({super.key, required this.cache});
 
@@ -34,7 +34,7 @@ class AuthFlowApp extends StatelessWidget {
         useMaterial3: true,
       ),
       debugShowCheckedModeBanner: false,
-      home: SmartCacheOverlay(
+      home: CacheNexusOverlay(
         manager: cache,
         child: AuthService(cache: cache, child: LoginScreen()),
       ),

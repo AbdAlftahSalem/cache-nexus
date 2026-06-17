@@ -1,9 +1,9 @@
 // ignore_for_file: inference_failure_on_instance_creation, must_be_immutable
 import 'package:flutter/material.dart';
-import 'package:smart_cache/smart_cache.dart';
+import 'package:cache_nexus/cache_nexus.dart';
 
 class AuthService extends InheritedWidget {
-  final SmartCacheManager cache;
+  final CacheNexusManager cache;
   String? _currentUserId;
   String? _currentUserRole;
 

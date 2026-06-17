@@ -3,17 +3,17 @@ import 'dart:math';
 
 import 'cache_event.dart';
 import 'cache_stats.dart';
-import 'smart_cache_mode.dart';
+import 'cache_nexus_mode.dart';
 
 class ObservabilityManager {
-  final SmartCacheMode _mode;
+  final CacheNexusMode _mode;
   final StreamController<CacheEvent> _eventController =
       StreamController<CacheEvent>.broadcast();
   CacheStats _stats = CacheStats();
   final List<CacheEvent> _recentEvents = [];
   static const int _maxRecentEvents = 100;
 
-  ObservabilityManager({required SmartCacheMode mode}) : _mode = mode;
+  ObservabilityManager({required CacheNexusMode mode}) : _mode = mode;
 
   Stream<CacheEvent> get events => _eventController.stream;
   CacheStats get stats => _stats;
@@ -26,7 +26,7 @@ class ObservabilityManager {
     Duration? duration,
     Object? error,
   }) {
-    if (_mode != SmartCacheMode.dev) return;
+    if (_mode != CacheNexusMode.dev) return;
 
     final event = CacheEvent(
       key: key,
@@ -59,7 +59,7 @@ class ObservabilityManager {
   }
 
   void _addToRecentEvents(CacheEvent event) {
-    if (_mode != SmartCacheMode.dev) return;
+    if (_mode != CacheNexusMode.dev) return;
     _recentEvents.insert(0, event);
     if (_recentEvents.length > _maxRecentEvents) {
       _recentEvents.removeLast();
@@ -72,7 +72,7 @@ class ObservabilityManager {
     Map<String, dynamic>? headers,
     dynamic body,
   }) {
-    if (_mode != SmartCacheMode.dev) return '';
+    if (_mode != CacheNexusMode.dev) return '';
 
     final requestId = _generateRequestId();
     final event = CacheEvent(
@@ -99,7 +99,7 @@ class ObservabilityManager {
     dynamic body,
     Duration? duration,
   }) {
-    if (_mode != SmartCacheMode.dev) return;
+    if (_mode != CacheNexusMode.dev) return;
 
     _stats = _stats.copyWith(
       totalRequests: _stats.totalRequests + 1,
@@ -132,7 +132,7 @@ class ObservabilityManager {
     Map<String, dynamic>? headers,
     Duration? duration,
   }) {
-    if (_mode != SmartCacheMode.dev) return;
+    if (_mode != CacheNexusMode.dev) return;
 
     _stats = _stats.copyWith(
       totalRequests: _stats.totalRequests + 1,

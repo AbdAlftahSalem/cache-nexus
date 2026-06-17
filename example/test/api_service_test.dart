@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:smart_cache_example/models/post.dart';
-import 'package:smart_cache_example/services/api_service.dart';
+import 'package:cache_nexus_example/models/post.dart';
+import 'package:cache_nexus_example/services/api_service.dart';
 
 class MockDio extends Mock implements Dio {}
 

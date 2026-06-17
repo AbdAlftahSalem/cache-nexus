@@ -7,7 +7,7 @@
 - Request deduplication for concurrent identical requests
 - Security layer: SecureCacheStorage with encryption + compression decorators
 - Auth-aware caching: CacheContext for user/role-based cache isolation
-- Reactive streams: watch() API with SmartCacheBuilder widget
+- Reactive streams: watch() API with CacheNexusBuilder widget
 - Offline sync queue: SyncEngine with automatic retry on connectivity
 - Built-in dev tools: floating overlay, live event panel, stats dashboard
 - NetworkStatus connectivity detection via connectivity_plus

@@ -1,20 +1,20 @@
 # Core Concepts
 
-Smart Cache is built on three core components: SmartCacheManager, CacheEntry, and CacheStorage. Understanding these will help you use Smart Cache effectively.
+Smart Cache is built on three core components: CacheNexusManager, CacheEntry, and CacheStorage. Understanding these will help you use Smart Cache effectively.
 
 ---
 
-## SmartCacheManager
+## CacheNexusManager
 
 The central class that orchestrates all caching operations. This is what you'll use most.
 
 ### Initialization
 
 ```dart
-final cache = SmartCacheManager(
+final cache = CacheNexusManager(
   memoryStorage: MemoryCacheStorage(),       // fast, volatile
   persistentStorage: hiveStorage,             // durable (optional)
-  mode: SmartCacheMode.dev,                   // dev or production
+  mode: CacheNexusMode.dev,                   // dev or production
 );
 ```
 
@@ -25,7 +25,7 @@ final cache = SmartCacheManager(
 | `memoryStorage` | `CacheStorage?` | `MemoryCacheStorage()` | In-memory cache |
 | `persistentStorage` | `CacheStorage?` | `null` | Persistent storage |
 | `syncEngine` | `SyncEngine?` | `null` | Offline sync queue |
-| `mode` | `SmartCacheMode` | `SmartCacheMode.production` | Dev or production mode |
+| `mode` | `CacheNexusMode` | `CacheNexusMode.production` | Dev or production mode |
 | `context` | `CacheContext?` | `null` | Auth context |
 
 ### Key Methods
@@ -130,7 +130,7 @@ In-memory `Map`-based storage. Fastest option, lost on app restart.
 ```dart
 final memoryStorage = MemoryCacheStorage();
 
-final cache = SmartCacheManager(
+final cache = CacheNexusManager(
   memoryStorage: memoryStorage,
 );
 ```
@@ -143,7 +143,7 @@ Persistent storage backed by [Hive](https://pub.dev/packages/hive). Survives app
 final hiveStorage = HiveCacheStorage(boxName: 'my_cache');
 await hiveStorage.init();
 
-final cache = SmartCacheManager(
+final cache = CacheNexusManager(
   memoryStorage: MemoryCacheStorage(),
   persistentStorage: hiveStorage,
 );
@@ -191,13 +191,13 @@ await cache.get<String>(
 ┌─────────────────────────────────────────────────────────┐
 │                        UI Layer                          │
 │  ┌──────────────────┐    ┌───────────────────────────┐  │
-│  │  SmartCacheBuilder│    │  Manual watch()/get/set   │  │
+│  │  CacheNexusBuilder│    │  Manual watch()/get/set   │  │
 │  └────────┬─────────┘    └─────────────┬─────────────┘  │
 │           │                            │                 │
 ├───────────┼────────────────────────────┼─────────────────┤
 │           ▼                            ▼                 │
 │  ┌────────────────────────────────────────────────────┐  │
-│  │              SmartCacheManager                     │  │
+│  │              CacheNexusManager                     │  │
 │  │  ┌──────────┐ ┌──────────┐ ┌──────────────────┐   │  │
 │  │  │ Context  │ │  Stats   │ │  Event Stream    │   │  │
 │  │  │ (Auth)   │ │ (Metrics)│ │  (Dev Mode)      │   │  │

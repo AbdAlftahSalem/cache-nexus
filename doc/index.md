@@ -7,7 +7,7 @@ Welcome to the Smart Cache documentation. This guide will help you understand an
 ## Quick Links
 
 - **[Quick Start](getting-started/quick-start.md)** - Get up and running in 5 minutes
-- **[API Reference](api/smart-cache-manager.md)** - Complete class documentation
+- **[API Reference](api/cache-nexus-manager.md)** - Complete class documentation
 - **[Examples](examples/blog-app/)** - Real-world code examples
 - **[FAQ](faq/common-issues.md)** - Common questions and solutions
 
@@ -31,11 +31,11 @@ In-depth explanations of all Smart Cache features.
 
 | Document | Description |
 |----------|-------------|
-| [Core Concepts](guides/core-concepts.md) | SmartCacheManager, CacheEntry, CacheStorage |
+| [Core Concepts](guides/core-concepts.md) | CacheNexusManager, CacheEntry, CacheStorage |
 | [Cache Policies](guides/cache-policies.md) | 5 caching strategies and when to use each |
 | [Two-Tier Storage](guides/two-tier-storage.md) | Memory + Hive architecture |
 | [Security & Auth](guides/security-auth.md) | Encryption and user isolation |
-| [Reactive Streams](guides/reactive-streams.md) | watch() API and SmartCacheBuilder widget |
+| [Reactive Streams](guides/reactive-streams.md) | watch() API and CacheNexusBuilder widget |
 | [Offline Sync](guides/offline-sync.md) | SyncEngine for offline-first apps |
 | [Dev Tools](guides/dev-tools.md) | Debug overlay and event monitoring |
 
@@ -68,12 +68,12 @@ Complete documentation for all classes, methods, and properties.
 
 | Document | Description |
 |----------|-------------|
-| [SmartCacheManager](api/smart-cache-manager.md) | Main cache manager class |
+| [CacheNexusManager](api/cache-nexus-manager.md) | Main cache manager class |
 | [CacheStorage](api/cache-storage.md) | Storage interface and implementations |
 | [CachePolicy](api/cache-policy.md) | Cache strategy enum |
 | [CacheContext](api/cache-context.md) | User isolation |
 | [SyncEngine](api/sync-engine.md) | Offline sync queue |
-| [SmartCacheBuilder](api/smart-cache-builder.md) | Reactive Flutter widget |
+| [CacheNexusBuilder](api/cache-nexus-builder.md) | Reactive Flutter widget |
 | [Dev Overlay](api/dev-overlay.md) | Debug tools |
 
 ### FAQ
@@ -108,7 +108,7 @@ Common questions and troubleshooting.
 8. [Security & Auth](guides/security-auth.md)
 9. [Reactive Streams](guides/reactive-streams.md)
 10. [Offline Sync](guides/offline-sync.md)
-11. [API Reference](api/smart-cache-manager.md)
+11. [API Reference](api/cache-nexus-manager.md)
 
 ---
 
@@ -116,7 +116,7 @@ Common questions and troubleshooting.
 
 - Check the [FAQ](faq/common-issues.md) for common solutions
 - Browse [examples](examples/) for real-world usage
-- Open an issue on [GitHub](https://github.com/AbdAlftahSalem/smart-cache/issues)
+- Open an issue on [GitHub](https://github.com/AbdAlftahSalem/cache-nexus/issues)
 
 ---
 

@@ -1,10 +1,10 @@
-name: smart_cache
+name: cache_nexus
 description: Offline-first, debuggable data orchestration layer for Flutter. Features TTL caching, 5 cache policies, encryption, auth-aware isolation, reactive streams, offline sync, and built-in dev tools.
 version: 1.0.0
-homepage: https://github.com/AbdAlftahSalem/smart-cache
-issue_tracker: https://github.com/AbdAlftahSalem/smart-cache/issues
-documentation: https://github.com/AbdAlftahSalem/smart-cache/tree/main/doc
-repository: https://github.com/AbdAlftahSalem/smart-cache
+homepage: https://github.com/AbdAlftahSalem/cache-nexus
+issue_tracker: https://github.com/AbdAlftahSalem/cache-nexus/issues
+documentation: https://github.com/AbdAlftahSalem/cache-nexus/tree/main/doc
+repository: https://github.com/AbdAlftahSalem/cache-nexus
 topics:
   - cache
   - offline

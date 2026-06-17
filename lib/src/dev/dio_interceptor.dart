@@ -1,15 +1,15 @@
 import 'package:dio/dio.dart';
 import '../cache_manager.dart';
-import '../smart_cache_mode.dart';
+import '../cache_nexus_mode.dart';
 
-class SmartCacheDioInterceptor extends Interceptor {
-  final SmartCacheManager cache;
+class CacheNexusDioInterceptor extends Interceptor {
+  final CacheNexusManager cache;
 
-  SmartCacheDioInterceptor(this.cache);
+  CacheNexusDioInterceptor(this.cache);
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    if (cache.mode == SmartCacheMode.dev) {
+    if (cache.mode == CacheNexusMode.dev) {
       final stopwatch = Stopwatch()..start();
       final requestId = cache.recordNetworkRequest(
         url: options.uri.toString(),
@@ -17,8 +17,8 @@ class SmartCacheDioInterceptor extends Interceptor {
         headers: _flattenHeaders(options.headers),
         body: options.data,
       );
-      options.extra['smartCacheRequestId'] = requestId;
-      options.extra['smartCacheStopwatch'] = stopwatch;
+      options.extra['cacheNexusRequestId'] = requestId;
+      options.extra['cacheNexusStopwatch'] = stopwatch;
     }
     handler.next(options);
   }
@@ -28,11 +28,11 @@ class SmartCacheDioInterceptor extends Interceptor {
     Response<dynamic> response,
     ResponseInterceptorHandler handler,
   ) {
-    if (cache.mode == SmartCacheMode.dev) {
+    if (cache.mode == CacheNexusMode.dev) {
       final requestId =
-          response.requestOptions.extra['smartCacheRequestId'] as String?;
+          response.requestOptions.extra['cacheNexusRequestId'] as String?;
       final stopwatch =
-          response.requestOptions.extra['smartCacheStopwatch'] as Stopwatch?;
+          response.requestOptions.extra['cacheNexusStopwatch'] as Stopwatch?;
       if (requestId != null && requestId.isNotEmpty) {
         stopwatch?.stop();
         cache.recordNetworkResponse(
@@ -51,11 +51,11 @@ class SmartCacheDioInterceptor extends Interceptor {
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    if (cache.mode == SmartCacheMode.dev) {
+    if (cache.mode == CacheNexusMode.dev) {
       final requestId =
-          err.requestOptions.extra['smartCacheRequestId'] as String?;
+          err.requestOptions.extra['cacheNexusRequestId'] as String?;
       final stopwatch =
-          err.requestOptions.extra['smartCacheStopwatch'] as Stopwatch?;
+          err.requestOptions.extra['cacheNexusStopwatch'] as Stopwatch?;
       if (requestId != null && requestId.isNotEmpty) {
         stopwatch?.stop();
         cache.recordNetworkError(

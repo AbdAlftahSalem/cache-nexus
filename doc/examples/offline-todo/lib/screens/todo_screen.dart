@@ -1,7 +1,7 @@
 // ignore_for_file: inference_failure_on_function_invocation
 
 import 'package:flutter/material.dart';
-import 'package:smart_cache/smart_cache.dart';
+import 'package:cache_nexus/cache_nexus.dart';
 import '../models/todo.dart';
 import '../services/todo_service.dart';
 
@@ -64,7 +64,7 @@ class _TodoScreenState extends State<TodoScreen> {
           ),
         ],
       ),
-      body: SmartCacheBuilder<List<Todo>>(
+      body: CacheNexusBuilder<List<Todo>>(
         cache: todoService.cache,
         cacheKey: 'todos',
         builder: (context, todos) {

@@ -1,21 +1,21 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_cache/smart_cache.dart';
+import 'package:cache_nexus/cache_nexus.dart';
 
 void main() {
-  late SmartCacheManager devCache;
-  late SmartCacheManager prodCache;
+  late CacheNexusManager devCache;
+  late CacheNexusManager prodCache;
   late MemoryCacheStorage storage;
 
   setUp(() {
     NetworkStatus.setMockStatus(true);
     storage = MemoryCacheStorage();
-    devCache = SmartCacheManager(
+    devCache = CacheNexusManager(
       memoryStorage: storage,
-      mode: SmartCacheMode.dev,
+      mode: CacheNexusMode.dev,
     );
-    prodCache = SmartCacheManager(
+    prodCache = CacheNexusManager(
       memoryStorage: storage,
-      mode: SmartCacheMode.production,
+      mode: CacheNexusMode.production,
     );
   });
 

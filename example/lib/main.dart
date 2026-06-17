@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:smart_cache/smart_cache.dart';
+import 'package:cache_nexus/cache_nexus.dart';
 import 'services/cache_service.dart';
 import 'screens/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final cacheService = await CacheService.create();
-  runApp(SmartCacheApp(cacheService: cacheService));
+  runApp(CacheNexusApp(cacheService: cacheService));
 }
 
-class SmartCacheApp extends StatelessWidget {
+class CacheNexusApp extends StatelessWidget {
   final CacheService cacheService;
 
-  const SmartCacheApp({super.key, required this.cacheService});
+  const CacheNexusApp({super.key, required this.cacheService});
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +23,7 @@ class SmartCacheApp extends StatelessWidget {
         useMaterial3: true,
       ),
       debugShowCheckedModeBanner: false,
-      home: SmartCacheOverlay(
+      home: CacheNexusOverlay(
         manager: cacheService.cache,
         child: HomeScreen(cacheService: cacheService),
       ),

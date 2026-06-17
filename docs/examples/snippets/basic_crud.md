@@ -88,14 +88,15 @@ final users = await cache.get<List<User>>(
 
 ```dart
 // Delete a specific key
-await cache.delete(key: 'token');
+await cache.delete( 'token');
 
 // Delete multiple keys
-await cache.delete(key: 'users');
-await cache.delete(key: 'config');
+await cache.delete( 'users');
+await cache.delete( 'config');
 
 // Delete by prefix (all keys starting with 'user_')
-await cache.deleteByPrefix('user_');
+// Note: deleteByPrefix is on CacheStorage, not SmartCacheManager directly
+await cache.memoryStorage.deleteByPrefix('user_');
 ```
 
 ---

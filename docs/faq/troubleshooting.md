@@ -158,10 +158,6 @@ await cache.enqueueSyncTask(SyncTask(
   createdAt: DateTime.now(),
 ));
 
-// Check pending tasks
-final pending = await syncEngine.getPendingTasks();
-print('Pending tasks: ${pending.length}');
-
 // Process queue
 await syncEngine.processQueue();
 ```

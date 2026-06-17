@@ -51,7 +51,7 @@ test('get with fetcher on miss', () async {
 
 test('delete', () async {
   await cache.set<String>(key: 'test', data: 'hello');
-  await cache.delete(key: 'test');
+  await cache.delete( 'test');
   final result = await cache.get<String>(
     key: 'test',
     fetcher: () => null,

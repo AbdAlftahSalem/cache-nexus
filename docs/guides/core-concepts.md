@@ -43,7 +43,7 @@ final users = await cache.get<List<User>>(
 await cache.set<List<User>>(key: 'users', data: users);
 
 // Delete data
-await cache.delete(key: 'users');
+await cache.delete( 'users');
 
 // Clear all data
 await cache.clear();

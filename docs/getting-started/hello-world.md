@@ -114,7 +114,7 @@ final token = await cache.get<String>(key: 'token', fetcher: () => null);
 ### Delete a value
 
 ```dart
-await cache.delete(key: 'token');
+await cache.delete( 'token');
 ```
 
 ### Clear all

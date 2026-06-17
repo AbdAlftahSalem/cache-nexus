@@ -219,27 +219,30 @@ SyncTask(id: 'create_${DateTime.now().millisecondsSinceEpoch}', ...)
 
 ### Handle Failures
 
+Pass error handling via the executor when creating the SyncEngine:
+
 ```dart
-syncEngine.executor = (task) async {
-  try {
-    await api.call(task);
-    return true;
-  } on NetworkException {
-    return false; // Will retry
-  } on ServerException {
-    return false; // Will retry
-  } on AuthException {
-    return false; // Will retry (maybe token expired)
-  }
-};
+final syncEngine = SyncEngine(
+  executor: (task) async {
+    try {
+      await api.call(task);
+      return true;
+    } on NetworkException {
+      return false; // Will retry
+    } on ServerException {
+      return false; // Will retry
+    } on AuthException {
+      return false; // Will retry (maybe token expired)
+    }
+  },
+);
 ```
 
 ### Monitor Queue
 
 ```dart
-// Check pending tasks
-final pendingTasks = await syncEngine.getPendingTasks();
-print('Pending tasks: ${pendingTasks.length}');
+// Process queue manually
+await syncEngine.processQueue();
 ```
 
 ---

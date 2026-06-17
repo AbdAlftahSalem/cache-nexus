@@ -125,8 +125,8 @@ final guestData = await cache.get<String>(key: 'secret', fetcher: () => 'Guest D
 // Invalidate only User A's cache (User B unaffected)
 await cache.invalidateByContext(CacheContext(userId: 'user_123'));
 
-// Invalidate all admin users
-await cache.invalidateByContext(CacheContext(role: 'admin'));
+// Invalidate a specific user with role context
+await cache.invalidateByContext(CacheContext(userId: 'user_123', role: 'admin'));
 ```
 
 ## Security Features

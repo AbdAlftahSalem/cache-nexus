@@ -10,6 +10,7 @@ Offline sync queue for persistent task execution.
 SyncEngine({
   required SyncTaskExecutor executor,
   String queueBoxName = 'sync_queue',
+  bool initHive = true,
 })
 ```
 
@@ -52,25 +53,6 @@ Process all pending tasks in the queue.
 
 ```dart
 await syncEngine.processQueue();
-```
-
----
-
-### getPendingTasks
-
-```dart
-Future<List<SyncTask>> getPendingTasks()
-```
-
-Get all pending tasks.
-
-**Returns:** `Future<List<SyncTask>>` - List of pending tasks
-
-**Example:**
-
-```dart
-final pendingTasks = await syncEngine.getPendingTasks();
-print('Pending tasks: ${pendingTasks.length}');
 ```
 
 ---

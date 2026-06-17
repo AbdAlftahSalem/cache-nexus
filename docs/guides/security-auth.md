@@ -151,10 +151,7 @@ Invalidate cache for a specific user without affecting others:
 // Invalidate only User A's cache
 await cache.invalidateByContext(CacheContext(userId: 'user_123'));
 
-// Invalidate all admin users
-await cache.invalidateByContext(CacheContext(role: 'admin'));
-
-// Invalidate all users
+// Invalidate all users (CacheContext requires userId, so use clear for global)
 await cache.clear();
 ```
 

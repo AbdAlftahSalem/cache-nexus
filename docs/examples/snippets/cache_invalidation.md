@@ -8,12 +8,12 @@ Strategies for invalidating cached data.
 
 ```dart
 // Delete a specific key
-await cache.delete(key: 'users');
+await cache.delete( 'users');
 
 // Delete multiple keys
-await cache.delete(key: 'users');
-await cache.delete(key: 'posts');
-await cache.delete(key: 'comments');
+await cache.delete( 'users');
+await cache.delete( 'posts');
+await cache.delete( 'comments');
 
 // Clear everything
 await cache.clear();
@@ -25,7 +25,8 @@ await cache.clear();
 
 ```dart
 // Delete all keys starting with 'user_'
-await cache.deleteByPrefix('user_');
+// Note: deleteByPrefix is on CacheStorage, not SmartCacheManager directly
+await cache.memoryStorage.deleteByPrefix('user_');
 
 // Examples:
 // user_123_profile → deleted
@@ -43,9 +44,9 @@ await cache.invalidateByContext(
   CacheContext(userId: 'user_123'),
 );
 
-// Invalidate cache for a specific role
+// Invalidate cache for a specific user with role context
 await cache.invalidateByContext(
-  CacheContext(role: 'admin'),
+  CacheContext(userId: 'user_123', role: 'admin'),
 );
 
 // Invalidate all users
@@ -118,7 +119,7 @@ Future<void> logout() async {
   );
 
   // 2. Clear auth token
-  await cache.delete(key: 'auth_token');
+  await cache.delete( 'auth_token');
 
   // 3. Clear context
   cache.clearContext();
@@ -132,8 +133,8 @@ Future<void> logout() async {
 ```dart
 Future<void> refreshData() async {
   // Delete stale data
-  await cache.delete(key: 'users');
-  await cache.delete(key: 'posts');
+  await cache.delete( 'users');
+  await cache.delete( 'posts');
 
   // Fetch fresh data
   await cache.get<List<User>>(

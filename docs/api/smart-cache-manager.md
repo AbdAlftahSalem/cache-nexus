@@ -41,7 +41,7 @@ SmartCacheManager({
 ### get
 
 ```dart
-Future<T?> get<T>({
+Future<T> get<T>({
   required String key,
   required Future<T> Function() fetcher,
   Duration? ttl,
@@ -110,7 +110,7 @@ await cache.set<List<User>>(
 ### delete
 
 ```dart
-Future<void> delete({required String key})
+Future<void> delete(String key)
 ```
 
 Remove a key from cache.
@@ -124,7 +124,7 @@ Remove a key from cache.
 **Example:**
 
 ```dart
-await cache.delete(key: 'users');
+await cache.delete( 'users');
 ```
 
 ---
@@ -269,7 +269,7 @@ await cache.enqueueSyncTask(SyncTask(
 ### dispose
 
 ```dart
-Future<void> dispose()
+void dispose()
 ```
 
 Clean up streams and subscriptions.
@@ -277,7 +277,7 @@ Clean up streams and subscriptions.
 **Example:**
 
 ```dart
-await cache.dispose();
+cache.dispose();
 ```
 
 ---

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:smart_cache/smart_cache.dart';
 import '../models/post.dart';
@@ -15,6 +16,7 @@ class ReactiveScreen extends StatefulWidget {
 class _ReactiveScreenState extends State<ReactiveScreen> {
   List<Post>? _posts;
   String _status = 'Watching posts stream...';
+  StreamSubscription<List<Post>?>? _subscription;
 
   @override
   void initState() {
@@ -22,8 +24,14 @@ class _ReactiveScreenState extends State<ReactiveScreen> {
     _startWatching();
   }
 
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
+
   void _startWatching() {
-    widget.cacheService.cache.watch<List<Post>>('reactive_posts').listen((posts) {
+    _subscription = widget.cacheService.cache.watch<List<Post>>('reactive_posts').listen((posts) {
       if (mounted) {
         setState(() {
           _posts = posts;

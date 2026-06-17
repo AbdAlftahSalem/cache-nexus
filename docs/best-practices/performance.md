@@ -77,7 +77,7 @@ await cache.set(key: 'user_123_profile', data: profile);
 await cache.set(key: 'user_123_settings', data: settings);
 
 // Delete all user data
-await cache.deleteByPrefix('user_123_');
+await cache.memoryStorage.deleteByPrefix('user_123_');
 ```
 
 ### Avoid Long Keys
@@ -124,10 +124,10 @@ final cache = SmartCacheManager(
 
 ```dart
 // Delete entries by prefix
-await cache.deleteByPrefix('old_data_');
+await cache.memoryStorage.deleteByPrefix('old_data_');
 
 // Delete specific entries
-await cache.delete(key: 'temporary_data');
+await cache.delete( 'temporary_data');
 ```
 
 ---

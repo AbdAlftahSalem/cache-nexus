@@ -75,9 +75,11 @@ import 'package:get_it/get_it.dart';
 final getIt = GetIt.instance;
 
 void setupDependencies() {
+  final hiveStorage = HiveCacheStorage(boxName: 'cache');
+
   getIt.registerLazySingleton(() => SmartCacheManager(
     memoryStorage: MemoryCacheStorage(),
-    persistentStorage: HiveCacheStorage(boxName: 'cache'),
+    persistentStorage: hiveStorage,
   ));
 
   getIt.registerLazySingleton(() => ApiService(
@@ -186,13 +188,13 @@ await cache.set(key: 'user_profile_123', data: user);
 
 ```dart
 // Short TTL for frequently changing data
-await cache.get(key: 'feed', ttl: const Duration(minutes: 5));
+await cache.get(key: 'feed', fetcher: () => api.getFeed(), ttl: const Duration(minutes: 5));
 
 // Long TTL for rarely changing data
-await cache.get(key: 'settings', ttl: const Duration(hours: 24));
+await cache.get(key: 'settings', fetcher: () => api.getSettings(), ttl: const Duration(hours: 24));
 
 // No TTL for persistent data
-await cache.get(key: 'user_data', ttl: null);
+await cache.get(key: 'user_data', fetcher: () => api.getUserData(), ttl: null);
 ```
 
 ### 4. Handle Errors Gracefully

@@ -47,7 +47,7 @@ final users = await cache.get<List<User>>(
 );
 
 // Delete
-await cache.delete(key: 'users');
+await cache.delete( 'users');
 ```
 
 ### Benefits
@@ -86,9 +86,12 @@ await prefs.remove('token');
 ```dart
 import 'package:smart_cache/smart_cache.dart';
 
+final hiveStorage = HiveCacheStorage(boxName: 'prefs');
+await hiveStorage.init();
+
 final cache = SmartCacheManager(
   memoryStorage: MemoryCacheStorage(),
-  persistentStorage: HiveCacheStorage(boxName: 'prefs'),
+  persistentStorage: hiveStorage,
 );
 
 // Set
@@ -106,7 +109,7 @@ final users = await cache.get<List<String>>(
 );
 
 // Delete
-await cache.delete(key: 'token');
+await cache.delete( 'token');
 ```
 
 ### Benefits

@@ -10,9 +10,12 @@ Pre-populate cache on app startup for instant data access.
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  final hiveStorage = HiveCacheStorage(boxName: 'cache');
+  await hiveStorage.init();
+
   final cache = SmartCacheManager(
     memoryStorage: MemoryCacheStorage(),
-    persistentStorage: HiveCacheStorage(boxName: 'cache'),
+    persistentStorage: hiveStorage,
   );
 
   // Warm cache before running app

@@ -56,7 +56,7 @@ Persistent storage backed by Hive. Survives app restarts.
 ### Constructor
 
 ```dart
-HiveCacheStorage({required String boxName})
+HiveCacheStorage({String boxName = 'smart_cache'})
 ```
 
 ### Methods
@@ -191,9 +191,12 @@ print(entry.isExpired); // false
 ### Memory + Hive (Recommended)
 
 ```dart
+final hiveStorage = HiveCacheStorage(boxName: 'cache');
+await hiveStorage.init();
+
 final cache = SmartCacheManager(
   memoryStorage: MemoryCacheStorage(),
-  persistentStorage: HiveCacheStorage(boxName: 'cache'),
+  persistentStorage: hiveStorage,
 );
 ```
 

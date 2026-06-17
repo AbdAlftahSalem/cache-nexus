@@ -131,9 +131,12 @@ final cache = SmartCacheManager(
 Best balance of speed and persistence:
 
 ```dart
+final hiveStorage = HiveCacheStorage(boxName: 'cache');
+await hiveStorage.init();
+
 final cache = SmartCacheManager(
   memoryStorage: MemoryCacheStorage(),     // Fast access
-  persistentStorage: HiveCacheStorage(boxName: 'cache'),
+  persistentStorage: hiveStorage,
 );
 ```
 

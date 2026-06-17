@@ -163,7 +163,7 @@ final data = await cache.get<String>(
 cache.events.listen((event) {
   if (event.type == CacheEventType.error) {
     // Report to crash reporting service
-    crashReporter.recordError(event.error, event.stackTrace);
+    crashReporter.recordError(event.error, null);
     
     // Log for debugging
     print('Cache error: ${event.key} - ${event.error}');
@@ -179,7 +179,7 @@ cache.events.listen((event) {
 
 ```dart
 // Bad: no fallback if cache miss
-final data = await cache.get<String>(key: 'data');
+final data = await cache.get<String>(key: 'data', fetcher: () => api.getData());
 
 // Good: always has fallback
 final data = await cache.get<String>(

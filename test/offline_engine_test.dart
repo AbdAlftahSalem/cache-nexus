@@ -148,9 +148,9 @@ void main() {
       final box = await Hive.openBox<dynamic>('test_sync_queue');
       expect(box.containsKey('t1'), isTrue);
 
-      // Go online
+      // Go online — queue should auto-process
       NetworkStatus.setMockStatus(true);
-      await syncEngine.processQueue();
+      await Future.delayed(const Duration(milliseconds: 100));
       
       expect(box.containsKey('t1'), isFalse);
     });
@@ -180,8 +180,9 @@ void main() {
       await syncEngine.processQueue(); // Try 2: fails, retryCount -> 2
       expect(box.get('fail_task')['retryCount'], 2);
 
-      await syncEngine.processQueue(); // Try 3: fails, retryCount -> 3, DELETED
-      expect(box.containsKey('fail_task'), isFalse);
+      await syncEngine.processQueue(); // Try 3: fails, retryCount -> 3, skipped (stays in queue)
+      expect(box.get('fail_task')['retryCount'], 3);
+      expect(box.containsKey('fail_task'), isTrue);
     });
    group('Offline Engine - Multi-Layer Storage', () {
     test('Set updates both layers', () async {

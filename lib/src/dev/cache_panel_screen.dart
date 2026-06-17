@@ -60,8 +60,6 @@ class _CachePanelScreenState extends State<CachePanelScreen> {
       ),
       body: Column(
         children: [
-          CacheStatsWidget(stats: widget.manager.stats),
-          const Divider(),
           Expanded(
             child: DefaultTabController(
               length: 2,

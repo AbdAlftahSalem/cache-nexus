@@ -5,7 +5,6 @@ import 'reactive_screen.dart';
 import 'auth_screen.dart';
 import 'security_screen.dart';
 import 'sync_screen.dart';
-import 'stats_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final CacheService cacheService;
@@ -31,7 +30,6 @@ class _HomeScreenState extends State<HomeScreen> {
       AuthScreen(cacheService: widget.cacheService),
       SecurityScreen(cacheService: widget.cacheService),
       SyncScreen(cacheService: widget.cacheService),
-      StatsScreen(cacheService: widget.cacheService),
     ];
   }
 
@@ -49,7 +47,6 @@ class _HomeScreenState extends State<HomeScreen> {
           NavigationDestination(icon: Icon(Icons.person), label: 'Auth'),
           NavigationDestination(icon: Icon(Icons.lock), label: 'Security'),
           NavigationDestination(icon: Icon(Icons.sync), label: 'Sync'),
-          NavigationDestination(icon: Icon(Icons.analytics), label: 'Stats'),
         ],
       ),
     );

@@ -24,8 +24,8 @@ class SmartCacheOverlay extends StatelessWidget {
         children: [
           child,
           Positioned(
-            right: 16,
-            bottom: 16,
+            right: 24,
+            bottom: 100,
             child: FloatingActionButton(
               mini: true,
               backgroundColor: Colors.blueAccent,

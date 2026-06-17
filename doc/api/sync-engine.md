@@ -47,7 +47,7 @@ await syncEngine.init();
 Future<void> processQueue()
 ```
 
-Process all pending tasks in the queue.
+Process all pending tasks in the queue. Tasks with `retryCount >= 3` are skipped (they remain in the queue for UI visibility).
 
 **Example:**
 
@@ -57,19 +57,77 @@ await syncEngine.processQueue();
 
 ---
 
+### enqueue
+
+```dart
+Future<void> enqueue(SyncTask task)
+```
+
+Add a task to the sync queue. If online, processes immediately.
+
+---
+
+### deleteTask
+
+```dart
+Future<bool> deleteTask(String id)
+```
+
+Remove a specific task by ID. Returns `true` if deleted, `false` if not found.
+
+---
+
+### clearQueue
+
+```dart
+Future<void> clearQueue()
+```
+
+Remove all tasks from the sync queue.
+
+---
+
 ### dispose
 
 ```dart
 void dispose()
 ```
 
-Clean up resources.
+Clean up resources and close streams.
 
 **Example:**
 
 ```dart
 syncEngine.dispose();
 ```
+
+---
+
+## Properties
+
+### onQueueChanged
+
+```dart
+Stream<List<SyncTask>> get onQueueChanged
+```
+
+Broadcast stream that emits the current task list after every queue mutation (enqueue, process, delete, clear). Useful for real-time UI updates.
+
+### pendingTasks
+
+```dart
+List<SyncTask> get pendingTasks
+```
+
+Returns all current tasks sorted by `createdAt` ascending.
+
+### queueLength
+
+```dart
+Future<int> get queueLength
+```
+
+Returns the number of tasks in the queue.
 
 ---
 
@@ -109,7 +167,7 @@ SyncTask({
 2. If online, task is processed immediately
 3. If offline, task stays in queue
 4. When connectivity returns, all queued tasks are processed in order
-5. Failed tasks retry up to **3 times**, then are dropped
+5. Failed tasks retry up to **3 times**, then are skipped (remain in queue for UI visibility, can be deleted manually)
 
 ---
 

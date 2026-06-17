@@ -10,7 +10,7 @@ The `SyncEngine` manages a persistent queue of tasks that retry automatically wh
 2. If online, task is processed immediately
 3. If offline, task stays in queue
 4. When connectivity returns, all queued tasks are processed in order
-5. Failed tasks retry up to **3 times**, then are dropped
+5. Failed tasks retry up to **3 times**, then are skipped (remain in queue for UI visibility)
 
 ---
 
@@ -241,8 +241,22 @@ final syncEngine = SyncEngine(
 ### Monitor Queue
 
 ```dart
-// Process queue manually
-await syncEngine.processQueue();
+// Listen for real-time queue changes
+syncEngine.onQueueChanged.listen((tasks) {
+  print('Queue has ${tasks.length} tasks');
+  for (final task in tasks) {
+    print('  ${task.method} ${task.endpoint} (retries: ${task.retryCount})');
+  }
+});
+
+// Get current pending tasks
+final pending = syncEngine.pendingTasks;
+
+// Delete a specific task
+await syncEngine.deleteTask('task_id');
+
+// Clear all tasks
+await syncEngine.clearQueue();
 ```
 
 ---

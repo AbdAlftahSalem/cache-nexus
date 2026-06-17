@@ -3,7 +3,7 @@ description: Offline-first, debuggable data orchestration layer for Flutter. Fea
 version: 1.0.0
 homepage: https://github.com/AbdAlftahSalem/smart-cache
 issue_tracker: https://github.com/AbdAlftahSalem/smart-cache/issues
-documentation: https://github.com/AbdAlftahSalem/smart-cache/tree/main/docs
+documentation: https://github.com/AbdAlftahSalem/smart-cache/tree/main/doc
 repository: https://github.com/AbdAlftahSalem/smart-cache
 topics:
   - cache

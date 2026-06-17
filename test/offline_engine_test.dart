@@ -55,7 +55,7 @@ void main() {
         persistentStorage: persistentStorage,
       );
 
-      final recovered = await newManager.get<Map>(
+      final recovered = await newManager.get<Map<dynamic, dynamic>>(
         key: key,
         fetcher: () async => throw Exception('Should not reach network'),
         policy: CachePolicy.cacheOnly,
@@ -73,7 +73,7 @@ void main() {
         ttl: const Duration(milliseconds: 50),
       );
 
-      await Future.delayed(const Duration(milliseconds: 100));
+      await Future<void>.delayed(const Duration(milliseconds: 100));
 
       // Should fail to get from cache only
       expect(
@@ -145,7 +145,7 @@ void main() {
       await cacheManager.enqueueSyncTask(task);
       
       // Should still be in box (we check box directly for "good content")
-      final box = await Hive.openBox('test_sync_queue');
+      final box = await Hive.openBox<dynamic>('test_sync_queue');
       expect(box.containsKey('t1'), isTrue);
 
       // Go online
@@ -168,7 +168,7 @@ void main() {
       NetworkStatus.setMockStatus(false);
       await cacheManager.enqueueSyncTask(task);
       
-      final box = await Hive.openBox('test_sync_queue');
+      final box = await Hive.openBox<dynamic>('test_sync_queue');
       expect(box.get('fail_task')['retryCount'], 0);
 
       // Go online and process

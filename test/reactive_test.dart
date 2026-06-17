@@ -29,7 +29,7 @@ void main() {
           values.add(value);
         });
 
-        await Future.delayed(Duration(milliseconds: 10));
+        await Future<void>.delayed(Duration(milliseconds: 10));
 
         expect(values, ['initial']);
 
@@ -43,12 +43,12 @@ void main() {
         });
 
         // Wait for seed (null for missing key)
-        await Future.delayed(Duration(milliseconds: 10));
+        await Future<void>.delayed(Duration(milliseconds: 10));
 
         await cache.set(key: 'test', data: 'first');
-        await Future.delayed(Duration(milliseconds: 5));
+        await Future<void>.delayed(Duration(milliseconds: 5));
         await cache.set(key: 'test', data: 'second');
-        await Future.delayed(Duration(milliseconds: 5));
+        await Future<void>.delayed(Duration(milliseconds: 5));
 
         expect(values, [null, 'first', 'second']);
 
@@ -64,10 +64,10 @@ void main() {
         });
 
         // Wait for seed
-        await Future.delayed(Duration(milliseconds: 10));
+        await Future<void>.delayed(Duration(milliseconds: 10));
 
         await cache.delete('test');
-        await Future.delayed(Duration(milliseconds: 10));
+        await Future<void>.delayed(Duration(milliseconds: 10));
 
         expect(values, contains(null));
         expect(values, contains('value'));
@@ -85,10 +85,10 @@ void main() {
         final sub2 = cache.watch<String>('test').listen((v) => values2.add(v));
 
         // Wait for both seeds to arrive
-        await Future.delayed(Duration(milliseconds: 20));
+        await Future<void>.delayed(Duration(milliseconds: 20));
 
         await cache.set(key: 'test', data: 'updated');
-        await Future.delayed(Duration(milliseconds: 10));
+        await Future<void>.delayed(Duration(milliseconds: 10));
 
         expect(values1, contains('initial'));
         expect(values1, contains('updated'));
@@ -107,16 +107,16 @@ void main() {
           values.add(value);
         });
 
-        await Future.delayed(Duration(milliseconds: 10));
+        await Future<void>.delayed(Duration(milliseconds: 10));
 
         await cache.set(key: 'test', data: 'a');
-        await Future.delayed(Duration(milliseconds: 20));
+        await Future<void>.delayed(Duration(milliseconds: 20));
         await cache.set(key: 'test', data: 'b');
-        await Future.delayed(Duration(milliseconds: 20));
+        await Future<void>.delayed(Duration(milliseconds: 20));
         await cache.set(key: 'test', data: 'c');
 
         // Wait for debounce to settle
-        await Future.delayed(Duration(milliseconds: 200));
+        await Future<void>.delayed(Duration(milliseconds: 200));
 
         // Should have seed + debounced final value
         expect(values, contains('c'));
@@ -131,13 +131,13 @@ void main() {
     group('Memory Management', () {
       test('stream controller auto-closes after last listener unsubscribes', () async {
         final sub = cache.watch<String>('test').listen((_) {});
-        await Future.delayed(Duration(milliseconds: 10));
+        await Future<void>.delayed(Duration(milliseconds: 10));
 
         expect(cache.reactiveEngine.controllerCount, 1);
 
         await sub.cancel();
         // Give time for microtask cleanup
-        await Future.delayed(Duration(milliseconds: 50));
+        await Future<void>.delayed(Duration(milliseconds: 50));
 
         // Controller should be auto-closed and removed
         expect(cache.reactiveEngine.controllerCount, 0);
@@ -154,11 +154,11 @@ void main() {
       test('no memory leaks after dispose', () async {
         for (var i = 0; i < 10; i++) {
           cache.watch<String>('test$i').listen((_) {});
-          await Future.delayed(Duration(milliseconds: 5));
+          await Future<void>.delayed(Duration(milliseconds: 5));
         }
 
         cache.dispose();
-        await Future.delayed(Duration(milliseconds: 50));
+        await Future<void>.delayed(Duration(milliseconds: 50));
         expect(cache.reactiveEngine.controllerCount, 0);
       });
     });
@@ -180,7 +180,7 @@ void main() {
         // Verify reactive layer still works
         final values = <String?>[];
         final sub = cache.watch<String>('compat').listen((v) => values.add(v));
-        await Future.delayed(Duration(milliseconds: 10));
+        await Future<void>.delayed(Duration(milliseconds: 10));
 
         expect(values, contains('value'));
         await sub.cancel();
@@ -194,7 +194,7 @@ void main() {
       test('missing key emits null seed', () async {
         final values = <String?>[];
         final sub = cache.watch<String>('missing').listen((v) => values.add(v));
-        await Future.delayed(Duration(milliseconds: 10));
+        await Future<void>.delayed(Duration(milliseconds: 10));
 
         // Should emit null for missing key
         expect(values, [null]);
@@ -205,13 +205,13 @@ void main() {
       test('watch on non-existent key then set emits both', () async {
         final values = <String?>[];
         final sub = cache.watch<String>('new').listen((v) => values.add(v));
-        await Future.delayed(Duration(milliseconds: 10));
+        await Future<void>.delayed(Duration(milliseconds: 10));
 
         // Wait for seed
         expect(values, [null]);
 
         await cache.set(key: 'new', data: 'created');
-        await Future.delayed(Duration(milliseconds: 10));
+        await Future<void>.delayed(Duration(milliseconds: 10));
 
         expect(values, [null, 'created']);
 

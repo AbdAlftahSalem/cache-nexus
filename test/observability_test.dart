@@ -40,7 +40,7 @@ void main() {
       );
 
       // Give it a tiny bit of time for any async events
-      await Future.delayed(Duration(milliseconds: 10));
+      await Future<void>.delayed(Duration(milliseconds: 10));
 
       expect(events, isEmpty);
       expect(prodCache.stats.fetches, 0);
@@ -97,7 +97,7 @@ void main() {
 
     test('expired key emits expired event', () async {
       await devCache.set(key: 'ttl_key', data: 'old', ttl: Duration(milliseconds: 1));
-      await Future.delayed(Duration(milliseconds: 10));
+      await Future<void>.delayed(Duration(milliseconds: 10));
 
       final futureEvent = devCache.events.firstWhere((e) => e.type == CacheEventType.expired);
 
@@ -135,7 +135,7 @@ void main() {
       manager.events.listen((_) {}, onDone: () => done.complete());
 
       manager.dispose();
-      await Future.delayed(Duration(milliseconds: 50));
+      await Future<void>.delayed(Duration(milliseconds: 50));
 
       expect(done.isCompleted, isTrue);
     });
@@ -165,7 +165,7 @@ void main() {
       expect(id, isNotEmpty);
       expect(id, startsWith('req_'));
 
-      await Future.delayed(Duration(milliseconds: 10));
+      await Future<void>.delayed(Duration(milliseconds: 10));
       expect(events.any((e) => e.type == CacheEventType.networkRequest), isTrue);
     });
 
@@ -185,7 +185,7 @@ void main() {
         duration: Duration(milliseconds: 150),
       );
 
-      await Future.delayed(Duration(milliseconds: 10));
+      await Future<void>.delayed(Duration(milliseconds: 10));
 
       expect(cache.stats.totalRequests, 1);
       expect(cache.stats.successfulRequests, 1);
@@ -209,7 +209,7 @@ void main() {
         duration: Duration(milliseconds: 300),
       );
 
-      await Future.delayed(Duration(milliseconds: 10));
+      await Future<void>.delayed(Duration(milliseconds: 10));
 
       expect(cache.stats.totalRequests, 1);
       expect(cache.stats.failedRequests, 1);
@@ -227,7 +227,7 @@ void main() {
       );
 
       expect(result, 'ok');
-      await Future.delayed(Duration(milliseconds: 10));
+      await Future<void>.delayed(Duration(milliseconds: 10));
 
       expect(cache.stats.totalRequests, 1);
       expect(cache.stats.successfulRequests, 1);
@@ -247,7 +247,7 @@ void main() {
         );
       } catch (_) {}
 
-      await Future.delayed(Duration(milliseconds: 10));
+      await Future<void>.delayed(Duration(milliseconds: 10));
 
       expect(cache.stats.totalRequests, 1);
       expect(cache.stats.failedRequests, 1);
@@ -269,7 +269,7 @@ void main() {
         statusCode: 201,
       );
 
-      await Future.delayed(Duration(milliseconds: 10));
+      await Future<void>.delayed(Duration(milliseconds: 10));
 
       final reqEvents = events.where((e) => e.type == CacheEventType.networkRequest).toList();
       final resEvents = events.where((e) => e.type == CacheEventType.networkResponse).toList();

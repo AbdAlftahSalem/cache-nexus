@@ -51,7 +51,7 @@ void main() {
       expect(engine.controllerCount, 1);
 
       await sub.cancel();
-      await Future.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
 
       expect(engine.controllerCount, 0);
     });
@@ -105,7 +105,7 @@ void main() {
       );
 
       // Wait for expiration
-      await Future.delayed(Duration(milliseconds: 10));
+      await Future<void>.delayed(Duration(milliseconds: 10));
 
       var fetchCount = 0;
       final result = await cache.get(
@@ -264,7 +264,7 @@ void main() {
         final f1 = cache.get(
           key: 'key',
           fetcher: () async {
-            await Future.delayed(Duration(milliseconds: 50));
+            await Future<void>.delayed(Duration(milliseconds: 50));
             fetchCount++;
             return 'fetched_value';
           },
@@ -292,7 +292,7 @@ void main() {
         final result = await cache.get(
           key: 'key',
           fetcher: () async {
-            await Future.delayed(Duration(milliseconds: 20));
+            await Future<void>.delayed(Duration(milliseconds: 20));
             fetchCount++;
             return 'fresh_value';
           },
@@ -303,7 +303,7 @@ void main() {
         expect(fetchCount, 0);
 
         // Wait for background refresh
-        await Future.delayed(Duration(milliseconds: 50));
+        await Future<void>.delayed(Duration(milliseconds: 50));
         expect(fetchCount, 1);
 
         // Next call should get fresh data
@@ -443,7 +443,7 @@ void main() {
         createdAt: DateTime(2024, 1, 1),
       );
       final json = entry.toJson();
-      expect(json['data'], isA<Map>());
+      expect(json['data'], isA<Map<dynamic, dynamic>>());
       expect(json['data']['id'], 1);
       expect(json['data']['name'], 'widget');
     });
@@ -454,7 +454,7 @@ void main() {
         createdAt: DateTime(2024, 1, 1),
       );
       final json = entry.toJson();
-      expect(json['data'], isA<List>());
+      expect(json['data'], isA<List<dynamic>>());
       expect(json['data'][0]['id'], 1);
       expect(json['data'][1]['name'], 'b');
     });
@@ -466,7 +466,7 @@ void main() {
         ttl: const Duration(minutes: 5),
       );
       final json = original.toJson();
-      final restored = CacheEntry.fromJson(json);
+      final restored = CacheEntry<dynamic>.fromJson(json);
       expect(restored.data, 'hello');
       expect(restored.createdAt, original.createdAt);
       expect(restored.ttl, original.ttl);
@@ -479,7 +479,7 @@ void main() {
       );
       final json = original.toJson();
       // After toJson, data is a Map (serialized custom object)
-      final restored = CacheEntry.fromJson(json);
+      final restored = CacheEntry<dynamic>.fromJson(json);
       expect(restored.data, isA<Map>());
       expect((restored.data as Map)['id'], 1);
     });
@@ -605,10 +605,10 @@ void main() {
 
       await cache.set(key: 'a', data: 1);
       await cache.set(key: 'b', data: 2);
-      await Future.delayed(Duration(milliseconds: 10));
+      await Future<void>.delayed(Duration(milliseconds: 10));
 
       await cache.clear();
-      await Future.delayed(Duration(milliseconds: 10));
+      await Future<void>.delayed(Duration(milliseconds: 10));
 
       final evicts = events.where((e) => e.type == CacheEventType.evict).toList();
       expect(evicts.any((e) => e.key == 'all'), isTrue);
@@ -617,18 +617,18 @@ void main() {
     test('dispose() cleans up reactive engine and observability', () async {
       final manager = SmartCacheManager(memoryStorage: MemoryCacheStorage(), mode: SmartCacheMode.dev);
       manager.watch<String>('test').listen((_) {});
-      await Future.delayed(Duration(milliseconds: 10));
+      await Future<void>.delayed(Duration(milliseconds: 10));
 
       expect(manager.reactiveEngine.controllerCount, 1);
 
       manager.dispose();
-      await Future.delayed(Duration(milliseconds: 50));
+      await Future<void>.delayed(Duration(milliseconds: 50));
 
       expect(manager.reactiveEngine.controllerCount, 0);
 
       final done = Completer<void>();
       manager.events.listen((_) {}, onDone: () => done.complete());
-      await Future.delayed(Duration(milliseconds: 50));
+      await Future<void>.delayed(Duration(milliseconds: 50));
       expect(done.isCompleted, isTrue);
     });
 
@@ -636,14 +636,14 @@ void main() {
       final values = <String?>[];
       final sub = cache.watch<String>('debounce', debounce: Duration(milliseconds: 100)).listen((v) => values.add(v));
 
-      await Future.delayed(Duration(milliseconds: 10));
+      await Future<void>.delayed(Duration(milliseconds: 10));
       await cache.set(key: 'debounce', data: 'a');
-      await Future.delayed(Duration(milliseconds: 20));
+      await Future<void>.delayed(Duration(milliseconds: 20));
       await cache.set(key: 'debounce', data: 'b');
-      await Future.delayed(Duration(milliseconds: 20));
+      await Future<void>.delayed(Duration(milliseconds: 20));
       await cache.set(key: 'debounce', data: 'c');
 
-      await Future.delayed(Duration(milliseconds: 200));
+      await Future<void>.delayed(Duration(milliseconds: 200));
 
       expect(values, contains('c'));
       expect(values.length, lessThanOrEqualTo(3));
@@ -697,7 +697,7 @@ void main() {
         policy: CachePolicy.networkFirst,
       );
 
-      await Future.delayed(Duration(milliseconds: 10));
+      await Future<void>.delayed(Duration(milliseconds: 10));
 
       expect(events.any((e) => e.type == CacheEventType.fetch), isTrue);
     });

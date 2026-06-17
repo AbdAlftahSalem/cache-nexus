@@ -1,441 +1,260 @@
-# Smart Cache
+<p align="center">
+  <h1 align="center">Smart Cache</h1>
+  <p align="center">Offline-first, debuggable data orchestration layer for Flutter</p>
+</p>
 
-> 🚀 A powerful Offline-First, Debuggable Data Layer for Flutter applications.
-
----
-
-# Vision
-
-Smart Cache is not just a caching library.
-
-It is a full **data orchestration layer** between UI, API, and local storage, designed to simplify how Flutter apps handle:
-
-* Remote data
-* Local caching
-* Offline scenarios
-* Request lifecycle debugging
-
-The goal is to eliminate repetitive data-layer logic in every project.
+<p align="center">
+  <a href="https://pub.dev/packages/smart_cache"><img src="https://img.shields.io/pub/v/smart_cache.svg" alt="pub.dev"></a>
+  <a href="https://github.com/AbdAlftahSalem/smart-cache/blob/main/LICENSE"><img src="https://img.shields.io/github/license/AbdAlftahSalem/smart-cache" alt="license"></a>
+  <a href="https://flutter.dev"><img src="https://img.shields.io/badge/Flutter-%3E%3D3.0.0-blue.svg" alt="flutter"></a>
+  <a href="https://github.com/AbdAlftahSalem/smart-cache"><img src="https://img.shields.io/github/stars/AbdAlftahSalem/smart-cache?style=social" alt="stars"></a>
+</p>
 
 ---
 
-# Core Philosophy
-
-Developers should NOT manually handle:
-
-* API state management
-* Cache logic
-* Offline fallback
-* Request deduplication
-* Debugging network behavior
-
-Smart Cache handles all of that automatically.
+Smart Cache is **not just a caching library**. It is a full **data orchestration layer** between UI, API, and local storage. It handles caching, offline fallback, request deduplication, security, reactive streams, and built-in developer debugging tools -- so you don't have to.
 
 ---
 
-# ✨ Key Features
+## Quick Start (5 minutes)
 
-## 1. Smart Caching Engine
+### 1. Add dependency
 
-* TTL-based caching
-* Memory-first architecture
-* Fetch fallback system
-* Automatic cache expiration
-
----
-
-## 2. Request Deduplication
-
-Prevents duplicate API calls:
-
-```text
-Multiple Widgets
-     ↓
-Single Network Request
-     ↓
-Shared Response
+```yaml
+# pubspec.yaml
+dependencies:
+  smart_cache: ^1.0.0
 ```
 
----
-
-## 3. Offline Support (Future Phase)
-
-* Return cached data when offline
-* Graceful failure handling
-* Optional background sync
-
----
-
-## 4. Cache Policies (Future Phase)
-
-* cacheFirst
-* networkFirst
-* cacheOnly
-* networkOnly
-* staleWhileRevalidate
-
----
-
-# 🧠 Dev Mode (NEW FEATURE)
-
-Smart Cache includes a built-in **Developer Mode** designed to help developers debug every request inside the application.
-
----
-
-## 🟡 SmartCacheMode
+### 2. Initialize & cache
 
 ```dart
-SmartCacheMode.dev
-SmartCacheMode.production
-```
+import 'package:smart_cache/smart_cache.dart';
 
----
+final cache = SmartCacheManager(
+  memoryStorage: MemoryCacheStorage(),
+);
 
-# 🧪 Dev Mode Features
-
-When enabled, Smart Cache becomes fully observable.
-
----
-
-## 1. Console Logging
-
-Every request is logged:
-
-```text
-[SmartCache] GET /users
-→ CACHE MISS
-→ FETCH API
-→ RESPONSE: 200 OK
-→ STORED (TTL: 1h)
-```
-
----
-
-## 2. Request Tracking
-
-Tracks:
-
-* Request key
-* Response data
-* Cache status
-* Execution time
-* Errors
-
----
-
-## 3. Real-Time Dev Overlay (UI)
-
-### 🔥 Floating Debug Button
-
-When in dev mode, a floating button appears inside the app:
-
-```text
-🧠 Smart Cache
-```
-
----
-
-### 📊 Dev Panel Screen
-
-On click, a full debug panel opens showing live requests:
-
-```text
-GET /users
-→ CACHE MISS
-→ 120ms
-
-GET /profile
-→ CACHE HIT
-→ 2ms
-
-POST /order
-→ FAILED (timeout)
-```
-
----
-
-## 4. Request Details Viewer
-
-Each request can be expanded:
-
-```text
-KEY: /users
-
-REQUEST:
-{
-  "page": 1
-}
-
-RESPONSE:
-[
-  { "id": 1, "name": "Ali" }
-]
-
-CACHE STATUS: MISS
-TIME: 120ms
-```
-
----
-
-## 5. Dev Mode Safety
-
-Dev tools are:
-
-* Automatically disabled in production
-* Tree-shaken when not used
-* Zero performance impact in release builds
-
----
-
-# 🏗 Architecture
-
-```text
-UI
-│
-▼
-Repository Layer
-│
-▼
-SmartCacheManager
-│
-├── Memory Storage
-├── Future Storages (Hive / Isar / SQLite)
-│
-├── Dev Event Stream
-│
-└── Dev Overlay System (Debug UI)
-```
-
----
-
-# 📦 Package Structure
-
-```text
-smart_cache/
-
-lib/
-
-├── smart_cache.dart
-
-└── src/
-
-    cache_manager.dart
-    cache_entry.dart
-    cache_storage.dart
-
-    storage/
-        memory_cache_storage.dart
-
-    dev/
-        cache_event.dart
-        cache_event_type.dart
-        cache_event_stream.dart
-        smart_cache_overlay.dart
-        cache_debug_screen.dart
-
-    utils/
-```
-
----
-
-# 🧠 Cache Entry Model
-
-Each cached item includes:
-
-```dart
-class CacheEntry<T> {
-  final T data;
-  final DateTime createdAt;
-  final Duration ttl;
-
-  bool get isExpired;
-}
-```
-
----
-
-# ⚙️ Core API
-
-## Get Data
-
-```dart
-final users = await cache.get(
+final users = await cache.get<List<String>>(
   key: 'users',
-  fetcher: () => api.getUsers(),
+  fetcher: () async => ['Alice', 'Bob', 'Charlie'],
   ttl: Duration(hours: 1),
 );
+
+print(users); // ['Alice', 'Bob', 'Charlie']
+// Next call with same key returns instantly from cache!
+```
+
+That's it. See [docs/getting-started/quick-start.md](docs/getting-started/quick-start.md) for the full runnable example.
+
+---
+
+## Features
+
+| Feature | Description |
+|---------|-------------|
+| **5 Cache Policies** | cacheFirst, networkFirst, cacheOnly, networkOnly, staleWhileRevalidate |
+| **Two-Tier Storage** | Fast in-memory + persistent Hive |
+| **Request Deduplication** | Concurrent requests share one network call |
+| **Offline Support** | Automatic fallback to persistent cache |
+| **Offline Sync Queue** | Tasks retry when connectivity returns |
+| **Security Layer** | Encryption + compression decorators |
+| **Auth-Aware Caching** | Isolate cache by user ID and role |
+| **Reactive Streams** | `watch()` API + `SmartCacheBuilder` widget |
+| **Dev Tools** | Floating debug button, live event panel, stats |
+| **Cache Stats** | Hit/miss/fetch/error tracking with hit rate |
+
+---
+
+## Documentation
+
+| Section | Description |
+|---------|-------------|
+| **[Getting Started](docs/getting-started/)** | Installation, quick-start, hello-world |
+| **[Guides](docs/guides/)** | Core concepts, policies, storage, security, reactive, offline, dev tools |
+| **[Examples](docs/examples/)** | Real-world examples with code snippets |
+| **[Best Practices](docs/best-practices/)** | Architecture, testing, performance, migration |
+| **[API Reference](docs/api/)** | Complete class/method documentation |
+| **[FAQ](docs/faq/)** | Common issues and troubleshooting |
+
+---
+
+## Examples
+
+### Blog App
+
+A complete blog app with posts list, detail view, cache policies, reactive UI, and offline sync.
+
+**Features demonstrated:**
+- SmartCacheBuilder for auto-rebuilding UI
+- Cache policies (cacheFirst vs networkFirst)
+- Request deduplication
+- Dev tools overlay
+
+See [docs/examples/blog-app/](docs/examples/blog-app/) for full code.
+
+### Auth Flow
+
+Login, user context switching, cache isolation between users, and secure logout.
+
+**Features demonstrated:**
+- Auth-aware caching
+- CacheContext for user isolation
+- Smart invalidation by context
+- Encrypted storage for sensitive data
+
+See [docs/examples/auth-flow/](docs/examples/auth-flow/) for full code.
+
+### Offline Todo
+
+Create, edit, and delete todos offline with automatic sync when online.
+
+**Features demonstrated:**
+- SyncEngine for offline queue
+- Auto-retry on connectivity return
+- Persistent cache across app restarts
+- NetworkStatus monitoring
+
+See [docs/examples/offline-todo/](docs/examples/offline-todo/) for full code.
+
+---
+
+## Code Snippets
+
+| Snippet | Description |
+|---------|-------------|
+| **[Basic CRUD](docs/examples/snippets/basic_crud.md)** | Create, read, update, delete cache entries |
+| **[Custom Encryptor](docs/examples/snippets/custom_encryptor.md)** | Implement your own encryption |
+| **[Cache Warming](docs/examples/snippets/cache_warming.md)** | Pre-populate cache on startup |
+| **[Testing Patterns](docs/examples/snippets/testing_patterns.md)** | Unit and widget testing |
+| **[Request Dedup](docs/examples/snippets/request_deduplication.md)** | Concurrent request handling |
+| **[Cache Invalidation](docs/examples/snippets/cache_invalidation.md)** | Invalidation strategies |
+| **[Stream Debounce](docs/examples/snippets/stream_debounce.md)** | Prevent rapid UI rebuilds |
+
+---
+
+## Installation
+
+### From pub.dev (when published)
+
+```yaml
+dependencies:
+  smart_cache: ^1.0.0
+```
+
+### From Git
+
+```yaml
+dependencies:
+  smart_cache:
+    git:
+      url: https://github.com/AbdAlftahSalem/smart-cache.git
+      ref: main
+```
+
+### From local path
+
+```yaml
+dependencies:
+  smart_cache:
+    path: ../smart_cache
+```
+
+Then run:
+
+```bash
+flutter pub get
 ```
 
 ---
 
-## Set Data
+## Best Practices
+
+### Singleton Pattern
 
 ```dart
-await cache.set(
-  key: 'users',
-  data: users,
-);
-```
+// app_cache.dart
+class AppCache {
+  static final AppCache _instance = AppCache._();
+  factory AppCache() => _instance;
+  AppCache._();
 
----
-
-## Delete
-
-```dart
-await cache.delete('users');
-```
-
----
-
-## Clear All
-
-```dart
-await cache.clear();
-```
-
----
-
-# 📡 Dev Event System
-
-Smart Cache emits real-time events:
-
-```dart
-class CacheEvent {
-  final String key;
-  final CacheEventType type;
-  final dynamic request;
-  final dynamic response;
-  final int durationMs;
-  final DateTime timestamp;
+  final SmartCacheManager cache = SmartCacheManager(
+    memoryStorage: MemoryCacheStorage(),
+    persistentStorage: HiveCacheStorage(boxName: 'app_cache'),
+    mode: kReleaseMode ? SmartCacheMode.production : SmartCacheMode.dev,
+  );
 }
 ```
 
----
-
-## Event Types
-
-* hit
-* miss
-* fetch
-* store
-* expired
-* error
-
----
-
-# 🎮 Dev Overlay Integration
-
-Enable inside Flutter app:
+### Error Handling
 
 ```dart
-MaterialApp(
-  builder: (context, child) {
-    return Stack(
-      children: [
-        child!,
-        SmartCacheOverlay(cache),
-      ],
-    );
-  },
+final data = await cache.get<User>(
+  key: 'profile',
+  fetcher: () => api.getProfile(),
+  ttl: Duration(minutes: 15),
 );
+// Data is always returned (from cache, network, or null)
+// No try-catch needed!
 ```
 
----
+### Migration
 
-# 🔐 Production Safety
-
-Dev features are only active when:
-
-```dart
-SmartCacheMode.dev
-```
-
-In production:
-
-* Overlay is disabled
-* Logging is removed
-* No performance overhead
+Already using Hive, shared_preferences, or Riverpod? See [docs/best-practices/migration.md](docs/best-practices/migration.md) for side-by-side comparisons.
 
 ---
 
-# 📊 Future Features Roadmap
+## Roadmap
 
-## Phase 1 (MVP)
+### Completed
 
-* Memory Cache
-* TTL System
-* Basic Fetch Flow
+- [x] Phase 1: Memory Cache, TTL System, Basic Fetch Flow
+- [x] Phase 2: Cache Policies, Expiration Control, Stats System
+- [x] Phase 3: Request Deduplication, Stale While Revalidate
+- [x] Phase 4: Hive Persistent Storage, Two-Tier Architecture
+- [x] Phase 5: Encryption, Compression, Auth-Aware Caching
+- [x] Phase 6: Reactive Streams, SmartCacheBuilder Widget
+- [x] Phase 7: Offline Sync Queue, Background Retry
 
----
-
-## Phase 2
-
-* Cache Policies
-* Expiration Control
-* Stats System
-
----
-
-## Phase 3
-
-* Request Deduplication
-* Stale While Revalidate
-* Background Refresh
+### Planned
+- [ ] Phase 8: Dio/Retrofit Integration, Tag-Based Invalidation
+- [ ] Phase 9: Cache Warming, Prefetching, Background Refresh Scheduling
+- [ ] Phase 10: Full Dev Dashboard, Request Timeline, Analytics, Export Logs (JSON/CSV)
+- pub.dev publication
 
 ---
 
-## Phase 4
+## Contributing
 
-* Hive / Isar / SQLite Support
-* Persistent Storage Layer
+Contributions are welcome! Here's how:
 
----
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-## Phase 5
-
-* Dio Integration
-* Tags System
-* Auto Invalidation
-
----
-
-## Phase 6
-
-* Reactive Streams
-* UI Auto Updates
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed development setup.
 
 ---
 
-## Phase 7 (Advanced)
+## Contact
 
-* Offline Queue
-* Background Sync
-* Encryption
-* Compression
-
----
-
-## Phase 8 (DevTools Expansion)
-
-* Full Dev Dashboard
-* Request Timeline Viewer
-* Performance Analytics
-* Export Logs (JSON/CSV)
+| Platform | Link |
+|----------|------|
+| **WhatsApp** | [+972 59 804 5064](https://wa.me/972598045064) |
+| **Email** | [abdalftah.ps@gmail.com](mailto:abdalftah.ps@gmail.com) |
+| **LinkedIn** | [Abd Alftah Salem](https://www.linkedin.com/in/abd-alftah-salem-a3ba0b1bb/) |
 
 ---
 
-# 📈 Success Vision
+## License
 
-Smart Cache aims to become:
-
-> The React Query of Flutter ecosystem.
+MIT License - see [LICENSE](LICENSE) for details.
 
 ---
 
-# 📜 License
-
-MIT License
-
----
-
-Built with ❤️ for Flutter developers who care about performance, simplicity, and debugging clarity.
+<p align="center">
+  Built with ❤️ for Flutter developers who care about performance, simplicity, and debugging clarity.
+</p>

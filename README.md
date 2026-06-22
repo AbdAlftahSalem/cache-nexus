@@ -1,5 +1,5 @@
 <p align="center">
-  <h1 align="center">Smart Cache</h1>
+  <h1 align="center">Cache-nexus</h1>
   <p align="center">Offline-first, debuggable data orchestration layer for Flutter</p>
 </p>
 

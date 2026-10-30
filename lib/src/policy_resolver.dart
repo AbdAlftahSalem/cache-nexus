@@ -13,7 +13,11 @@ import 'type_registry.dart';
 
 /// The result of looking a key up in the memory and persistent tiers.
 class _Lookup<T> {
-  const _Lookup.miss() : found = false, value = null, entry = null, error = null;
+  const _Lookup.miss()
+    : found = false,
+      value = null,
+      entry = null,
+      error = null;
   const _Lookup.hit(this.value, CacheEntry<dynamic> this.entry)
     : found = true,
       error = null;

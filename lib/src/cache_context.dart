@@ -39,7 +39,9 @@ class CacheContext {
   /// The prefix added to every key while this context is active.
   String get cacheKeyPrefix {
     final r = role;
-    return r == null ? '${userKeyPrefix}r|' : '${userKeyPrefix}r${r.length}:$r|';
+    return r == null
+        ? '${userKeyPrefix}r|'
+        : '${userKeyPrefix}r${r.length}:$r|';
   }
 
   /// The ambiguous prefix used by version 1.0.0, kept so data written by 1.0

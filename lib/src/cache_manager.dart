@@ -39,7 +39,7 @@ class CacheNexusManager {
   /// The fast, in-process tier. Defaults to [MemoryCacheStorage].
   final CacheStorage memoryStorage;
 
-  /// The tier that survives restarts (e.g. [HiveCacheStorage]), if any.
+  /// The tier that survives restarts (e.g. `HiveCacheStorage`), if any.
   final CacheStorage? persistentStorage;
 
   /// The offline write queue used by [enqueueSyncTask], if any.
@@ -299,6 +299,8 @@ class CacheNexusManager {
     }
   }
 
+  /// Records an outgoing request in the dev tools and returns its id.
+  /// Prefer `CacheNexusDioInterceptor` or [trackNetworkRequest].
   String recordNetworkRequest({
     required String url,
     required String method,
@@ -311,6 +313,7 @@ class CacheNexusManager {
     body: body,
   );
 
+  /// Records the response to the request [requestId].
   void recordNetworkResponse({
     required String requestId,
     required String url,
@@ -329,6 +332,7 @@ class CacheNexusManager {
     duration: duration,
   );
 
+  /// Records that the request [requestId] failed with [error].
   void recordNetworkError({
     required String requestId,
     required String url,
@@ -345,18 +349,23 @@ class CacheNexusManager {
     duration: duration,
   );
 
+  /// Runs [request] and records it in the dev tools. The status code is
+  /// read with [statusCodeOf], or from a `statusCode` property of the result
+  /// (Dio and http responses have one), or assumed to be 200.
   Future<T> trackNetworkRequest<T>({
     required String url,
     required String method,
     Map<String, dynamic>? headers,
     dynamic body,
     required Future<T> Function() request,
+    int Function(T result)? statusCodeOf,
   }) => _observability.trackNetworkRequest(
     url: url,
     method: method,
     headers: headers,
     body: body,
     request: request,
+    statusCodeOf: statusCodeOf,
   );
 
   /// Registers [adapter] so values of type `T` (and `T?`, `List<T>`,

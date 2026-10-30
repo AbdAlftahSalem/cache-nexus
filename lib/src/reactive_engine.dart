@@ -113,8 +113,7 @@ class ReactiveEngine {
         // Close the controller once the last watcher is gone, unless a new
         // watcher arrives in the same microtask.
         Future.microtask(() {
-          if (!created.controller.hasListener &&
-              !created.controller.isClosed) {
+          if (!created.controller.hasListener && !created.controller.isClosed) {
             created.controller.close();
             if (identical(_controllers[key], created)) {
               _controllers.remove(key);

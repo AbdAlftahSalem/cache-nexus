@@ -49,21 +49,17 @@ class NetworkStatus {
 
   static void _ensureRealSubscription() {
     if (_realSubscription != null) return;
-    try {
-      _realSubscription = _platform.onConnectivityChanged.listen(
-        (results) {
-          final online = results.any(
-            (element) => element != ConnectivityResult.none,
-          );
-          if (_mockOnline == null) _controller.add(online);
-        },
-        onError: (Object _) {
-          // Platform channel unavailable (tests, unsupported platform).
-        },
-      );
-    } catch (_) {
-      // Platform channel unavailable (tests, unsupported platform).
-    }
+    // Errors raised while subscribing (no platform binding in plain Dart
+    // tests, missing plugin) are reported asynchronously, so a guarded zone
+    // is used instead of try/catch. Connectivity then simply never changes.
+    runZonedGuarded(() {
+      _realSubscription = _platform.onConnectivityChanged.listen((results) {
+        final online = results.any(
+          (element) => element != ConnectivityResult.none,
+        );
+        if (_mockOnline == null) _controller.add(online);
+      }, onError: (Object _) {});
+    }, (error, stack) {});
   }
 
   /// Stops listening to the platform. The shared stream stays usable, so

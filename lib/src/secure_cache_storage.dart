@@ -64,7 +64,9 @@ class SecureCacheStorage implements CacheStorage {
       return CacheEntry<dynamic>.fromJson(json as Map<String, dynamic>);
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('[cache_nexus] SecureCacheStorage could not read "$key": $e');
+        debugPrint(
+          '[cache_nexus] SecureCacheStorage could not read "$key": $e',
+        );
       }
       return null;
     }

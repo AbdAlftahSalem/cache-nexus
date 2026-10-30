@@ -120,7 +120,13 @@ class CacheTypeRegistry {
     final codec = _derived[T];
     if (codec?.encode != null) return codec!.encode!(value);
     final runtimeAdapter = _adapters[value.runtimeType];
-    if (runtimeAdapter is CacheAdapter) return runtimeAdapter.toData(value);
+    if (runtimeAdapter is CacheAdapter && !identical(runtimeAdapter, adapter)) {
+      try {
+        return runtimeAdapter.toData(value);
+      } catch (_) {
+        // Fall back to the generic serializer below.
+      }
+    }
     return toStorable(value);
   }
 

@@ -2,10 +2,36 @@ import 'package:dio/dio.dart';
 import '../cache_manager.dart';
 import '../cache_nexus_mode.dart';
 
+/// Records every Dio request, response and error in the dev panel.
+///
+/// ```dart
+/// dio.interceptors.add(CacheNexusDioInterceptor(cache));
+/// ```
+///
+/// Does nothing unless the manager runs in [CacheNexusMode.dev]. Values of
+/// sensitive headers ([redactedHeaders], `Authorization` and cookies by
+/// default) are replaced by `<redacted>` before they are recorded.
 class CacheNexusDioInterceptor extends Interceptor {
+  /// The manager that records the traffic.
   final CacheNexusManager cache;
 
-  CacheNexusDioInterceptor(this.cache);
+  /// Lower-case header names whose values are never recorded.
+  final Set<String> redactedHeaders;
+
+  /// The headers redacted by default.
+  static const Set<String> defaultRedactedHeaders = {
+    'authorization',
+    'proxy-authorization',
+    'cookie',
+    'set-cookie',
+    'x-api-key',
+  };
+
+  /// Creates the interceptor.
+  CacheNexusDioInterceptor(
+    this.cache, {
+    this.redactedHeaders = defaultRedactedHeaders,
+  });
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
@@ -73,7 +99,12 @@ class CacheNexusDioInterceptor extends Interceptor {
 
   Map<String, String> _flattenHeaders(Map<String, dynamic> headers) {
     return headers.map(
-      (k, v) => MapEntry(k, v is List ? v.join(', ') : v.toString()),
+      (k, v) => MapEntry(
+        k,
+        redactedHeaders.contains(k.toLowerCase())
+            ? '<redacted>'
+            : (v is List ? v.join(', ') : v.toString()),
+      ),
     );
   }
 }

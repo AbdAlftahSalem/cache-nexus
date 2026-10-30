@@ -1,6 +1,6 @@
 # Two-Tier Storage
 
-Smart Cache uses a **memory-first** architecture with optional persistent storage. This gives you the best of both worlds: speed and durability.
+Cache Nexus uses a **memory-first** architecture with optional persistent storage. This gives you the best of both worlds: speed and durability.
 
 ---
 
@@ -56,7 +56,11 @@ final cache = CacheNexusManager(
 
 ## HiveCacheStorage
 
-Persistent storage backed by [Hive](https://pub.dev/packages/hive). Survives app restarts.
+Persistent storage backed by [Hive CE](https://pub.dev/packages/hive_ce) (the maintained Hive fork; it reads boxes written by Hive 2.x, so data cached by cache_nexus 1.0 is kept). Survives app restarts.
+
+Keys longer than Hive's 255-byte limit (long URLs, long Arabic keys) are stored under a SHA-256 based key automatically; prefix deletes such as `invalidateByContext` still find them.
+
+If your app initialises Hive itself, use Hive CE (`import 'package:hive_ce_flutter/hive_flutter.dart'; await Hive.initFlutter();`) and pass `init(initHive: false)`. If Hive CE turns out not to be initialised, `init` calls `Hive.initFlutter()` itself and logs why.
 
 ### Usage
 
@@ -88,6 +92,42 @@ final cache = CacheNexusManager(
 
 ---
 
+## Typed data and app restarts
+
+Memory holds your objects as they are. Disk can only hold JSON-like data, so after a restart a cached `Post` comes back as a `Map`. Cache Nexus converts it back for you:
+
+- **Built in:** `String`, `num`, `bool`, `DateTime`, `Map<String, dynamic>`, and the common collections (`List<String>`, `List<int>`, `List<double>`, `List<num>`, `List<bool>`, `List<Map<String, dynamic>>`, `Map<String, String|int|double|num|bool>`, `Set<String>`, `Set<int>`) plus their nullable variants.
+- **Your classes:** register a `CacheAdapter` once. It also covers `List<T>`, `Map<String, T>` and `T?`.
+
+```dart
+cache.registerAdapter<Post>(
+  CacheAdapter.json(fromJson: Post.fromJson, toJson: (p) => p.toJson()),
+);
+
+// Survives restarts, works offline:
+final posts = await cache.get<List<Post>>(key: 'posts', fetcher: api.getPosts);
+```
+
+Or implement the interface yourself:
+
+```dart
+class PostAdapter extends CacheAdapter<Post> {
+  @override
+  Post fromData(dynamic data) => Post.fromJson(data as Map<String, dynamic>);
+
+  @override
+  dynamic toData(Post value) => value.toJson();
+}
+```
+
+`fromData` only runs for data read back from disk (memory hits return your object directly), and it always receives `Map<String, dynamic>` / `List<dynamic>`.
+
+Without an adapter, a stored custom class cannot be rebuilt: the entry counts as a miss, a `CacheDecodeException` error event is emitted and, in debug builds, a log line names the adapter to register. For offline-first data (todos, drafts) that would mean the fetcher runs and its result replaces what was on disk, so **always register adapters for the types you persist**.
+
+> `TypeAdapter` (the 1.0 name) still works but is deprecated: it clashes with Hive's own `TypeAdapter`. Use `CacheAdapter`.
+
+---
+
 ## SecureCacheStorage
 
 Decorator that adds encryption and compression to any storage backend.
@@ -97,8 +137,8 @@ Decorator that adds encryption and compression to any storage backend.
 ```dart
 final secureStorage = SecureCacheStorage(
   MemoryCacheStorage(),  // or HiveCacheStorage
-  encryptor: SimpleEncryptor('my_secret_key'),
-  compressor: SimpleCompressor(),
+  encryptor: AesGcmEncryptor.fromBase64(encryptionKey), // from secure storage
+  compressor: const GZipCompressor(),
 );
 
 final cache = CacheNexusManager(
@@ -150,8 +190,8 @@ await hiveStorage.init();
 
 final secureStorage = SecureCacheStorage(
   hiveStorage,
-  encryptor: SimpleEncryptor('secret_key'),
-  compressor: SimpleCompressor(),
+  encryptor: AesGcmEncryptor.fromBase64(encryptionKey), // from secure storage
+  compressor: const GZipCompressor(),
 );
 
 final cache = CacheNexusManager(

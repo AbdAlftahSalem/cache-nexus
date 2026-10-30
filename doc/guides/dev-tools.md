@@ -1,6 +1,6 @@
 # Dev Tools
 
-Smart Cache includes built-in **developer tools** that are automatically disabled in production.
+Cache Nexus includes built-in **developer tools** that are automatically disabled in production.
 
 ---
 
@@ -30,11 +30,21 @@ MaterialApp(
 );
 ```
 
+This works inside `MaterialApp.builder`, where there is no `Navigator` above the overlay: the panel then opens on top of your app with its own navigator and a close button. You can also wrap a single page (the panel is pushed on the app's navigator), or pass `navigatorKey:` to push it on a specific navigator. The overlay adds no `Scaffold` of its own.
+
 A floating blue button appears in the bottom-right corner. Tap it to open the **Dev Panel** showing:
 
 - **Live event list**: every cache hit, miss, fetch, error in real-time
 - **Stats dashboard**: hit count, miss count, fetch count, error count, hit rate
 - **Request detail viewer**: tap any event to see full request/response data
+
+### Capturing Dio traffic
+
+```dart
+final dio = Dio()..interceptors.add(CacheNexusDioInterceptor(cache));
+```
+
+Requests, responses (status ≥ 400 counts as failed) and errors appear in the panel's NETWORK tab. `Authorization`, `Proxy-Authorization`, `Cookie`, `Set-Cookie` and `X-Api-Key` header values are recorded as `<redacted>`; pass `redactedHeaders:` to change the list.
 
 ---
 
@@ -103,12 +113,13 @@ print('Hit Rate: ${(cache.stats.hitRate * 100).toStringAsFixed(1)}%');
 
 ## Production Safety
 
-In `CacheNexusMode.production`:
+In `CacheNexusMode.production` (the default):
 
-- `_emit()` returns immediately (no events created)
-- Stats are not tracked
-- Overlay widget renders just the child (no FAB)
-- **Zero performance overhead** in release builds
+- No events are created and stats are not tracked
+- `CacheNexusOverlay` renders just the child (no button)
+- `CacheNexusDioInterceptor` passes requests through untouched
+
+The mode is a runtime switch: the dev-tool widgets are still compiled into your app, they just do nothing. Choose the mode from `kReleaseMode` so release builds never record traffic:
 
 ```dart
 final cache = CacheNexusManager(

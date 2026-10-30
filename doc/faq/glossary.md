@@ -1,6 +1,6 @@
 # Glossary
 
-Smart Cache terminology and definitions.
+Cache Nexus terminology and definitions.
 
 ---
 
@@ -40,7 +40,7 @@ When requested data is not found in the cache (network fetch needed).
 
 ### Cache Policy
 
-Strategy for how to handle cache reads and writes. Smart Cache supports 5 policies:
+Strategy for how to handle cache reads and writes. Cache Nexus supports 5 policies:
 
 - `cacheFirst`
 - `networkFirst`
@@ -150,8 +150,8 @@ Decorator that adds encryption and compression to any storage backend.
 ```dart
 SecureCacheStorage(
   innerStorage,
-  encryptor: SimpleEncryptor('key'),
-  compressor: SimpleCompressor(),
+  encryptor: AesGcmEncryptor.fromBase64(encryptionKey), // from secure storage
+  compressor: const GZipCompressor(),
 )
 ```
 
@@ -236,7 +236,7 @@ Duration after which a cache entry expires.
 ```dart
 await cache.get<String>(
   key: 'data',
-  fetcher: () => 'hello',
+  fetcher: () async => 'hello',
   ttl: const Duration(hours: 1), // Expires after 1 hour
 );
 ```

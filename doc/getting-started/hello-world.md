@@ -1,6 +1,6 @@
 # Hello World
 
-The absolute minimal example to get Smart Cache running. Perfect for testing or learning the basics.
+The absolute minimal example to get Cache Nexus running. Perfect for testing or learning the basics.
 
 ---
 
@@ -70,7 +70,7 @@ void main() async {
 
   final data = await cache.get<String>(
     key: 'hello',
-    fetcher: () async => 'Hello from Smart Cache!',
+    fetcher: () async => 'Hello from Cache Nexus!',
     ttl: const Duration(hours: 24),
   );
   print(data);
@@ -108,7 +108,7 @@ await cache.set<String>(key: 'token', data: 'abc123');
 ### Get a value
 
 ```dart
-final token = await cache.get<String>(key: 'token', fetcher: () => null);
+final token = await cache.get<String>(key: 'token', fetcher: () async => null);
 ```
 
 ### Delete a value

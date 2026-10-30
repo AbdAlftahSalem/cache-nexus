@@ -1,4 +1,4 @@
-# Contributing to Smart Cache
+# Contributing to Cache Nexus
 
 Thanks for your interest in contributing! Here's how to get started.
 
@@ -26,11 +26,17 @@ Thanks for your interest in contributing! Here's how to get started.
 Run these commands and make sure they pass:
 
 ```bash
-# Static analysis
+# Formatting
+dart format --set-exit-if-changed lib test example/lib
+
+# Static analysis (strict casts/inference/raw types)
 flutter analyze
 
-# Tests
-flutter test
+# Tests with coverage
+flutter test --coverage
+
+# Package checks
+flutter pub publish --dry-run
 ```
 
 ## Pull Request Guidelines

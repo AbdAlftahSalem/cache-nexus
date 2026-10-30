@@ -31,7 +31,9 @@ CacheContext({
 | `userId` | `String` | User identifier |
 | `token` | `String?` | Auth token |
 | `role` | `String?` | User role |
-| `cacheKeyPrefix` | `String` | Auto-generated prefix: `userId_role_` |
+| `userKeyPrefix` | `String` | `u<len>:<userId>\|` (all of the user's data) |
+| `cacheKeyPrefix` | `String` | `userKeyPrefix` + `r\|` (no role) or `r<len>:<role>\|` |
+| `legacyCacheKeyPrefix` | `String` | The 1.0 prefix `userId_role_`, used to migrate old entries |
 
 ---
 
@@ -49,9 +51,11 @@ cache.setContext(CacheContext(
 All subsequent cache calls are automatically prefixed:
 
 ```
-user_123_admin_users
-user_123_admin_profile
+u8:user_123|r5:admin|users
+u8:user_123|r5:admin|profile
 ```
+
+The lengths make the prefix unambiguous: user `ali` with role `admin` and user `ali_admin` can never share keys. Entries written by 1.0 under `user_123_admin_` are migrated on first read.
 
 ### Switch Users
 
@@ -60,14 +64,14 @@ user_123_admin_profile
 cache.setContext(CacheContext(userId: 'user_123', role: 'admin'));
 final adminData = await cache.get<String>(
   key: 'secret',
-  fetcher: () => 'Admin Only',
+  fetcher: () async => 'Admin Only',
 );
 
 // User B (isolated)
 cache.setContext(CacheContext(userId: 'user_456', role: 'guest'));
 final guestData = await cache.get<String>(
   key: 'secret',
-  fetcher: () => 'Public Only',
+  fetcher: () async => 'Public Only',
 );
 
 // adminData and guestData are completely separate
@@ -86,8 +90,13 @@ cache.clearContext(); // back to global (unprefixed) keys
 Invalidate cache for a specific user without affecting others:
 
 ```dart
-// Invalidate only User A's cache
-await cache.invalidateByContext(CacheContext(userId: 'user_123'));
+// All of User A's data (every role)
+await cache.invalidateByContext(const CacheContext(userId: 'user_123'));
+
+// Only User A's admin data
+await cache.invalidateByContext(
+  const CacheContext(userId: 'user_123', role: 'admin'),
+);
 
 // Invalidate all users (CacheContext requires userId, so use clear for global)
 await cache.clear();

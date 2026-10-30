@@ -1,6 +1,6 @@
 # Testing
 
-Unit, widget, and integration testing patterns for Smart Cache.
+Unit, widget, and integration testing patterns for Cache Nexus.
 
 ---
 
@@ -36,7 +36,7 @@ test('set and get', () async {
   await cache.set<String>(key: 'test', data: 'hello');
   final result = await cache.get<String>(
     key: 'test',
-    fetcher: () => null,
+    fetcher: () async => null,
   );
   expect(result, equals('hello'));
 });
@@ -54,7 +54,7 @@ test('delete', () async {
   await cache.delete( 'test');
   final result = await cache.get<String>(
     key: 'test',
-    fetcher: () => null,
+    fetcher: () async => null,
   );
   expect(result, isNull);
 });
@@ -74,7 +74,7 @@ test('expired entry returns null', () async {
 
   final result = await cache.get<String>(
     key: 'test',
-    fetcher: () => null,
+    fetcher: () async => null,
   );
   expect(result, isNull);
 });
@@ -126,7 +126,7 @@ test('user isolation', () async {
   cache.setContext(CacheContext(userId: 'user_1', role: 'admin'));
   final adminData = await cache.get<String>(
     key: 'data',
-    fetcher: () => null,
+    fetcher: () async => null,
   );
 
   expect(adminData, equals('admin_data'));
@@ -234,7 +234,7 @@ testWidgets('full cache flow', (tester) async {
           onPressed: () async {
             final current = await cache.get<String>(
               key: 'counter',
-              fetcher: () => '0',
+              fetcher: () async => '0',
             );
             final next = int.parse(current!) + 1;
             await cache.set<String>(key: 'counter', data: '$next');

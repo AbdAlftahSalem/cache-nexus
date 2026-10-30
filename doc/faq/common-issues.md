@@ -30,12 +30,12 @@ final cache = CacheNexusManager(
 
 ```dart
 // Bad: no TTL
-await cache.get<String>(key: 'data', fetcher: () => 'hello');
+await cache.get<String>(key: 'data', fetcher: () async => 'hello');
 
 // Good: with TTL
 await cache.get<String>(
   key: 'data',
-  fetcher: () => 'hello',
+  fetcher: () async => 'hello',
   ttl: const Duration(hours: 1),
 );
 ```
@@ -52,14 +52,14 @@ await cache.get<String>(
 // Bad: cacheOnly never calls fetcher
 await cache.get<String>(
   key: 'data',
-  fetcher: () => 'hello',
+  fetcher: () async => 'hello',
   policy: CachePolicy.cacheOnly,
 );
 
 // Good: cacheFirst calls fetcher on miss
 await cache.get<String>(
   key: 'data',
-  fetcher: () => 'hello',
+  fetcher: () async => 'hello',
   policy: CachePolicy.cacheFirst,
 );
 ```
@@ -70,7 +70,7 @@ await cache.get<String>(
 
 **Problem:** Multiple API calls for the same key.
 
-**Solution:** Use concurrent requests (Smart Cache deduplicates):
+**Solution:** Use concurrent requests (Cache Nexus deduplicates):
 
 ```dart
 // These will deduplicate (only 1 API call)
@@ -90,7 +90,7 @@ await Future.wait([f1, f2, f3]);
 
 ```dart
 // Bad: manual setState
-final data = await cache.get<String>(key: 'data', fetcher: () => null);
+final data = await cache.get<String>(key: 'data', fetcher: () async => null);
 setState(() => _data = data);
 
 // Good: CacheNexusBuilder
@@ -132,7 +132,7 @@ await cache.get<String>(key: 'profile', fetcher: () => api.getProfile());
 // Bad: wrapping wrong storage
 final secure = SecureCacheStorage(
   MemoryCacheStorage(), // This is the inner storage
-  encryptor: SimpleEncryptor('key'),
+  encryptor: AesGcmEncryptor.fromBase64(encryptionKey), // from secure storage
 );
 
 // Good: wrapping persistent storage
@@ -141,7 +141,7 @@ await hiveStorage.init();
 
 final secure = SecureCacheStorage(
   hiveStorage, // Wrap the persistent storage
-  encryptor: SimpleEncryptor('key'),
+  encryptor: AesGcmEncryptor.fromBase64(encryptionKey), // from secure storage
 );
 ```
 

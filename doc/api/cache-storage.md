@@ -120,8 +120,8 @@ SecureCacheStorage(
 ```dart
 final secureStorage = SecureCacheStorage(
   MemoryCacheStorage(),
-  encryptor: SimpleEncryptor('my_secret_key'),
-  compressor: SimpleCompressor(),
+  encryptor: AesGcmEncryptor.fromBase64(encryptionKey), // from secure storage
+  compressor: const GZipCompressor(),
 );
 
 final cache = CacheNexusManager(
@@ -208,8 +208,8 @@ await hiveStorage.init();
 
 final secureStorage = SecureCacheStorage(
   hiveStorage,
-  encryptor: SimpleEncryptor('secret_key'),
-  compressor: SimpleCompressor(),
+  encryptor: AesGcmEncryptor.fromBase64(encryptionKey), // from secure storage
+  compressor: const GZipCompressor(),
 );
 
 final cache = CacheNexusManager(

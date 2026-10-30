@@ -1,6 +1,6 @@
 # Core Concepts
 
-Smart Cache is built on three core components: CacheNexusManager, CacheEntry, and CacheStorage. Understanding these will help you use Smart Cache effectively.
+Cache Nexus is built on three core components: CacheNexusManager, CacheEntry, and CacheStorage. Understanding these will help you use Cache Nexus effectively.
 
 ---
 
@@ -76,11 +76,11 @@ class CacheEntry<T> {
 // When you cache data, it's wrapped automatically
 await cache.get<String>(
   key: 'token',
-  fetcher: () => 'abc123',
+  fetcher: () async => 'abc123',
   ttl: Duration(hours: 24),  // Expires after 24 hours
 );
 
-// Internally, Smart Cache creates:
+// Internally, Cache Nexus creates:
 // CacheEntry(
 //   data: 'abc123',
 //   createdAt: DateTime.now(),
@@ -101,7 +101,7 @@ await cache.get<String>(
 
 ## CacheStorage
 
-The abstract interface for storage backends. Smart Cache provides three implementations.
+The abstract interface for storage backends. Cache Nexus provides three implementations.
 
 ### Interface
 
@@ -156,8 +156,8 @@ Decorator that adds encryption and compression to any storage backend.
 ```dart
 final secureStorage = SecureCacheStorage(
   MemoryCacheStorage(),
-  encryptor: SimpleEncryptor('my_secret_key'),
-  compressor: SimpleCompressor(),
+  encryptor: AesGcmEncryptor.fromBase64(encryptionKey), // from secure storage
+  compressor: const GZipCompressor(),
 );
 ```
 
@@ -165,7 +165,7 @@ final secureStorage = SecureCacheStorage(
 
 ## How Two-Tier Storage Works
 
-Smart Cache uses a **memory-first** architecture with optional persistent storage:
+Cache Nexus uses a **memory-first** architecture with optional persistent storage:
 
 1. **Read**: Check memory first. If miss, check persistent storage. If found in persistent, restore to memory.
 2. **Write**: Write to both memory and persistent storage.

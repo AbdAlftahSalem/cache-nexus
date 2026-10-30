@@ -1,6 +1,6 @@
 # Reactive Streams
 
-Smart Cache supports **reactive programming** -- watch cache keys and get notified when data changes.
+Cache Nexus supports **reactive programming** -- watch cache keys and get notified when data changes.
 
 ---
 

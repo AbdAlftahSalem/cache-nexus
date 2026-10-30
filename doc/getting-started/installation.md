@@ -1,14 +1,14 @@
 # Installation
 
-Smart Cache can be installed in three ways: from pub.dev, from Git, or from a local path.
+Cache Nexus can be installed in three ways: from pub.dev, from Git, or from a local path.
 
 ---
 
-## From pub.dev (when published)
+## From pub.dev
 
 ```yaml
 dependencies:
-  cache_nexus: ^1.0.0
+  cache_nexus: ^1.1.0
 ```
 
 Then run:
@@ -70,7 +70,7 @@ void main() {
   final cache = CacheNexusManager(
     memoryStorage: MemoryCacheStorage(),
   );
-  print('Smart Cache installed successfully!');
+  print('Cache Nexus installed successfully!');
 }
 ```
 
@@ -78,29 +78,27 @@ void main() {
 
 ## Platform Requirements
 
-| Platform | Minimum Version |
-|----------|-----------------|
-| Flutter | >= 3.0.0 |
-| Dart SDK | >= 3.11.5 |
-| Android | API 16+ |
-| iOS | 9.0+ |
-| macOS | 10.14+ |
-| Web | Chrome 84+, Firefox 80+, Safari 14+, Edge 84+ |
-| Windows | 10+ |
-| Linux | Ubuntu 18.04+ |
+| Requirement | Version |
+|-------------|---------|
+| Flutter | >= 3.41.0 |
+| Dart SDK | >= 3.11.0 |
+
+Runs on Android, iOS, macOS, Windows, Linux and web (including WebAssembly builds). Minimum OS versions are those of your Flutter version; Cache Nexus adds none of its own.
 
 ---
 
 ## Dependencies
 
-Smart Cache includes these packages (installed automatically):
+Cache Nexus includes these packages (installed automatically):
 
 | Package | Purpose |
 |---------|---------|
-| `hive` | Persistent key-value storage |
-| `hive_flutter` | Hive Flutter initialization |
+| `hive_ce` / `hive_ce_flutter` | Persistent key-value storage (Hive Community Edition) |
 | `connectivity_plus` | Network status monitoring |
-| `path_provider` | Platform-specific storage paths |
+| `dio` | Optional `CacheNexusDioInterceptor` for the dev tools |
+| `pointycastle` | AES-GCM for `AesGcmEncryptor` |
+| `archive` | GZip for `GZipCompressor` |
+| `crypto` | SHA-256 for long Hive keys |
 
 ---
 
@@ -108,4 +106,4 @@ Smart Cache includes these packages (installed automatically):
 
 - [Quick Start](quick-start.md) - Get up and running in 5 minutes
 - [Hello World](hello-world.md) - Minimal first cache call
-- [Core Concepts](../guides/core-concepts.md) - Understand how Smart Cache works
+- [Core Concepts](../guides/core-concepts.md) - Understand how Cache Nexus works

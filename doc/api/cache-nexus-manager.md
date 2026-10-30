@@ -135,7 +135,7 @@ await cache.delete( 'users');
 Future<void> clear()
 ```
 
-Remove all cached data.
+Remove all cached data from every tier and notify every watcher with `null`.
 
 **Example:**
 
@@ -151,7 +151,7 @@ await cache.clear();
 Stream<T?> watch<T>(String key, {Duration? debounce})
 ```
 
-Watch a key for changes.
+Watch a key for changes. Each listener first receives the current value (or `null`), then one event per change: `set()`, a successful fetch, `delete()`, `clear()` and `invalidateByContext()` (the last three emit `null`). A value that cannot be read as `T` arrives as a stream error (`CacheDecodeException`).
 
 **Parameters:**
 
@@ -266,13 +266,58 @@ await cache.enqueueSyncTask(SyncTask(
 
 ---
 
+### registerAdapter
+
+```dart
+void registerAdapter<T>(CacheAdapter<T> adapter)
+```
+
+Teaches the cache how to store a `T` on disk and rebuild it after a restart. One registration covers `T`, `T?`, `List<T>` and `Map<String, T>`.
+
+```dart
+cache.registerAdapter<Post>(
+  CacheAdapter.json(fromJson: Post.fromJson, toJson: (p) => p.toJson()),
+);
+```
+
+See [Typed data and app restarts](../guides/two-tier-storage.md#typed-data-and-app-restarts).
+
+---
+
+### tryCast
+
+```dart
+T? tryCast<T>(dynamic data)
+```
+
+Converts raw cached data to `T` with the registered adapters and built-in decoders; `null` if that is not possible.
+
+---
+
+### trackNetworkRequest
+
+```dart
+Future<T> trackNetworkRequest<T>({
+  required String url,
+  required String method,
+  Map<String, dynamic>? headers,
+  dynamic body,
+  required Future<T> Function() request,
+  int Function(T result)? statusCodeOf,
+})
+```
+
+Runs `request` and records it in the dev panel. The status code comes from `statusCodeOf`, else from a `statusCode` property on the result, else 200.
+
+---
+
 ### dispose
 
 ```dart
 void dispose()
 ```
 
-Clean up streams and subscriptions.
+Closes the watch streams and the event stream and disposes the `syncEngine`. Safe to call twice. Requests already in flight still complete and return their result.
 
 **Example:**
 

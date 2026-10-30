@@ -1,21 +1,43 @@
 # Error Handling
 
-Strategies for handling errors in Smart Cache.
+Strategies for handling errors in Cache Nexus.
 
 ---
 
 ## Default Behavior
 
-Smart Cache handles errors gracefully:
+`get()` returns cached data whenever the policy allows it, but **errors from the fetcher do reach you** when the cache cannot answer. Wrap calls that may hit the network:
 
 ```dart
-final data = await cache.get<String>(
-  key: 'data',
-  fetcher: () => api.getData(),
-);
-// If fetcher throws, cache returns null (or last cached value)
-// No try-catch needed!
+try {
+  final data = await cache.get<String>(
+    key: 'data',
+    fetcher: () => api.getData(),
+    policy: CachePolicy.networkFirst,
+  );
+  show(data);
+} on DioException catch (e) {
+  // Network failed AND nothing fresh was cached: this is the real error,
+  // not a generic "cache missing" exception.
+  showError(e.message);
+}
 ```
+
+What each policy does on failure:
+
+| Policy | Fetcher throws |
+|--------|----------------|
+| `cacheFirst` | on a miss, the error is rethrown |
+| `networkFirst` | fresh cached value if any, else the original error |
+| `cacheOnly` | fetcher never runs; `CacheMissException` (or `null` for nullable `T`) on a miss |
+| `networkOnly` | rethrown |
+| `staleWhileRevalidate` | cached value (even expired) if any; background errors become error events |
+
+Cache write failures (for example a full disk) never fail a successful fetch; they are reported as error events.
+
+### Decode errors
+
+If a value exists but cannot be converted to the requested type (typically a custom class read back from disk without a registered `CacheAdapter`), it is treated as a miss, a `CacheDecodeException` error event is emitted and a debug log explains which adapter to register. `cacheOnly` throws the `CacheDecodeException`.
 
 ---
 
@@ -38,17 +60,20 @@ cache.events.listen((event) {
 ### Automatic Retry
 
 ```dart
-// SyncEngine retries failed tasks up to 3 times
+// SyncEngine retries failed tasks (maxRetries, default 3) with backoff
 final syncEngine = SyncEngine(
+  maxRetries: 5,
+  retryDelay: const Duration(seconds: 2),
   executor: (task) async {
     try {
       await api.sendData(task.body);
       return true;
     } catch (e) {
-      return false; // Will retry
+      return false; // Will retry (throwing works too)
     }
   },
 );
+syncEngine.onTaskFailed.listen((task) => report(task.lastError));
 ```
 
 ### Manual Retry
@@ -92,7 +117,7 @@ try {
     policy: CachePolicy.networkFirst,
   );
 } on NetworkException catch (e) {
-  // Falls back to cache automatically with networkFirst
+  // Only reached when there is no fresh cached value to fall back to
 }
 
 // Timeout errors
@@ -184,7 +209,7 @@ final data = await cache.get<String>(key: 'data', fetcher: () => api.getData());
 // Good: always has fallback
 final data = await cache.get<String>(
   key: 'data',
-  fetcher: () => null, // or api.getData()
+  fetcher: () async => null, // or api.getData()
 );
 ```
 

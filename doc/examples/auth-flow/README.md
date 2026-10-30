@@ -1,6 +1,6 @@
 # Auth Flow Example
 
-A complete authentication flow demonstrating Smart Cache's auth-aware caching, user context switching, and cache isolation.
+A complete authentication flow demonstrating Cache Nexus's auth-aware caching, user context switching, and cache isolation.
 
 ## Features Demonstrated
 
@@ -26,8 +26,8 @@ final cache = CacheNexusManager(
   memoryStorage: MemoryCacheStorage(),
   persistentStorage: SecureCacheStorage(
     MemoryCacheStorage(),
-    encryptor: SimpleEncryptor('auth_secret_key'),
-    compressor: SimpleCompressor(),
+    encryptor: AesGcmEncryptor.fromBase64(encryptionKey), // from secure storage
+    compressor: const GZipCompressor(),
   ),
   mode: CacheNexusMode.dev,
 );
@@ -110,11 +110,11 @@ class ProfileScreen extends StatelessWidget {
 ```dart
 // User A logs in
 cache.setContext(CacheContext(userId: 'user_123', role: 'admin'));
-final adminData = await cache.get<String>(key: 'secret', fetcher: () => 'Admin Data');
+final adminData = await cache.get<String>(key: 'secret', fetcher: () async => 'Admin Data');
 
 // User B logs in (isolated - different cache keys)
 cache.setContext(CacheContext(userId: 'user_456', role: 'guest'));
-final guestData = await cache.get<String>(key: 'secret', fetcher: () => 'Guest Data');
+final guestData = await cache.get<String>(key: 'secret', fetcher: () async => 'Guest Data');
 
 // adminData != guestData (completely separate)
 ```
@@ -136,8 +136,8 @@ await cache.invalidateByContext(CacheContext(userId: 'user_123', role: 'admin'))
 ```dart
 final secureStorage = SecureCacheStorage(
   MemoryCacheStorage(),
-  encryptor: SimpleEncryptor('your_secret_key'),
-  compressor: SimpleCompressor(),
+  encryptor: AesGcmEncryptor.fromBase64(encryptionKey), // from secure storage
+  compressor: const GZipCompressor(),
 );
 ```
 
@@ -154,7 +154,7 @@ await _cache.set<String>(
 // Retrieve token
 final token = await _cache.get<String>(
   key: 'auth_token',
-  fetcher: () => null,
+  fetcher: () async => null,
 );
 ```
 
@@ -168,4 +168,4 @@ flutter run
 
 - `cache_nexus`: Cache with auth isolation
 - `dio`: HTTP client
-- `hive_flutter`: Persistent storage
+- `hive_ce_flutter`: Persistent storage (via cache_nexus)

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cache_nexus/cache_nexus.dart';
+import 'models/todo.dart';
 import 'services/todo_service.dart';
 import 'screens/todo_screen.dart';
 
@@ -20,6 +21,7 @@ void main() async {
       return true; // Always succeed in demo
     },
     queueBoxName: 'todo_sync_queue',
+    retryDelay: const Duration(seconds: 2),
   );
   await syncEngine.init();
 
@@ -29,6 +31,12 @@ void main() async {
     persistentStorage: hiveStorage,
     syncEngine: syncEngine,
     mode: CacheNexusMode.dev,
+  );
+
+  // Required for offline-first data: without it List<Todo> cannot be rebuilt
+  // from disk after a restart, and the saved todos would be lost.
+  cache.registerAdapter<Todo>(
+    CacheAdapter.json(fromJson: Todo.fromJson, toJson: (t) => t.toJson()),
   );
 
   runApp(OfflineTodoApp(cache: cache, syncEngine: syncEngine));

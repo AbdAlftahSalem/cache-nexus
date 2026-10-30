@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:cache_nexus/cache_nexus.dart';
+import 'package:hive_ce_flutter/hive_flutter.dart';
 import '../models/post.dart';
 import 'api_service.dart';
 
@@ -21,10 +24,13 @@ class CacheService {
   static Future<CacheService> create() async {
     final memoryStorage = MemoryCacheStorage();
 
+    // Persistent, encrypted, compressed tier. Survives restarts.
+    final hive = HiveCacheStorage(boxName: 'example_cache');
+    await hive.init();
     final persistentStorage = SecureCacheStorage(
-      MemoryCacheStorage(),
-      encryptor: SimpleEncryptor('example_secret_key'),
-      compressor: SimpleCompressor(),
+      hive,
+      encryptor: AesGcmEncryptor.fromBase64(await _loadOrCreateKey()),
+      compressor: const GZipCompressor(),
     );
 
     final cache = CacheNexusManager(
@@ -32,6 +38,11 @@ class CacheService {
       persistentStorage: persistentStorage,
       syncEngine: null,
       mode: CacheNexusMode.dev,
+    );
+
+    // Lets List<Post> / Post be rebuilt from disk after a restart.
+    cache.registerAdapter<Post>(
+      CacheAdapter.json(fromJson: Post.fromJson, toJson: (p) => p.toJson()),
     );
 
     final api = ApiService(cache: cache);
@@ -52,12 +63,25 @@ class CacheService {
         }
       },
       queueBoxName: 'example_sync_queue',
+      retryDelay: const Duration(seconds: 2),
     );
     await syncEngine.init();
 
     cache.syncEngine = syncEngine;
 
     return CacheService(api: api, cache: cache, syncEngine: syncEngine);
+  }
+
+  /// Demo only: the AES key lives in its own Hive box. In a real app keep it
+  /// in the platform keystore (e.g. flutter_secure_storage).
+  static Future<String> _loadOrCreateKey() async {
+    final box = await Hive.openBox<String>('example_keys');
+    var key = box.get('cache_key');
+    if (key == null) {
+      key = base64Encode(AesGcmEncryptor.generateKey());
+      await box.put('cache_key', key);
+    }
+    return key;
   }
 
   Future<List<Post>> getPosts({

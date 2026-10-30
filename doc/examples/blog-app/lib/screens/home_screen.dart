@@ -70,7 +70,7 @@ class _OverviewScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Smart Cache Demo',
+              'Cache Nexus Demo',
               style: Theme.of(context).textTheme.headlineMedium,
             ),
             const SizedBox(height: 8),

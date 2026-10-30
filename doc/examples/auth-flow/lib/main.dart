@@ -9,10 +9,12 @@ void main() async {
   // Initialize cache
   final cache = CacheNexusManager(
     memoryStorage: MemoryCacheStorage(),
+    // Demo: a fresh key per launch, so nothing survives a restart. In a real
+    // app load the key from flutter_secure_storage and wrap HiveCacheStorage.
     persistentStorage: SecureCacheStorage(
       MemoryCacheStorage(),
-      encryptor: SimpleEncryptor('auth_secret_key'),
-      compressor: SimpleCompressor(),
+      encryptor: AesGcmEncryptor(AesGcmEncryptor.generateKey()),
+      compressor: const GZipCompressor(),
     ),
     mode: CacheNexusMode.dev,
   );
@@ -34,10 +36,9 @@ class AuthFlowApp extends StatelessWidget {
         useMaterial3: true,
       ),
       debugShowCheckedModeBanner: false,
-      home: CacheNexusOverlay(
-        manager: cache,
-        child: AuthService(cache: cache, child: LoginScreen()),
-      ),
+      builder: (context, child) =>
+          CacheNexusOverlay(manager: cache, child: child!),
+      home: AuthService(cache: cache, child: LoginScreen()),
     );
   }
 }

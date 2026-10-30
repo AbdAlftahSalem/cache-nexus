@@ -1,12 +1,12 @@
 # Request Deduplication
 
-Smart Cache automatically deduplicates concurrent requests for the same key.
+Cache Nexus automatically deduplicates concurrent requests for the same key.
 
 ---
 
 ## How It Works
 
-When multiple widgets or components request the same cache key simultaneously, Smart Cache makes only **one network call** and shares the result.
+When multiple widgets or components request the same cache key simultaneously, Cache Nexus makes only **one network call** and shares the result.
 
 ```dart
 // These 3 calls happen at the same time

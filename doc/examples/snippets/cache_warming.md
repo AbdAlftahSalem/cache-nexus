@@ -103,7 +103,7 @@ Future<void> _warmCacheInBackground(CacheNexusManager cache) async {
 ```dart
 Future<void> _warmCache(CacheNexusManager cache) async {
   // Only warm if cache is empty
-  final existing = await cache.get<String>(key: 'profile', fetcher: () => null);
+  final existing = await cache.get<String>(key: 'profile', fetcher: () async => null);
   if (existing == null) {
     await cache.get<User>(
       key: 'profile',

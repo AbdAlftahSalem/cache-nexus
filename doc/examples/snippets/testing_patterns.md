@@ -1,6 +1,6 @@
 # Testing Patterns
 
-Unit and widget testing patterns for Smart Cache.
+Unit and widget testing patterns for Cache Nexus.
 
 ---
 
@@ -50,7 +50,7 @@ void main() {
     await cache.set<String>(key: 'test', data: 'hello');
     final result = await cache.get<String>(
       key: 'test',
-      fetcher: () => null,
+      fetcher: () async => null,
     );
     expect(result, equals('hello'));
   });
@@ -68,7 +68,7 @@ void main() {
     await cache.delete( 'test');
     final result = await cache.get<String>(
       key: 'test',
-      fetcher: () => null,
+      fetcher: () async => null,
     );
     expect(result, isNull);
   });
@@ -77,8 +77,8 @@ void main() {
     await cache.set<String>(key: 'a', data: '1');
     await cache.set<String>(key: 'b', data: '2');
     await cache.clear();
-    final a = await cache.get<String>(key: 'a', fetcher: () => null);
-    final b = await cache.get<String>(key: 'b', fetcher: () => null);
+    final a = await cache.get<String>(key: 'a', fetcher: () async => null);
+    final b = await cache.get<String>(key: 'b', fetcher: () async => null);
     expect(a, isNull);
     expect(b, isNull);
   });
@@ -102,7 +102,7 @@ test('expired entry returns null', () async {
 
   final result = await cache.get<String>(
     key: 'test',
-    fetcher: () => null,
+    fetcher: () async => null,
   );
   expect(result, isNull);
 });
@@ -161,7 +161,7 @@ test('user isolation', () async {
   cache.setContext(CacheContext(userId: 'user_1', role: 'admin'));
   final adminData = await cache.get<String>(
     key: 'data',
-    fetcher: () => null,
+    fetcher: () async => null,
   );
 
   expect(adminData, equals('admin_data'));

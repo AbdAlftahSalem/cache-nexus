@@ -12,8 +12,9 @@ class SecurityScreen extends StatefulWidget {
 }
 
 class _SecurityScreenState extends State<SecurityScreen> {
-  final _encryptor = SimpleEncryptor('demo_secret_key');
-  final _compressor = SimpleCompressor();
+  // Demo key generated per screen; real apps load it from secure storage.
+  final _encryptor = AesGcmEncryptor(AesGcmEncryptor.generateKey());
+  final _compressor = const GZipCompressor();
   String _rawStored = 'Nothing stored yet';
   String _recovered = 'Nothing recovered yet';
 
@@ -26,7 +27,8 @@ class _SecurityScreenState extends State<SecurityScreen> {
     );
 
     final entry = CacheEntry(
-      data: 'Sensitive data: credit card 1234-5678-9012-3456',
+      data:
+          'Sensitive data: credit card 1234-5678-9012-3456 · بطاقة عبد الفتاح',
       createdAt: DateTime.now(),
       ttl: const Duration(minutes: 5),
     );

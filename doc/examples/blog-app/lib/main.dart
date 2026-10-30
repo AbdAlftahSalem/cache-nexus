@@ -17,16 +17,16 @@ class CacheNexusApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Smart Cache Demo',
+      title: 'Cache Nexus Demo',
       theme: ThemeData(
         colorSchemeSeed: const Color(0xFF6750A4),
         useMaterial3: true,
       ),
       debugShowCheckedModeBanner: false,
-      home: CacheNexusOverlay(
-        manager: cacheService.cache,
-        child: HomeScreen(cacheService: cacheService),
-      ),
+      // The overlay works here even though no Navigator is above it.
+      builder: (context, child) =>
+          CacheNexusOverlay(manager: cacheService.cache, child: child!),
+      home: HomeScreen(cacheService: cacheService),
     );
   }
 }

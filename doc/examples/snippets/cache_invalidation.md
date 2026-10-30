@@ -68,7 +68,7 @@ await cache.set<String>(
 // After 24 hours, next get() returns null (cache miss)
 final token = await cache.get<String>(
   key: 'token',
-  fetcher: () => null,
+  fetcher: () async => null,
 );
 // token == null after expiration
 ```

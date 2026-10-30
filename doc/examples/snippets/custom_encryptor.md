@@ -1,6 +1,21 @@
 # Custom Encryptor
 
-Implement your own encryption for sensitive cache data.
+Cache Nexus ships `AesGcmEncryptor` (AES-GCM, authenticated, random nonce per value). Use it unless you need a different cipher or key management (for example keys held in a hardware module).
+
+---
+
+## Built-in AES-GCM
+
+```dart
+final key = AesGcmEncryptor.generateKey(); // 32 random bytes, store it safely
+final secureStorage = SecureCacheStorage(
+  hiveStorage,
+  encryptor: AesGcmEncryptor(key),
+  compressor: const GZipCompressor(),
+);
+```
+
+Keep the key in the platform keystore (e.g. `flutter_secure_storage`), see [Security & Auth](../../guides/security-auth.md).
 
 ---
 
@@ -9,95 +24,40 @@ Implement your own encryption for sensitive cache data.
 ```dart
 abstract class CacheEncryptor {
   String encrypt(String data);
+
+  /// Must throw if [data] is not valid ciphertext (wrong key, tampered).
   String decrypt(String data);
 }
 ```
 
+Rules for a correct implementation:
+
+1. Round-trip **any Unicode string**. Work on `utf8.encode(data)` bytes, never on `codeUnits` (UTF-16) truncated to bytes, and return text via base64.
+2. Use a fresh random nonce/IV per value. A fixed IV leaks equal plaintexts and, with GCM/CTR, breaks the cipher.
+3. Prefer authenticated modes (GCM, ChaCha20-Poly1305) and throw on authentication failure; `SecureCacheStorage` turns that into a cache miss.
+
 ---
 
-## Simple Example
+## Example: wrapping another library
+
+This example delegates to a hypothetical `MyKms` client that encrypts bytes:
 
 ```dart
-class MyEncryptor implements CacheEncryptor {
-  final String key;
+import 'dart:convert';
 
-  MyEncryptor(this.key);
+class KmsEncryptor implements CacheEncryptor {
+  KmsEncryptor(this.kms);
 
-  @override
-  String encrypt(String data) {
-    // Simple XOR encryption (NOT secure, just for demo)
-    return String.fromCharCodes(
-      data.codeUnits.map((c) => c ^ key.hashCode),
-    );
-  }
+  final MyKms kms;
 
   @override
-  String decrypt(String data) {
-    // Reverse the XOR
-    return String.fromCharCodes(
-      data.codeUnits.map((c) => c ^ key.hashCode),
-    );
-  }
+  String encrypt(String data) =>
+      base64Encode(kms.seal(utf8.encode(data)));
+
+  @override
+  String decrypt(String data) =>
+      utf8.decode(kms.open(base64Decode(data))); // throws if tampered
 }
-```
-
----
-
-## AES Example
-
-```dart
-import 'package:encrypt/encrypt.dart' as encrypt;
-
-class AesEncryptor implements CacheEncryptor {
-  final encrypt.Key _key;
-  final encrypt.IV _iv;
-
-  AesEncryptor(String secretKey) :
-    _key = encrypt.Key.fromUtf8(secretKey.padRight(32, '0').substring(0, 32)),
-    _iv = encrypt.IV.fromLength(16);
-
-  @override
-  String encrypt(String data) {
-    final encrypter = encrypt.Encrypter(encrypt.AES(_key));
-    return encrypter.encrypt(data, iv: _iv).base64;
-  }
-
-  @override
-  String decrypt(String data) {
-    final encrypter = encrypt.Encrypter(encrypt.AES(_key));
-    return encrypter.decrypt16(data, iv: _iv);
-  }
-}
-```
-
----
-
-## Usage
-
-```dart
-final secureStorage = SecureCacheStorage(
-  MemoryCacheStorage(),
-  encryptor: MyEncryptor('my_secret_key'),
-  compressor: SimpleCompressor(),
-);
-
-final cache = CacheNexusManager(
-  memoryStorage: MemoryCacheStorage(),
-  persistentStorage: secureStorage,
-);
-
-// Data is automatically encrypted on write, decrypted on read
-await cache.set<String>(
-  key: 'credit_card',
-  data: '1234-5678-9012-3456',
-  ttl: const Duration(hours: 1),
-);
-
-final card = await cache.get<String>(
-  key: 'credit_card',
-  fetcher: () => null,
-);
-// card == '1234-5678-9012-3456' (decrypted automatically)
 ```
 
 ---
@@ -106,15 +66,16 @@ final card = await cache.get<String>(
 
 ```dart
 void main() {
-  test('encryption roundtrip', () {
-    final encryptor = MyEncryptor('test_key');
-    final original = 'sensitive data';
-    
-    final encrypted = encryptor.encrypt(original);
-    final decrypted = encryptor.decrypt(encrypted);
-    
-    expect(decrypted, equals(original));
-    expect(encrypted, isNot(equals(original)));
+  test('round-trips Arabic and detects tampering', () {
+    final encryptor = AesGcmEncryptor(AesGcmEncryptor.generateKey());
+    const original = 'بيانات حساسة';
+
+    final sealed = encryptor.encrypt(original);
+    expect(encryptor.decrypt(sealed), original);
+    expect(sealed, isNot(contains(original)));
+
+    final other = AesGcmEncryptor(AesGcmEncryptor.generateKey());
+    expect(() => other.decrypt(sealed), throwsFormatException);
   });
 }
 ```

@@ -52,7 +52,7 @@ final users = await cache.get<List<User>>(
 // Get without fetcher (returns null if not cached)
 final token = await cache.get<String>(
   key: 'token',
-  fetcher: () => null,
+  fetcher: () async => null,
 );
 
 // Get with cacheFirst policy (default)
@@ -114,7 +114,7 @@ await cache.clear();
 
 ```dart
 // Get without fetcher
-final data = await cache.get<String>(key: 'token', fetcher: () => null);
+final data = await cache.get<String>(key: 'token', fetcher: () async => null);
 
 if (data != null) {
   print('Token exists');

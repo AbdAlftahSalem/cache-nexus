@@ -1,7 +1,13 @@
-/// Offline-first, debuggable data orchestration layer for Flutter.
+/// Offline-first, debuggable caching and data orchestration for Flutter.
 ///
-/// Features TTL caching, 5 cache policies, encryption, auth-aware isolation,
-/// reactive streams, offline sync, and built-in dev tools.
+/// * [CacheNexusManager]: two-tier (memory + Hive) cache with TTLs and five
+///   [CachePolicy] strategies.
+/// * [CacheAdapter]: typed values that survive app restarts.
+/// * [SecureCacheStorage] with [AesGcmEncryptor] and [GZipCompressor].
+/// * [CacheContext]: per-user isolation.
+/// * [CacheNexusManager.watch] and [CacheNexusBuilder]: reactive UI.
+/// * [SyncEngine]: an offline write queue with retries and backoff.
+/// * [CacheNexusOverlay] and [CacheNexusDioInterceptor]: dev tools.
 library;
 
 export 'src/cache_manager.dart';
@@ -28,3 +34,6 @@ export 'src/observability_manager.dart';
 export 'src/policy_resolver.dart';
 export 'src/reactive_engine.dart';
 export 'src/type_adapter.dart';
+export 'src/cache_adapter.dart';
+export 'src/cache_exceptions.dart';
+export 'src/type_registry.dart' show CacheTypeRegistry;

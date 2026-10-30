@@ -101,8 +101,9 @@ class _SyncScreenState extends State<SyncScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final pending = _tasks.where((t) => t.retryCount < 3).toList();
-    final failed = _tasks.where((t) => t.retryCount >= 3).toList();
+    final max = widget.cacheService.syncEngine.maxRetries;
+    final pending = _tasks.where((t) => t.retryCount < max).toList();
+    final failed = _tasks.where((t) => t.retryCount >= max).toList();
 
     return SafeArea(
       child: Padding(
@@ -155,8 +156,9 @@ class _SyncScreenState extends State<SyncScreen> {
   }
 
   Widget _buildStatusRow(BuildContext context) {
-    final pendingCount = _tasks.where((t) => t.retryCount < 3).length;
-    final failedCount = _tasks.where((t) => t.retryCount >= 3).length;
+    final max = widget.cacheService.syncEngine.maxRetries;
+    final pendingCount = _tasks.where((t) => t.retryCount < max).length;
+    final failedCount = _tasks.where((t) => t.retryCount >= max).length;
 
     return Row(
       children: [
@@ -209,6 +211,17 @@ class _SyncScreenState extends State<SyncScreen> {
           onPressed: _tasks.isEmpty ? null : _processQueue,
           icon: const Icon(Icons.sync),
           label: const Text('Process Queue'),
+        ),
+        const SizedBox(width: 8),
+        OutlinedButton.icon(
+          onPressed: widget.cacheService.syncEngine.failedTasks.isEmpty
+              ? null
+              : () async {
+                  final n = await widget.cacheService.syncEngine.retryFailed();
+                  _addLog('Retrying $n failed task(s)');
+                },
+          icon: const Icon(Icons.replay),
+          label: const Text('Retry Failed'),
         ),
         const SizedBox(width: 8),
         OutlinedButton.icon(
@@ -325,7 +338,8 @@ class _SyncScreenState extends State<SyncScreen> {
         ),
         subtitle: Text(
           'Created ${task.createdAt.toString().substring(11, 19)}'
-          '${task.retryCount > 0 ? ' · Retry ${task.retryCount}/3' : ''}',
+          '${task.retryCount > 0 ? ' · Retry ${task.retryCount}/${widget.cacheService.syncEngine.maxRetries}' : ''}'
+          '${task.lastError != null ? ' · ${task.lastError}' : ''}',
           style: TextStyle(
             fontSize: 12,
             color: failed ? Colors.red : Colors.grey.shade600,

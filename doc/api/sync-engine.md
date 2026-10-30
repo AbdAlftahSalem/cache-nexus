@@ -11,6 +11,9 @@ SyncEngine({
   required SyncTaskExecutor executor,
   String queueBoxName = 'sync_queue',
   bool initHive = true,
+  int maxRetries = 3,
+  Duration retryDelay = Duration.zero,
+  Duration maxRetryDelay = const Duration(minutes: 5),
 })
 ```
 
@@ -18,8 +21,12 @@ SyncEngine({
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `executor` | `SyncTaskExecutor` | - | Function to execute tasks |
-| `queueBoxName` | `String` | `'sync_queue'` | Hive box name for queue |
+| `executor` | `SyncTaskExecutor` | - | Sends one task; return `true` on success. Returning `false` or throwing counts as a failed attempt |
+| `queueBoxName` | `String` | `'sync_queue'` | Hive box name for the queue |
+| `initHive` | `bool` | `true` | Call `Hive.initFlutter()` in `init()` |
+| `maxRetries` | `int` | `3` | Failed attempts before a task is parked in `failedTasks` |
+| `retryDelay` | `Duration` | `zero` | Base backoff. `zero` retries on the next trigger (enqueue, reconnect, `processQueue()`); otherwise retries are scheduled at `retryDelay × 2^(attempt-1)` |
+| `maxRetryDelay` | `Duration` | `5 min` | Cap for the backoff |
 
 ---
 
@@ -47,7 +54,7 @@ await syncEngine.init();
 Future<void> processQueue()
 ```
 
-Process all pending tasks in the queue. Tasks with `retryCount >= 3` are skipped (they remain in the queue for UI visibility).
+Delivers every due task. Parked tasks (`retryCount >= maxRetries`) and tasks waiting for their backoff are skipped. If a pass is already running, this returns immediately and the running pass also delivers tasks added in the meantime.
 
 **Example:**
 
@@ -63,7 +70,17 @@ await syncEngine.processQueue();
 Future<void> enqueue(SyncTask task)
 ```
 
-Add a task to the sync queue. If online, processes immediately.
+Add a task to the sync queue (a task with the same `id` is replaced). If online, processes the queue immediately. Never throws because of a failing executor.
+
+---
+
+### retryFailed
+
+```dart
+Future<int> retryFailed({String? id})
+```
+
+Gives parked tasks (or only `id`) a fresh set of retries and starts delivering. Returns how many tasks were reset.
 
 ---
 
@@ -93,7 +110,7 @@ Remove all tasks from the sync queue.
 void dispose()
 ```
 
-Clean up resources and close streams.
+Stops delivery (a running pass stops after its current task), cancels scheduled retries and closes the streams. `CacheNexusManager.dispose()` calls it for you.
 
 **Example:**
 
@@ -119,7 +136,24 @@ Broadcast stream that emits the current task list after every queue mutation (en
 List<SyncTask> get pendingTasks
 ```
 
-Returns all current tasks sorted by `createdAt` ascending.
+Returns all queued tasks (including parked ones) sorted by `createdAt` ascending.
+
+### failedTasks / onTaskFailed
+
+```dart
+List<SyncTask> get failedTasks
+Stream<SyncTask> get onTaskFailed
+```
+
+Tasks that exhausted `maxRetries`, and a stream that emits each one when it gets parked. Show them in your UI and offer "retry" (`retryFailed(id: ...)`) or "discard" (`deleteTask(id)`).
+
+### isInitialized
+
+```dart
+bool get isInitialized
+```
+
+Whether `init()` has completed. Calling `enqueue`/`deleteTask`/`clearQueue` before that throws a `StateError`.
 
 ### queueLength
 
@@ -157,17 +191,21 @@ SyncTask({
 | `method` | `String` | - | HTTP method (GET, POST, PUT, DELETE) |
 | `body` | `dynamic` | - | Request body |
 | `createdAt` | `DateTime` | - | When task was created |
-| `retryCount` | `int` | `0` | Current retry count (auto-incremented, max 3) |
+| `retryCount` | `int` | `0` | Failed attempts so far |
+| `nextAttemptAt` | `DateTime?` | `null` | Earliest next attempt (set by backoff) |
+| `lastError` | `String?` | `null` | Why the last attempt failed |
 
 ---
 
 ## How It Works
 
-1. Task is persisted to Hive (survives app restart)
-2. If online, task is processed immediately
-3. If offline, task stays in queue
-4. When connectivity returns, all queued tasks are processed in order
-5. Failed tasks retry up to **3 times**, then are skipped (remain in queue for UI visibility, can be deleted manually)
+1. The task is persisted to Hive (survives an app restart). Its `body` must be JSON-like (`Map`, `List`, `String`, `num`, `bool`); objects with a `toJson()` method are converted when enqueued.
+2. If online, the queue is processed immediately, oldest task first.
+3. If offline, the task stays in the queue.
+4. When connectivity returns, the queue is processed again. Tasks added while a pass is running are sent in that same pass.
+5. An attempt **fails** when the executor returns `false` **or throws** (e.g. a `DioException`). A failing task never blocks the tasks behind it.
+6. A failed task is retried up to `maxRetries` times (default 3). With `retryDelay` set, retries back off exponentially (`retryDelay`, 2×, 4×, … capped at `maxRetryDelay`) and are scheduled automatically.
+7. After `maxRetries` failures the task is parked in `failedTasks` and announced on `onTaskFailed`. Call `retryFailed()` to give it a fresh set of attempts, or `deleteTask(id)` to drop it.
 
 ---
 
@@ -183,10 +221,12 @@ final syncEngine = SyncEngine(
       );
       return true; // success
     } catch (e) {
-      return false; // will retry
+      return false; // will retry (throwing is fine too)
     }
   },
   queueBoxName: 'offline_queue',
+  maxRetries: 5,
+  retryDelay: const Duration(seconds: 2), // 2s, 4s, 8s, ... (max 5 min)
 );
 
 await syncEngine.init();
@@ -211,13 +251,18 @@ class TodoService {
   final CacheNexusManager _cache;
   final SyncEngine _syncEngine;
 
-  TodoService(this._cache, this._syncEngine);
+  TodoService(this._cache, this._syncEngine) {
+    // Without this, List<Todo> cannot be rebuilt from disk after a restart.
+    _cache.registerAdapter<Todo>(
+      CacheAdapter.json(fromJson: Todo.fromJson, toJson: (t) => t.toJson()),
+    );
+  }
 
   Future<void> createTodo(Todo todo) async {
     // Add to cache immediately
     final todos = await _cache.get<List<Todo>>(
       key: 'todos',
-      fetcher: () => [],
+      fetcher: () async => <Todo>[],
     );
     await _cache.set<List<Todo>>(
       key: 'todos',
@@ -239,7 +284,7 @@ class TodoService {
     // Remove from cache immediately
     final todos = await _cache.get<List<Todo>>(
       key: 'todos',
-      fetcher: () => [],
+      fetcher: () async => <Todo>[],
     );
     await _cache.set<List<Todo>>(
       key: 'todos',

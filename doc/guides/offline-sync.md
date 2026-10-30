@@ -6,11 +6,13 @@ The `SyncEngine` manages a persistent queue of tasks that retry automatically wh
 
 ## How It Works
 
-1. Task is persisted to Hive (survives app restart)
-2. If online, task is processed immediately
-3. If offline, task stays in queue
-4. When connectivity returns, all queued tasks are processed in order
-5. Failed tasks retry up to **3 times**, then are skipped (remain in queue for UI visibility)
+1. The task is persisted to Hive (survives an app restart). Its `body` must be JSON-like (`Map`, `List`, `String`, `num`, `bool`); objects with a `toJson()` method are converted when enqueued.
+2. If online, the queue is processed immediately, oldest task first.
+3. If offline, the task stays in the queue.
+4. When connectivity returns, the queue is processed again. Tasks added while a pass is running are sent in that same pass.
+5. An attempt **fails** when the executor returns `false` **or throws** (e.g. a `DioException`). A failing task never blocks the tasks behind it.
+6. A failed task is retried up to `maxRetries` times (default 3). With `retryDelay` set, retries back off exponentially (`retryDelay`, 2×, 4×, … capped at `maxRetryDelay`) and are scheduled automatically.
+7. After `maxRetries` failures the task is parked in `failedTasks` and announced on `onTaskFailed`. Call `retryFailed()` to give it a fresh set of attempts, or `deleteTask(id)` to drop it.
 
 ---
 
@@ -29,10 +31,12 @@ final syncEngine = SyncEngine(
       );
       return true; // success
     } catch (e) {
-      return false; // will retry
+      return false; // will retry (throwing is fine too)
     }
   },
   queueBoxName: 'offline_queue',
+  maxRetries: 5,
+  retryDelay: const Duration(seconds: 2), // 2s, 4s, 8s, ... (max 5 min)
 );
 
 await syncEngine.init();
@@ -65,7 +69,9 @@ SyncTask({
   required String method,
   dynamic body,
   required DateTime createdAt,
-  int retryCount = 0,    // auto-incremented, max 3
+  int retryCount = 0,         // failed attempts so far
+  DateTime? nextAttemptAt,    // set by backoff
+  String? lastError,          // why the last attempt failed
 })
 ```
 
@@ -77,7 +83,9 @@ SyncTask({
 | `method` | `String` | HTTP method (GET, POST, PUT, DELETE) |
 | `body` | `dynamic` | Request body |
 | `createdAt` | `DateTime` | When task was created |
-| `retryCount` | `int` | Current retry count (auto-incremented) |
+| `retryCount` | `int` | Failed attempts so far |
+| `nextAttemptAt` | `DateTime?` | Earliest next attempt (backoff) |
+| `lastError` | `String?` | Why the last attempt failed |
 
 ---
 
@@ -88,14 +96,19 @@ class TodoService {
   final CacheNexusManager _cache;
   final SyncEngine _syncEngine;
 
-  TodoService(this._cache, this._syncEngine);
+  TodoService(this._cache, this._syncEngine) {
+    // Without this, List<Todo> cannot be rebuilt from disk after a restart.
+    _cache.registerAdapter<Todo>(
+      CacheAdapter.json(fromJson: Todo.fromJson, toJson: (t) => t.toJson()),
+    );
+  }
 
   // Create todo offline
   Future<void> createTodo(Todo todo) async {
     // Add to cache immediately (for instant UI)
     final todos = await _cache.get<List<Todo>>(
       key: 'todos',
-      fetcher: () => [],
+      fetcher: () async => <Todo>[],
     );
     await _cache.set<List<Todo>>(
       key: 'todos',
@@ -118,7 +131,7 @@ class TodoService {
     // Remove from cache immediately
     final todos = await _cache.get<List<Todo>>(
       key: 'todos',
-      fetcher: () => [],
+      fetcher: () async => <Todo>[],
     );
     await _cache.set<List<Todo>>(
       key: 'todos',
@@ -234,6 +247,7 @@ final syncEngine = SyncEngine(
     } on AuthException {
       return false; // Will retry (maybe token expired)
     }
+    // Any other exception also counts as a failed attempt.
   },
 );
 ```
@@ -249,8 +263,13 @@ syncEngine.onQueueChanged.listen((tasks) {
   }
 });
 
-// Get current pending tasks
+// Get current tasks, and the ones that gave up
 final pending = syncEngine.pendingTasks;
+final failed = syncEngine.failedTasks;
+syncEngine.onTaskFailed.listen((task) => print('gave up: ${task.lastError}'));
+
+// Retry the parked ones (e.g. from a "Retry" button)
+await syncEngine.retryFailed();
 
 // Delete a specific task
 await syncEngine.deleteTask('task_id');

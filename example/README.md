@@ -1,4 +1,4 @@
-# Smart Cache Example
+# Cache Nexus Example
 
 A Flutter app demonstrating `cache_nexus` with Dio integration.
 

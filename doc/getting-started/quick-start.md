@@ -1,6 +1,6 @@
 # Quick Start
 
-Get Smart Cache up and running in 5 minutes. This guide covers everything from installation to your first cached API call.
+Get Cache Nexus up and running in 5 minutes. This guide covers everything from installation to your first cached API call.
 
 ---
 
@@ -9,7 +9,7 @@ Get Smart Cache up and running in 5 minutes. This guide covers everything from i
 ```yaml
 # pubspec.yaml
 dependencies:
-  cache_nexus: ^1.0.0
+  cache_nexus: ^1.1.0
 ```
 
 Run:
@@ -37,7 +37,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Smart Cache Demo',
+      title: 'Cache Nexus Demo',
       home: const CacheDemoScreen(),
     );
   }
@@ -89,7 +89,7 @@ class _CacheDemoScreenState extends State<CacheDemoScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Smart Cache Demo')),
+      appBar: AppBar(title: const Text('Cache Nexus Demo')),
       body: Center(
         child: _loading
             ? const CircularProgressIndicator()

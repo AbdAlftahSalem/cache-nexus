@@ -1,6 +1,6 @@
 name: cache_nexus
-description: Offline-first, debuggable data orchestration layer for Flutter. Features TTL caching, 5 cache policies, encryption, auth-aware isolation, reactive streams, offline sync, and built-in dev tools.
-version: 1.0.0
+description: Offline-first caching for Flutter. Memory + Hive tiers, TTL, 5 cache policies, typed adapters, AES-GCM encryption, per-user isolation, reactive streams and offline sync.
+version: 1.1.0
 homepage: https://github.com/AbdAlftahSalem/cache-nexus
 issue_tracker: https://github.com/AbdAlftahSalem/cache-nexus/issues
 documentation: https://github.com/AbdAlftahSalem/cache-nexus/tree/main/doc
@@ -13,17 +13,19 @@ topics:
   - dio
 
 environment:
-  sdk: ^3.11.5
-  flutter: ">=3.0.0"
+  sdk: ^3.11.0
+  flutter: ">=3.41.0"
 
 dependencies:
+  archive: ^4.0.0
   connectivity_plus: ^7.1.1
+  crypto: ^3.0.3
   dio: ^5.4.0
   flutter:
     sdk: flutter
-  hive: ^2.2.3
-  hive_flutter: ^1.1.0
-  path_provider: ^2.1.5
+  hive_ce: ^2.19.0
+  hive_ce_flutter: ^2.3.0
+  pointycastle: ^4.0.0
 
 dev_dependencies:
   flutter_test:

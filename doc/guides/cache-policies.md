@@ -1,6 +1,6 @@
 # Cache Policies
 
-Smart Cache supports 5 cache strategies. Choose the right one based on your data freshness requirements.
+Cache Nexus supports 5 cache strategies. Choose the right one based on your data freshness requirements.
 
 ---
 
@@ -12,7 +12,25 @@ Smart Cache supports 5 cache strategies. Choose the right one based on your data
 | `networkFirst` | Fallback | Try first | Return cache | Real-time with offline (feed) |
 | `cacheOnly` | Read only | Never | -- | Offline-only data, local drafts |
 | `networkOnly` | Ignored | Always | -- | Critical real-time (payments) |
-| `staleWhileRevalidate` | Return instantly | Background | -- | Instant UI (products) |
+| `staleWhileRevalidate` | Return instantly (even expired) | Background | Keep cached value | Instant UI (products) |
+
+### Exact semantics (1.1.0)
+
+| Policy | Fresh entry | Expired entry | No entry | Fetcher throws |
+|--------|-------------|---------------|----------|----------------|
+| `cacheFirst` | returned | fetch | fetch | error reaches the caller |
+| `networkFirst` | used only if the fetch fails | not used | - | fresh cached value, else the **original** network error is rethrown |
+| `cacheOnly` | returned | `CacheMissException` (or `null` for nullable `T`) | `CacheMissException` (or `null`) | never called |
+| `networkOnly` | ignored | ignored | ignored | error reaches the caller |
+| `staleWhileRevalidate` | returned + background refresh | **returned** + background refresh | fetch | background: reported as an error event; foreground (no entry): reaches the caller |
+
+Notes:
+
+- Every successful fetch is stored (memory + persistent) and pushed to watchers, whatever the policy.
+- A cached `null` (for `get<T?>`) is a hit; it is not fetched again until it expires.
+- When offline, `networkFirst` reads the cache without calling the fetcher, and `staleWhileRevalidate` skips the background refresh.
+- Concurrent calls for the same key share one fetch.
+- An entry that exists but cannot be converted to `T` (for example a custom class without a registered `CacheAdapter`) is treated as a miss and reported as a `CacheDecodeException` error event and a debug log; `cacheOnly` throws it. See [Two-Tier Storage](two-tier-storage.md#typed-data-and-app-restarts).
 
 ---
 
@@ -57,7 +75,7 @@ Request → Cache Hit? → Yes → Return cached data
 
 ## networkFirst
 
-Try network first. If it fails (e.g., offline), fall back to cache.
+Try the network first. If it fails, fall back to a fresh cached value; if there is none, the original network error (e.g. `DioException`) is rethrown so you can show a real message.
 
 ```dart
 final feed = await cache.get<List<Post>>(
@@ -71,9 +89,10 @@ final feed = await cache.get<List<Post>>(
 ### Flow
 
 ```
-Request → Fetch from network → Success? → Yes → Store in cache → Return data
-                                      → No  → Cache Hit? → Yes → Return cached
-                                                           → No  → Return null
+Request → Online? → No  → read cache (like cacheOnly)
+        → Yes → Fetch from network → Success? → Yes → Store in cache → Return data
+                                              → No  → Fresh cache hit? → Yes → Return cached
+                                                                         → No  → Rethrow the network error
 ```
 
 ### When to use
@@ -110,8 +129,8 @@ final drafts = await cache.get<List<Draft>>(
 ### Flow
 
 ```
-Request → Cache Hit? → Yes → Return cached data
-                     → No  → Return null (or throw)
+Request → Fresh cache hit? → Yes → Return cached data
+                           → No  → throw CacheMissException (or return null when T is nullable)
 ```
 
 ### When to use
@@ -135,7 +154,7 @@ Request → Cache Hit? → Yes → Return cached data
 
 ## networkOnly
 
-Always fetch from network. Cache is ignored completely.
+Always fetch from the network. The cache is never read (the result is still stored, so watchers and other policies see it).
 
 ```dart
 final status = await cache.get<PaymentStatus>(
@@ -148,8 +167,8 @@ final status = await cache.get<PaymentStatus>(
 ### Flow
 
 ```
-Request → Fetch from network → Success? → Yes → Return data (don't cache)
-                                      → No  → Return null
+Request → Fetch from network → Success? → Yes → Store in cache → Return data
+                                      → No  → Rethrow the error
 ```
 
 ### When to use
@@ -173,7 +192,7 @@ Request → Fetch from network → Success? → Yes → Return data (don't cache
 
 ## staleWhileRevalidate
 
-Return cached data instantly, then refresh in the background.
+Return cached data instantly, **even if its TTL has passed**, then refresh in the background. Watchers (`watch()`, `CacheNexusBuilder`) receive the fresh value when it arrives.
 
 ```dart
 final products = await cache.get<List<Product>>(
@@ -187,8 +206,8 @@ final products = await cache.get<List<Product>>(
 ### Flow
 
 ```
-Request → Cache Hit? → Yes → Return stale data immediately
-                          → Fetch fresh data in background
+Request → Cache Hit (fresh OR expired)? → Yes → Return it immediately
+                                              → Fetch fresh data in background (when online)
                           → Update cache when done
                      → No  → Fetch from network → Store in cache → Return data
 ```

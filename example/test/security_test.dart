@@ -5,13 +5,13 @@ import 'dart:convert';
 void main() {
   late MemoryCacheStorage innerStorage;
   late SecureCacheStorage secureStorage;
-  late SimpleEncryptor encryptor;
-  late SimpleCompressor compressor;
+  late AesGcmEncryptor encryptor;
+  late GZipCompressor compressor;
 
   setUp(() {
     innerStorage = MemoryCacheStorage();
-    encryptor = SimpleEncryptor('test_secret_key');
-    compressor = SimpleCompressor();
+    encryptor = AesGcmEncryptor(AesGcmEncryptor.generateKey());
+    compressor = const GZipCompressor();
     secureStorage = SecureCacheStorage(
       innerStorage,
       encryptor: encryptor,

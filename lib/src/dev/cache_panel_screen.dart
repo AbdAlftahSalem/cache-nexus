@@ -5,10 +5,17 @@ import '../cache_manager.dart';
 import '../cache_event.dart';
 import 'cache_detail_screen.dart';
 
+/// The dev panel: live cache and network events with stats.
 class CachePanelScreen extends StatefulWidget {
+  /// The manager whose events are shown.
   final CacheNexusManager manager;
 
-  const CachePanelScreen({super.key, required this.manager});
+  /// Called by the close button. When `null`, the panel relies on the
+  /// navigator's back button.
+  final VoidCallback? onClose;
+
+  /// Creates the panel.
+  const CachePanelScreen({super.key, required this.manager, this.onClose});
 
   @override
   State<CachePanelScreen> createState() => _CachePanelScreenState();
@@ -23,16 +30,13 @@ class _CachePanelScreenState extends State<CachePanelScreen> {
     super.initState();
     // Load recent events that happened before panel opened
     _events.addAll(widget.manager.recentEvents);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      _subscription = widget.manager.events.listen((event) {
-        if (mounted) {
-          setState(() {
-            _events.insert(0, event);
-            if (_events.length > 100) _events.removeLast();
-          });
-        }
-      });
+    _subscription = widget.manager.events.listen((event) {
+      if (mounted) {
+        setState(() {
+          _events.insert(0, event);
+          if (_events.length > 100) _events.removeLast();
+        });
+      }
     });
   }
 
@@ -48,7 +52,14 @@ class _CachePanelScreenState extends State<CachePanelScreen> {
     final cacheEvents = _events.where((e) => !e.isNetworkEvent).toList();
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Smart Cache Dev Panel'),
+        title: const Text('Cache Nexus Dev Panel'),
+        leading: widget.onClose == null
+            ? null
+            : IconButton(
+                tooltip: 'Close',
+                icon: const Icon(Icons.close),
+                onPressed: widget.onClose,
+              ),
         actions: [
           IconButton(
             icon: const Icon(Icons.delete_sweep),

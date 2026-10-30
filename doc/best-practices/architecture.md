@@ -1,6 +1,6 @@
 # Architecture Best Practices
 
-Patterns for structuring your app with Smart Cache.
+Patterns for structuring your app with Cache Nexus.
 
 ---
 
@@ -200,12 +200,15 @@ await cache.get(key: 'user_data', fetcher: () => api.getUserData(), ttl: null);
 ### 4. Handle Errors Gracefully
 
 ```dart
-final data = await cache.get<String>(
-  key: 'data',
-  fetcher: () => api.getData(),
-);
-// Data is always returned (from cache, network, or null)
-// No try-catch needed!
+try {
+  final data = await cache.get<String>(
+    key: 'data',
+    fetcher: () => api.getData(),
+    policy: CachePolicy.networkFirst,
+  );
+} on DioException catch (e) {
+  // Network failed and nothing fresh was cached.
+}
 ```
 
 ### 5. Clean Up on Logout

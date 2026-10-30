@@ -1,6 +1,6 @@
 # Blog App Example
 
-A complete blog app demonstrating Smart Cache features with Dio for network requests.
+A complete blog app demonstrating Cache Nexus features with Dio for network requests.
 
 ## Features Demonstrated
 
@@ -31,8 +31,8 @@ A complete blog app demonstrating Smart Cache features with Dio for network requ
 final memoryStorage = MemoryCacheStorage();
 final securePersistentStorage = SecureCacheStorage(
   MemoryCacheStorage(),
-  encryptor: SimpleEncryptor('example_secret_key'),
-  compressor: SimpleCompressor(),
+  encryptor: AesGcmEncryptor.fromBase64(encryptionKey), // from secure storage
+  compressor: const GZipCompressor(),
 );
 
 final cache = CacheNexusManager(
@@ -70,7 +70,7 @@ cache.setContext(CacheContext(
   role: 'admin',
 ));
 
-// Cache keys are now prefixed: user_123_admin_posts
+// Cache keys are now scoped: u8:user_123|r5:admin|posts
 final posts = await cache.get<List<Post>>(key: 'posts', fetcher: () => ...);
 
 // Switch user
@@ -106,5 +106,5 @@ flutter run
 
 - `cache_nexus`: The cache package
 - `dio`: HTTP client
-- `hive_flutter`: Persistent storage
+- `hive_ce_flutter`: Persistent storage (via cache_nexus)
 - `connectivity_plus`: Network status monitoring

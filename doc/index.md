@@ -1,6 +1,6 @@
-# Smart Cache Documentation
+# Cache Nexus Documentation
 
-Welcome to the Smart Cache documentation. This guide will help you understand and use Smart Cache effectively in your Flutter projects.
+Welcome to the Cache Nexus documentation. This guide will help you understand and use Cache Nexus effectively in your Flutter projects.
 
 ---
 
@@ -17,7 +17,7 @@ Welcome to the Smart Cache documentation. This guide will help you understand an
 
 ### Getting Started
 
-Perfect for new users who want to try Smart Cache for the first time.
+Perfect for new users who want to try Cache Nexus for the first time.
 
 | Document | Description |
 |----------|-------------|
@@ -27,7 +27,7 @@ Perfect for new users who want to try Smart Cache for the first time.
 
 ### Guides
 
-In-depth explanations of all Smart Cache features.
+In-depth explanations of all Cache Nexus features.
 
 | Document | Description |
 |----------|-------------|
@@ -52,7 +52,7 @@ Complete, copy-pasteable code examples for common scenarios.
 
 ### Best Practices
 
-Tips and patterns for using Smart Cache effectively.
+Tips and patterns for using Cache Nexus effectively.
 
 | Document | Description |
 |----------|-------------|
@@ -84,7 +84,7 @@ Common questions and troubleshooting.
 |----------|-------------|
 | [Common Issues](faq/common-issues.md) | Frequently encountered problems |
 | [Troubleshooting](faq/troubleshooting.md) | Step-by-step debugging guide |
-| [Glossary](faq/glossary.md) | Smart Cache terminology |
+| [Glossary](faq/glossary.md) | Cache Nexus terminology |
 
 ---
 

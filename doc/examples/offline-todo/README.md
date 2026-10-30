@@ -1,6 +1,6 @@
 # Offline Todo Example
 
-A complete offline-first todo app demonstrating Smart Cache's SyncEngine for offline CRUD operations with automatic sync when online.
+A complete offline-first todo app demonstrating Cache Nexus's SyncEngine for offline CRUD operations with automatic sync when online.
 
 ## Features Demonstrated
 
@@ -40,6 +40,7 @@ final syncEngine = SyncEngine(
     }
   },
   queueBoxName: 'todo_sync_queue',
+  retryDelay: const Duration(seconds: 2), // backoff: 2s, 4s, 8s...
 );
 await syncEngine.init();
 
@@ -48,6 +49,12 @@ final cache = CacheNexusManager(
   memoryStorage: MemoryCacheStorage(),
   persistentStorage: hiveStorage,
   syncEngine: syncEngine,
+);
+
+// Required: lets List<Todo> be rebuilt from disk after a restart.
+// Without it the todos saved offline cannot be read back.
+cache.registerAdapter<Todo>(
+  CacheAdapter.json(fromJson: Todo.fromJson, toJson: (t) => t.toJson()),
 );
 ```
 
@@ -58,7 +65,7 @@ Future<void> createTodo(Todo todo) async {
   // 1. Add to cache immediately (instant UI update)
   final todos = await _cache.get<List<Todo>>(
     key: 'todos',
-    fetcher: () => [],
+    fetcher: () async => <Todo>[],
   );
   await _cache.set<List<Todo>>(
     key: 'todos',
@@ -84,7 +91,7 @@ Future<void> deleteTodo(String id) async {
   // 1. Remove from cache immediately
   final todos = await _cache.get<List<Todo>>(
     key: 'todos',
-    fetcher: () => [],
+    fetcher: () async => <Todo>[],
   );
   await _cache.set<List<Todo>>(
     key: 'todos',
@@ -177,11 +184,12 @@ flutter run
 1. Add some todos (they sync immediately if online)
 2. Toggle the "Online" switch to OFF
 3. Add more todos (they appear instantly in the list)
-4. Toggle back to ON
-5. Watch queued tasks sync automatically
+4. Kill and relaunch the app while still offline: the todos are still there
+5. Toggle back to ON
+6. Watch queued tasks sync automatically
 
 ## Dependencies
 
 - `cache_nexus`: Cache + SyncEngine
-- `hive_flutter`: Persistent storage
+- `hive_ce_flutter`: Persistent storage (via cache_nexus)
 - `connectivity_plus`: Network status

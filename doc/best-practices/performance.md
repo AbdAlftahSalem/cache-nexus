@@ -1,6 +1,6 @@
 # Performance
 
-Tips for optimizing Smart Cache performance.
+Tips for optimizing Cache Nexus performance.
 
 ---
 
@@ -134,7 +134,7 @@ await cache.delete( 'temporary_data');
 
 ## Request Deduplication
 
-Smart Cache automatically deduplicates concurrent requests:
+Cache Nexus automatically deduplicates concurrent requests:
 
 ```dart
 // These 3 calls happen simultaneously
@@ -209,7 +209,7 @@ Future<void> benchmarkCache() async {
   sw.reset();
   sw.start();
   for (int i = 0; i < 1000; i++) {
-    await cache.get<String>(key: 'key_$i', fetcher: () => null);
+    await cache.get<String>(key: 'key_$i', fetcher: () async => null);
   }
   sw.stop();
   print('Get 1000 hits: ${sw.elapsedMilliseconds}ms');

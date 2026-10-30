@@ -12,6 +12,9 @@ CacheNexusBuilder<T>({
   required String cacheKey,
   required Widget Function(BuildContext, T?) builder,
   Duration? debounce,
+  WidgetBuilder? loadingBuilder,
+  Widget Function(BuildContext, Object error, T? lastValue)? errorBuilder,
+  void Function(Object error, StackTrace stackTrace)? onError,
 })
 ```
 
@@ -23,6 +26,27 @@ CacheNexusBuilder<T>({
 | `cacheKey` | `String` | Key to watch |
 | `builder` | `Widget Function(BuildContext, T?)` | Builder function |
 | `debounce` | `Duration?` | Debounce interval |
+| `loadingBuilder` | `WidgetBuilder?` | Shown until the first value arrives (otherwise `builder` gets `null`) |
+| `errorBuilder` | `Widget Function(BuildContext, Object, T?)?` | Shown when the stream reports an error, e.g. a cached value that cannot be read as `T` |
+| `onError` | `void Function(Object, StackTrace)?` | Called for every stream error |
+
+Without `errorBuilder` and `onError`, errors are reported through `FlutterError.reportError` and the last good value stays on screen.
+
+The builder only **watches** the key; load the data with `cache.get(...)` (for example in your repository or `initState`).
+
+---
+
+## Loading and errors
+
+```dart
+CacheNexusBuilder<List<User>>(
+  cache: cache,
+  cacheKey: 'users',
+  loadingBuilder: (context) => const CircularProgressIndicator(),
+  errorBuilder: (context, error, lastUsers) => Text('Could not read users: $error'),
+  builder: (context, users) => UserList(users: users ?? const []),
+);
+```
 
 ---
 
@@ -64,9 +88,9 @@ CacheNexusBuilder<List<Message>>(
 ## How It Works
 
 1. `CacheNexusBuilder` subscribes to `cache.watch(cacheKey)`
-2. On subscription, the current value (if any) is emitted immediately
-3. When `set()` or `delete()` is called, all subscribers for that key are notified
-4. `CacheNexusBuilder` listens to this stream and rebuilds
+2. On subscription it receives the current value (or `null`); other watchers are not notified again
+3. Every `set()`, successful fetch, `delete()`, `clear()` or `invalidateByContext()` notifies the watchers of that key exactly once (`null` for removals)
+4. `CacheNexusBuilder` rebuilds with the new value
 
 ---
 
@@ -148,7 +172,7 @@ CacheNexusBuilder<int>(
 // Increment counter
 await cache.set<int>(
   key: 'counter',
-  data: (await cache.get<int>(key: 'counter', fetcher: () => 0))! + 1,
+  data: (await cache.get<int>(key: 'counter', fetcher: () async => 0)) + 1,
 );
 ```
 

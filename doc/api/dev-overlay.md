@@ -14,6 +14,7 @@ A floating debug button that opens the Dev Panel.
 CacheNexusOverlay({
   required CacheNexusManager manager,
   required Widget child,
+  GlobalKey<NavigatorState>? navigatorKey,
 })
 ```
 
@@ -23,6 +24,9 @@ CacheNexusOverlay({
 |-----------|------|-------------|
 | `manager` | `CacheNexusManager` | Cache instance |
 | `child` | `Widget` | App widget |
+| `navigatorKey` | `GlobalKey<NavigatorState>?` | Navigator to push the panel on (optional) |
+
+Works inside `MaterialApp.builder` (no `Navigator` above it: the panel opens over the app with its own navigator and a close button) and inside a page (the panel is pushed on the nearest navigator). It adds no `Scaffold`.
 
 ### Usage
 
@@ -112,10 +116,11 @@ print('Hit Rate: ${(cache.stats.hitRate * 100).toStringAsFixed(1)}%');
 
 In `CacheNexusMode.production`:
 
-- `_emit()` returns immediately (no events created)
-- Stats are not tracked
-- Overlay widget renders just the child (no FAB)
-- **Zero performance overhead** in release builds
+- No events are created and stats are not tracked
+- The overlay renders just the child (no button)
+- The Dio interceptor passes traffic through untouched
+
+The mode is a runtime switch; the dev widgets are compiled in but inactive.
 
 ```dart
 final cache = CacheNexusManager(

@@ -1,68 +1,81 @@
 # Security & Auth
 
-Smart Cache provides encryption for sensitive data and auth-aware caching to isolate cache by user ID and role.
+Cache Nexus encrypts sensitive data at rest and isolates cached data per user (and role).
 
 ---
 
 ## Security Layer
 
-`SecureCacheStorage` wraps any `CacheStorage` and applies **compress-then-encrypt** on write, **decrypt-then-decompress** on read.
+`SecureCacheStorage` wraps any `CacheStorage` and applies **compress-then-encrypt** on write and **decrypt-then-decompress** on read. Each entry is stored as one opaque string.
 
-### Basic Usage
+### Encrypting with AES-GCM (recommended)
+
+`AesGcmEncryptor` is real authenticated encryption (AES-GCM, 256-bit key by default, a fresh random nonce for every value, 128-bit authentication tag). It handles any Unicode text, Arabic included.
+
+The key belongs to your app. Generate it once and keep it in the platform keystore, for example with [`flutter_secure_storage`](https://pub.dev/packages/flutter_secure_storage):
 
 ```dart
+import 'dart:convert';
+
 import 'package:cache_nexus/cache_nexus.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-final secureStorage = SecureCacheStorage(
-  MemoryCacheStorage(),                    // or HiveCacheStorage
-  encryptor: SimpleEncryptor('my_secret_key'),
-  compressor: SimpleCompressor(),
-);
+Future<CacheNexusManager> createSecureCache() async {
+  const keystore = FlutterSecureStorage();
+  var encryptionKey = await keystore.read(key: 'cache_key');
+  if (encryptionKey == null) {
+    encryptionKey = base64Encode(AesGcmEncryptor.generateKey());
+    await keystore.write(key: 'cache_key', value: encryptionKey);
+  }
 
-final cache = CacheNexusManager(
-  memoryStorage: MemoryCacheStorage(),
-  persistentStorage: secureStorage,
-);
+  final hive = HiveCacheStorage(boxName: 'secure_cache');
+  await hive.init();
+
+  return CacheNexusManager(
+    persistentStorage: SecureCacheStorage(
+      hive,
+      encryptor: AesGcmEncryptor.fromBase64(encryptionKey),
+      compressor: const GZipCompressor(),
+    ),
+  );
+}
 ```
+
+What you get:
+
+- Data on disk is unreadable without the key.
+- Tampered data, data written with another key, or plain data fails authentication. `SecureCacheStorage` treats it as a **cache miss**, so the fetcher runs again.
+- If the key is lost (for example the app was reinstalled and the keystore was wiped), the old cache simply misses. Nothing crashes.
+
+Only the persistent tier is encrypted; values in memory are plain objects.
 
 ### How It Works
 
 ```
-Write: data → compress → encrypt → storage
-Read:  storage → decrypt → decompress → data
+Write: entry → JSON → compress → encrypt → storage
+Read:  storage → decrypt → decompress → JSON → entry
 ```
+
+### SimpleEncryptor is obfuscation, not encryption
+
+`SimpleEncryptor` XORs the UTF-8 bytes with a repeating key. Anyone who has the Hive file can recover the data. It is **deprecated** and kept only so existing apps keep working:
+
+- Since 1.1.0 it round-trips every Unicode string, Arabic and emoji included (1.0.0 corrupted non-Latin text).
+- It still reads values written by 1.0.0.
+
+Switching an existing app from `SimpleEncryptor` to `AesGcmEncryptor` is safe: old entries fail authentication, count as misses and are re-fetched.
+
+### Compression
+
+`GZipCompressor` is real GZip compression (pure Dart, works on web). JSON payloads of a few hundred bytes and up usually shrink by 60-90 %. Values that would not get smaller are stored as they are.
+
+`SimpleCompressor` compresses for real since 1.1.0 (in 1.0.0 it only added a marker) and still reads 1.0.0 values. New code should use `GZipCompressor`.
 
 ---
 
 ## Custom Encryptor
 
-Implement the `CacheEncryptor` interface for your own encryption:
-
-```dart
-class AesEncryptor implements CacheEncryptor {
-  final String key;
-
-  AesEncryptor(this.key);
-
-  @override
-  String encrypt(String data) {
-    // Use your AES implementation here
-    return aesEncrypt(data, key);
-  }
-
-  @override
-  String decrypt(String data) {
-    return aesDecrypt(data, key);
-  }
-}
-
-final secureStorage = SecureCacheStorage(
-  HiveCacheStorage(),
-  encryptor: AesEncryptor('your_256_bit_key'),
-);
-```
-
-### Interface
+Implement `CacheEncryptor` to plug in your own cipher. `decrypt` must throw when the input is not valid; the storage then treats the entry as a miss.
 
 ```dart
 abstract class CacheEncryptor {
@@ -71,28 +84,9 @@ abstract class CacheEncryptor {
 }
 ```
 
----
+See [snippets/custom_encryptor.md](../examples/snippets/custom_encryptor.md).
 
 ## Custom Compressor
-
-Implement the `CacheCompressor` interface for your own compression:
-
-```dart
-class GzipCompressor implements CacheCompressor {
-  @override
-  String compress(String data) {
-    // Use gzip/archive library
-    return gzip.encode(utf8.encode(data)).toString();
-  }
-
-  @override
-  String decompress(String data) {
-    return utf8.decode(gzip.decode(utf8.encode(data)));
-  }
-}
-```
-
-### Interface
 
 ```dart
 abstract class CacheCompressor {
@@ -105,158 +99,83 @@ abstract class CacheCompressor {
 
 ## Auth-Aware Caching
 
-Cache keys are automatically **isolated by user ID and role**. Different users never see each other's cached data.
+With a `CacheContext` set, every key is prefixed with the user (and role), so different users on the same device never see each other's data.
 
 ### Set User Context
 
 ```dart
-cache.setContext(CacheContext(
-  userId: 'user_123',
-  role: 'admin',
-));
+cache.setContext(const CacheContext(userId: 'user_123', role: 'admin'));
 ```
 
-Now all cache keys are automatically prefixed:
+Keys are now stored with an unambiguous, length-prefixed scope:
 
 ```
-user_123_admin_users
-user_123_admin_profile
+u8:user_123|r5:admin|users
+u8:user_123|r5:admin|profile
 ```
+
+Without a role the scope is `u8:user_123|r|`. Because the lengths are part of the prefix, `ali` + role `admin` and a user called `ali_admin` can never collide (they could in 1.0.0, whose prefix was `userId_role_`). Data written by 1.0.0 under the old prefix is found and moved to the new key the first time it is read.
 
 ### Switch Users
 
 ```dart
 // User A
-cache.setContext(CacheContext(userId: 'user_123', role: 'admin'));
+cache.setContext(const CacheContext(userId: 'user_123', role: 'admin'));
 final adminData = await cache.get<String>(
   key: 'secret',
-  fetcher: () => 'Admin Only',
+  fetcher: () async => 'Admin Only',
 );
 
-// User B (isolated -- different cache keys)
-cache.setContext(CacheContext(userId: 'user_456', role: 'guest'));
+// User B (isolated: different storage keys)
+cache.setContext(const CacheContext(userId: 'user_456', role: 'guest'));
 final guestData = await cache.get<String>(
   key: 'secret',
-  fetcher: () => 'Public Only',
+  fetcher: () async => 'Public Only',
 );
-
-// adminData and guestData are completely separate
 ```
 
-### Smart Invalidation
-
-Invalidate cache for a specific user without affecting others:
+### Invalidate on logout
 
 ```dart
-// Invalidate only User A's cache
-await cache.invalidateByContext(CacheContext(userId: 'user_123'));
+// Everything cached for user_123, every role:
+await cache.invalidateByContext(const CacheContext(userId: 'user_123'));
 
-// Invalidate all users (CacheContext requires userId, so use clear for global)
+// Only user_123's admin data:
+await cache.invalidateByContext(
+  const CacheContext(userId: 'user_123', role: 'admin'),
+);
+
+// Everything for everyone:
 await cache.clear();
 ```
+
+Watchers of the removed keys (`watch()`, `CacheNexusBuilder`) receive `null`, so the UI stops showing the previous user's data immediately.
 
 ### Clear Context
 
 ```dart
-cache.clearContext(); // back to global (unprefixed) keys
+cache.clearContext(); // back to global (unprefixed) keys; deletes nothing
 ```
 
 ---
 
 ## CacheContext Properties
 
-```dart
-CacheContext({
-  required String userId,
-  String? token,
-  String? role,
-})
-```
-
 | Property | Type | Description |
 |----------|------|-------------|
 | `userId` | `String` | User identifier (required) |
-| `token` | `String?` | Auth token (optional) |
-| `role` | `String?` | User role for isolation (optional) |
-| `cacheKeyPrefix` | `String` | Auto-generated prefix: `userId_role_` |
-
----
-
-## Example: Multi-User App
-
-```dart
-// Login as Admin
-await authService.login('admin@example.com', 'password');
-cache.setContext(CacheContext(
-  userId: authService.currentUser.id,
-  role: 'admin',
-));
-
-// Fetch admin data
-final adminDashboard = await cache.get<Dashboard>(
-  key: 'dashboard',
-  fetcher: () => api.getAdminDashboard(),
-  ttl: Duration(minutes: 5),
-);
-
-// Logout
-cache.clearContext();
-await authService.logout();
-
-// Login as Guest
-cache.setContext(CacheContext(
-  userId: 'guest_123',
-  role: 'guest',
-));
-
-// Guest sees different data (different cache keys)
-final guestDashboard = await cache.get<Dashboard>(
-  key: 'dashboard',
-  fetcher: () => api.getGuestDashboard(),
-  ttl: Duration(minutes: 5),
-);
-```
+| `token` | `String?` | Auth token. Never part of the key |
+| `role` | `String?` | Role for isolation (optional) |
+| `userKeyPrefix` | `String` | `u<len>:<userId>\|` |
+| `cacheKeyPrefix` | `String` | `userKeyPrefix` + `r\|` or `r<len>:<role>\|` |
 
 ---
 
 ## Best Practices
 
-### Use Strong Keys
-
-```dart
-// Bad: weak key
-final cache = SecureCacheStorage(
-  storage,
-  encryptor: SimpleEncryptor('123'),
-);
-
-// Good: strong key
-final cache = SecureCacheStorage(
-  storage,
-  encryptor: SimpleEncryptor('your_256_bit_key_here'),
-);
-```
-
-### Store Keys Securely
-
-```dart
-// Bad: hardcoded key
-final encryptor = SimpleEncryptor('secret_key');
-
-// Good: from secure storage
-final key = await SecureStorage.read('encryption_key');
-final encryptor = SimpleEncryptor(key);
-```
-
-### Use Unique User IDs
-
-```dart
-// Bad: generic user ID
-cache.setContext(CacheContext(userId: 'user'));
-
-// Good: specific user ID
-cache.setContext(CacheContext(userId: 'user_1234567890'));
-```
+- Use `AesGcmEncryptor` for tokens and personal data; never hard-code the key.
+- Call `invalidateByContext` on logout, then `clearContext`.
+- Use stable, unique user ids (the backend id, not a display name).
 
 ---
 

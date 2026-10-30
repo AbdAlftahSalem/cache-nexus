@@ -1,6 +1,20 @@
 # Migration Guide
 
-Side-by-side comparisons for migrating from other caching solutions to Smart Cache.
+Side-by-side comparisons for migrating from other caching solutions to Cache Nexus.
+
+---
+
+## From cache_nexus 1.0 to 1.1
+
+1.1.0 has no breaking API changes. What to know when upgrading:
+
+- **Storage moved to Hive CE** (`hive_ce`). It reads the boxes 1.0 wrote, so cached data and queued sync tasks are kept. If your app calls `Hive.init`/`Hive.initFlutter` itself and passes `initHive: false`, import `package:hive_ce_flutter/hive_flutter.dart` instead of `package:hive_flutter/hive_flutter.dart` (and `hive_ce` instead of `hive`); same files, same format.
+- **`TypeAdapter` → `CacheAdapter`.** The old name still works (deprecated). Register adapters for every custom class you persist; `List<T>` and `Map<String, T>` are covered automatically.
+- **`SimpleEncryptor` is deprecated.** It now handles Arabic/Unicode correctly and still reads 1.0 values. Move to `AesGcmEncryptor` for real encryption; old entries then count as misses once and are re-fetched.
+- **`CacheContext` prefixes changed** to an unambiguous format. Entries stored under the 1.0 prefix are migrated the first time they are read.
+- **Behaviour fixes you may notice:** `staleWhileRevalidate` now serves expired data while it refreshes; `networkFirst` rethrows the original network error when nothing is cached; watchers get one event per change (previously two) and are notified on `clear()`/`invalidateByContext()`; the sync queue no longer stalls when the executor throws.
+
+See the [CHANGELOG](../../CHANGELOG.md) for the full list.
 
 ---
 
@@ -9,7 +23,7 @@ Side-by-side comparisons for migrating from other caching solutions to Smart Cac
 ### Before (Hive only)
 
 ```dart
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hive_flutter/hive_flutter.dart'; // or hive_ce_flutter
 
 await Hive.initFlutter();
 final box = await Hive.openBox('cache');
@@ -24,7 +38,7 @@ final users = box.get('users');
 await box.delete('users');
 ```
 
-### After (Smart Cache)
+### After (Cache Nexus)
 
 ```dart
 import 'package:cache_nexus/cache_nexus.dart';
@@ -35,7 +49,9 @@ await hiveStorage.init();
 final cache = CacheNexusManager(
   memoryStorage: MemoryCacheStorage(),
   persistentStorage: hiveStorage,
-);
+)..registerAdapter<User>(
+    CacheAdapter.json(fromJson: User.fromJson, toJson: (u) => u.toJson()),
+  );
 
 // Set
 await cache.set<List<User>>(key: 'users', data: users);
@@ -47,7 +63,7 @@ final users = await cache.get<List<User>>(
 );
 
 // Delete
-await cache.delete( 'users');
+await cache.delete('users');
 ```
 
 ### Benefits
@@ -81,7 +97,7 @@ final users = prefs.getStringList('users');
 await prefs.remove('token');
 ```
 
-### After (Smart Cache)
+### After (Cache Nexus)
 
 ```dart
 import 'package:cache_nexus/cache_nexus.dart';
@@ -101,11 +117,11 @@ await cache.set<List<String>>(key: 'users', data: ['Alice', 'Bob']);
 // Get
 final token = await cache.get<String>(
   key: 'token',
-  fetcher: () => null,
+  fetcher: () async => null,
 );
 final users = await cache.get<List<String>>(
   key: 'users',
-  fetcher: () => [],
+  fetcher: () async => [],
 );
 
 // Delete
@@ -137,7 +153,7 @@ final usersProvider = FutureProvider<List<User>>((ref) async {
 ref.watch(usersProvider);
 ```
 
-### After (Smart Cache)
+### After (Cache Nexus)
 
 ```dart
 import 'package:cache_nexus/cache_nexus.dart';
@@ -190,7 +206,7 @@ final cacheOptions = CacheOptions(
 final dio = Dio()..interceptors.add(DioCacheInterceptor(options: cacheOptions));
 ```
 
-### After (Smart Cache)
+### After (Cache Nexus)
 
 ```dart
 import 'package:cache_nexus/cache_nexus.dart';

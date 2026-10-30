@@ -1,6 +1,6 @@
 # Troubleshooting
 
-Step-by-step debugging guide for Smart Cache issues.
+Step-by-step debugging guide for Cache Nexus issues.
 
 ---
 
@@ -108,7 +108,7 @@ print('User B data: $result'); // Should be 'guest_data'
 cache.setContext(CacheContext(userId: 'user_1', role: 'admin'));
 final adminData = await cache.get<String>(
   key: 'data',
-  fetcher: () => null,
+  fetcher: () async => null,
 );
 print('User A data: $adminData'); // Should be 'admin_data'
 ```
